@@ -1,50 +1,51 @@
-# Go 后端学习目录
+# Go 学习目录
 
-这是一份按目录拆开的 Go 后端学习笔记框架，适合有 Node.js/TypeScript 后端经验的人使用。这里不放公司、内部仓库、内部服务、内部域名、真实路径或真实接口名；涉及真实工作时统一写成“目标业务系统”“真实业务仓库”“业务接口”“业务学习”。
+English title: **Go Learning Directory**
 
-## 使用方式
+这是一套面向 Node.js/TypeScript 后端开发者的 Go 学习材料。当前只保留最新 36 天合并版作为唯一教程正文：它把旧的长期框架和短课正文合并成一条更深入、更可执行的 30-40 天推进计划。
+
+## 推荐入口
+
+| 路线 | 文件 | 适用场景 |
+|---|---|---|
+| 36 天合并版主教程 | [node-to-go-36-day-course.md](node-to-go-36-day-course.md) | 首选路线：每天 2 小时；每一天都有方向、深入点、具体步骤、产物、验证和检索练习 |
+| 36 天拆分实践切片 | [split-lessons/README.md](split-lessons/README.md) | 配套深化：按 6 个切片展开每天的具体实践步骤 |
+| 最终评分标准 | [sprint-36-day/capstone-rubric.md](sprint-36-day/capstone-rubric.md) | Day 36 自评和 capstone 验收 |
+
+## 学习方法
 
 每天学习时按这个顺序写：
 
 1. Node.js 里我以前怎么做。
 2. Go 里这个能力怎么表达。
 3. Go 和 Node.js 的本质差异是什么。
-4. 业务学习里我应该去看哪一类代码。
-5. 我今天写了什么 demo、测试或复盘。
+4. 我应该读哪一个开源项目片段。
+5. 我今天写了什么代码、测试、proto、migration、阅读笔记或复盘。
+6. 我跑过什么验证命令。
 
-## 目录
+每天必须有产物；只看材料不算完成。
 
-| 周次 | 目录 | 学习主题 |
-|---|---|---|
-| Week 01 | [week-01-go-fundamentals](week-01-go-fundamentals/README.md) | Go 基础、类型、错误、package |
-| Week 02 | [week-02-http-service](week-02-http-service/README.md) | HTTP 服务、路由、参数、DTO |
-| Week 03 | [week-03-data-and-testing](week-03-data-and-testing/README.md) | 缓存、SQL、测试隔离 |
-| Week 04 | [week-04-business-practice](week-04-business-practice/README.md) | 低风险业务改动演练 |
-| Week 05 | [week-05-grpc-basics](week-05-grpc-basics/README.md) | protobuf、gRPC 基础 |
-| Week 06 | [week-06-grpc-business](week-06-grpc-business/README.md) | gRPC 业务链路、流式处理、兼容性 |
-| Week 07 | [week-07-concurrency](week-07-concurrency/README.md) | goroutine、channel、context、并发测试 |
-| Week 08 | [week-08-flow-control](week-08-flow-control/README.md) | 限流、singleflight、流式 I/O、并发安全 |
-| Week 09 | [week-09-data-layer](week-09-data-layer/README.md) | Redis key、缓存序列化、事务、错误分类 |
-| Week 10 | [week-10-di-testability](week-10-di-testability/README.md) | 配置、依赖注入、可测试性 |
-| Week 11 | [week-11-observability](week-11-observability/README.md) | 日志、metrics、trace、告警 |
-| Week 12 | [week-12-capstone](week-12-capstone/README.md) | 独立小功能演练与最终复盘 |
+主教程负责学习路线，拆分实践切片负责每天怎么动手。不要把切片当作产品项目计划；Trip/Agent 只提供稳定案例名，目的是证明概念掌握。
 
-## 每周复盘问题
+## 36 天合并版阶段
 
-1. 这周我能解释哪个 Node.js -> Go 的差异。
-2. 这周我写了哪些 Go demo 或测试。
-3. 这周我能读懂哪类业务代码。
-4. 这周最容易混淆的错误处理或并发场景是什么。
-5. 下周最需要补的基础是什么。
+| Phase | Day | 主题 |
+|---|---:|---|
+| Phase 01 | Day 1-6 | Go 核心心智模型与数据结构 |
+| Phase 02 | Day 7-10 | HTTP、JSON 与测试 |
+| Phase 03 | Day 11-16 | 数据库、sqlc 与事务边界 |
+| Phase 04 | Day 17-20 | gRPC、Protobuf 与 Unary 服务 |
+| Phase 05 | Day 21-28 | Streaming、并发与运行期治理 |
+| Phase 06 | Day 29-36 | Agent、开源阅读与最终切片 |
+
+## 复盘问题
+
+1. 这阶段我能解释哪个 Node.js -> Go 的差异？
+2. 这阶段我写了哪些 Go demo、测试或验证脚本？
+3. 这阶段我能读懂哪类开源 Go 代码？
+4. 最容易混淆的错误处理、context 或并发场景是什么？
+5. 下一阶段最需要补的基础是什么？
 
 ## 总参考资料
 
-- [Go 官方学习入口](https://go.dev/learn/)
-- [A Tour of Go](https://go.dev/tour/)
-- [Effective Go](https://go.dev/doc/effective_go)
-- [Go by Example](https://gobyexample.com/)
-- [Learn Go with Tests](https://quii.gitbook.io/learn-go-with-tests/)
-- [The Go Programming Language](https://www.gopl.io/)
-- [gRPC Go 文档](https://grpc.io/docs/languages/go/)
-- [Protocol Buffers 文档](https://protobuf.dev/)
-
+完整资源索引见仓库根目录 [RESOURCES.md](../../RESOURCES.md)。主教程优先引用官方 Go、gRPC、Protobuf、database/sql、testing、context、race detector、log/slog 文档；开源项目作为阅读和复刻材料。
