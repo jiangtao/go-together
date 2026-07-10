@@ -4,7 +4,7 @@ English title: **36-Day Production Go Curriculum for Node.js Backend Developers*
 
 这是当前唯一保留的 Go 学习主教程。旧的长期目录、短课正文、速查表和重复 phase 文件都已经合并进本文并删除；后续学习、复盘和新增材料都以本文为准。
 
-本教程保留原 30-40 天节奏，采用 36 天主线：每天 2 小时，周末只补课、修测试和复盘，不新增主题。目标不是从零教编程，而是把已有 Node.js + SQL 后端经验迁移到 Go：能写、能测、能读开源项目，最终完成一个小型 Trip/Agent 后端切片。
+本教程保留原 30-40 天节奏，采用 Day 00 前言 + 36 天主线：先用 Day 00 搞清楚 Go 和 Node.js 的取舍、为什么学 Go、最终要获得什么能力；再进入每天 2 小时的正式训练。周末只补课、修测试和复盘，不新增主题。目标不是从零教编程，而是把已有 Node.js + SQL 后端经验迁移到 Go：能写、能测、能读开源项目，最终完成一个小型 Trip/Agent 后端切片。
 
 ## 学习者画像
 
@@ -75,7 +75,7 @@ ProgressEvent
 | 文件 | 用法 |
 |---|---|
 | `docs/go-learning/node-to-go-36-day-course.md` | 唯一教程正文 |
-| `docs/go-learning/split-lessons/README.md` | 按 6 个切片展开的每日实践深化材料 |
+| `docs/go-learning/daily-lessons/README.md` | Day 00 前言 + 一天一个文件的实践深化材料 |
 | `docs/go-learning/sprint-36-day/capstone-rubric.md` | Day 36 最终评分 |
 | `RESOURCES.md` | 官方资料、开源项目和社区资源索引 |
 

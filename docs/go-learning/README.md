@@ -2,14 +2,14 @@
 
 English title: **Go Learning Directory**
 
-这是一套面向 Node.js/TypeScript 后端开发者的 Go 学习材料。当前只保留最新 36 天合并版作为唯一教程正文：它把旧的长期框架和短课正文合并成一条更深入、更可执行的 30-40 天推进计划。
+这是一套面向 Node.js/TypeScript 后端开发者的 Go 学习材料。当前只保留最新 36 天主线作为唯一教程正文：它把旧的长期框架和短课正文整理成一条更深入、更可执行的 30-40 天推进计划。
 
 ## 推荐入口
 
 | 路线 | 文件 | 适用场景 |
 |---|---|---|
-| 36 天合并版主教程 | [node-to-go-36-day-course.md](node-to-go-36-day-course.md) | 首选路线：每天 2 小时；每一天都有方向、深入点、具体步骤、产物、验证和检索练习 |
-| 36 天拆分实践切片 | [split-lessons/README.md](split-lessons/README.md) | 配套深化：按 6 个切片展开每天的具体实践步骤 |
+| 36 天主教程 | [node-to-go-36-day-course.md](node-to-go-36-day-course.md) | 首选路线：每天 2 小时；每一天都有方向、深入点、具体步骤、产物、验证和检索练习 |
+| Day 00 前言与 36 天每日实践文件 | [daily-lessons/README.md](daily-lessons/README.md) | 配套深化：先读 Day 00 搞清楚为什么学 Go；之后每天一个独立文件，只打开当天内容 |
 | 最终评分标准 | [sprint-36-day/capstone-rubric.md](sprint-36-day/capstone-rubric.md) | Day 36 自评和 capstone 验收 |
 
 ## 学习方法
@@ -25,9 +25,9 @@ English title: **Go Learning Directory**
 
 每天必须有产物；只看材料不算完成。
 
-主教程负责学习路线，拆分实践切片负责每天怎么动手。不要把切片当作产品项目计划；Trip/Agent 只提供稳定案例名，目的是证明概念掌握。
+主教程负责学习路线，每日实践文件负责当天怎么动手。正式 Day 1 前先读 Day 00，搞清楚 Go 和 Node.js 的取舍、学习动机和最终目标。进入 Day 1 后，学习时一天只打开一个每日文件；不要把多个天数混在一起，也不要把 Trip/Agent 当作产品项目计划。
 
-## 36 天合并版阶段
+## 36 天课程阶段
 
 | Phase | Day | 主题 |
 |---|---:|---|
