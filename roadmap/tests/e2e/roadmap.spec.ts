@@ -3,6 +3,23 @@ import path from "node:path"
 
 import { expect, test, type Locator, type Page } from "@playwright/test"
 
+function watchRuntimeErrors(page: Page) {
+  const consoleErrors: string[] = []
+  const pageErrors: string[] = []
+
+  page.on("console", (message) => {
+    if (message.type() === "error") {
+      consoleErrors.push(message.text())
+    }
+  })
+  page.on("pageerror", (error) => pageErrors.push(error.message))
+
+  return () => {
+    expect(pageErrors).toEqual([])
+    expect(consoleErrors).toEqual([])
+  }
+}
+
 async function waitForViewportToSettle(viewport: Locator) {
   await viewport.evaluate(
     (element) =>
@@ -84,6 +101,13 @@ async function expectNodeInsideCanvas(node: Locator, canvas: Locator) {
   expect(nodeCenter.x).toBeLessThanOrEqual(canvasBox!.x + canvasBox!.width)
   expect(nodeCenter.y).toBeGreaterThanOrEqual(canvasBox!.y)
   expect(nodeCenter.y).toBeLessThanOrEqual(canvasBox!.y + canvasBox!.height)
+}
+
+async function expectElementInsideViewport(locator: Locator, viewportHeight: number) {
+  const box = await locator.boundingBox()
+  expect(box, `${await locator.getAttribute("data-testid")} 应出现在首屏`).not.toBeNull()
+  expect(box!.y).toBeGreaterThanOrEqual(0)
+  expect(box!.y + box!.height).toBeLessThanOrEqual(viewportHeight)
 }
 
 async function panNodeIntoCanvas(
@@ -230,6 +254,23 @@ test("桌面与移动路线图可见、可交互且无布局碰撞", async ({
   )
   expect(pageHasHorizontalOverflow).toBe(false)
 
+  if (testInfo.project.name.startsWith("mobile")) {
+    const hiddenToolbarControls = await page
+      .locator('.roadmap-toolbar [role="combobox"], .roadmap-toolbar button')
+      .evaluateAll((controls) =>
+        controls
+          .filter((control) => {
+            const rect = control.getBoundingClientRect()
+            return rect.left < 0 || rect.right > window.innerWidth
+          })
+          .map(
+            (control) =>
+              control.getAttribute("aria-label") ?? control.textContent?.trim()
+          )
+      )
+    expect(hiddenToolbarControls).toEqual([])
+  }
+
   const overlappingPairs = await page
     .locator('.lesson-node-card[data-testid^="lesson-node-"]')
     .evaluateAll((elements) => {
@@ -269,6 +310,37 @@ test("桌面与移动路线图可见、可交互且无布局碰撞", async ({
       }).length
     )
   expect(textWithVisibleOverflow).toBe(0)
+
+  const lessonTitleLineHeightRatios = await page
+    .locator(".lesson-node-title")
+    .evaluateAll((elements) =>
+      elements.map((element) => {
+        const style = window.getComputedStyle(element)
+        return Number.parseFloat(style.lineHeight) / Number.parseFloat(style.fontSize)
+      })
+    )
+  expect(
+    lessonTitleLineHeightRatios.every((ratio) => ratio >= 1.3)
+  ).toBe(true)
+  await expect(page.getByTestId("lesson-node-course-0")).toContainText("课程")
+
+  const overviewChrome = await page
+    .locator(".overview-node-card")
+    .evaluateAll((elements) =>
+      elements.map((element) => {
+        const style = window.getComputedStyle(element)
+        return {
+          borderWidth: style.borderTopWidth,
+          boxShadow: style.boxShadow,
+        }
+      })
+    )
+  expect(
+    overviewChrome.every(
+      ({ borderWidth, boxShadow }) =>
+        borderWidth === "0px" && boxShadow === "none"
+    )
+  ).toBe(true)
 
   const excessiveCardRadii = await page
     .locator('[data-slot="card"]')
@@ -312,6 +384,10 @@ test("桌面与移动路线图可见、可交互且无布局碰撞", async ({
     "data-vaul-drawer-direction",
     testInfo.project.name.startsWith("mobile") ? "bottom" : "right"
   )
+  if (testInfo.project.name.startsWith("mobile")) {
+    await expect(page.getByTestId("progress-overview")).not.toBeVisible()
+    await page.getByTestId("learning-progress-toggle").click()
+  }
   await expect(page.getByTestId("progress-overview")).toBeVisible()
   await expect(page.locator('[data-testid^="stage-progress-"]')).toHaveCount(6)
   await expect(page.getByTestId("lesson-detail-title")).toHaveText(
@@ -366,6 +442,12 @@ test("桌面与移动路线图可见、可交互且无布局碰撞", async ({
   const screenshotName = testInfo.project.name.startsWith("mobile")
     ? "mobile.png"
     : "desktop.png"
+  await canvas.screenshot({
+    path: path.join(
+      screenshotDirectory,
+      screenshotName.replace(".png", "-canvas.png")
+    ),
+  })
   await page.screenshot({
     path: path.join(screenshotDirectory, screenshotName),
     fullPage: true,
@@ -385,4 +467,152 @@ test("桌面与移动路线图可见、可交互且无布局碰撞", async ({
 
   expect(pageErrors).toEqual([])
   expect(consoleErrors).toEqual([])
+})
+
+test("Day 节点支持键盘激活且课程链接保持独立", async ({
+  page,
+}, testInfo) => {
+  test.skip(testInfo.project.name.startsWith("mobile"), "键盘回归使用桌面浏览器")
+  const expectNoRuntimeErrors = watchRuntimeErrors(page)
+
+  await page.goto("/")
+  const dayZero = page.locator('.react-flow__node-lesson[data-id="day-00"]')
+  await dayZero.focus()
+  await page.keyboard.press("Enter")
+  await expect(page.getByTestId("learning-drawer")).toBeVisible()
+  await expect(page.getByTestId("lesson-detail-title")).toHaveText(
+    "为什么 Node.js 开发者要学 Go"
+  )
+  await page.getByRole("button", { name: "关闭学习抽屉" }).click()
+
+  const dayOne = page.locator('.react-flow__node-lesson[data-id="day-01"]')
+  await dayOne.focus()
+  await page.keyboard.press("Space")
+  await expect(page.getByTestId("learning-drawer")).toBeVisible()
+  await expect(page.getByTestId("lesson-detail-title")).toHaveText(
+    "module / package / toolchain"
+  )
+  await page.getByRole("button", { name: "关闭学习抽屉" }).click()
+
+  const lessonLink = page.getByTestId("lesson-node-course-1")
+  await lessonLink.focus()
+  const sourcePagePromise = page.waitForEvent("popup")
+  await page.keyboard.press("Enter")
+  const sourcePage = await sourcePagePromise
+  await sourcePage.waitForLoadState("domcontentloaded")
+  await expect(sourcePage.locator("body")).toContainText("# Day 01")
+  await expect(page.getByTestId("learning-drawer")).toHaveCount(0)
+  await sourcePage.close()
+  expectNoRuntimeErrors()
+})
+
+test("文字导航、当前位置和图例能解释并定位路线图", async ({
+  page,
+}, testInfo) => {
+  test.skip(testInfo.project.name.startsWith("mobile"), "完整导航回归使用桌面浏览器")
+  const expectNoRuntimeErrors = watchRuntimeErrors(page)
+
+  await page.goto("/")
+  const canvas = page.getByTestId("roadmap-canvas")
+  const viewport = page.locator(".react-flow__viewport")
+
+  await page.getByTestId("roadmap-fit-view").click()
+  await waitForViewportToSettle(viewport)
+  await expectNodeInsideCanvas(page.getByTestId("roadmap-root"), canvas)
+  await expectNodeInsideCanvas(page.getByTestId("roadmap-track-3"), canvas)
+
+  await page.getByRole("combobox", { name: "跳转阶段" }).click()
+  await page.getByRole("option", { name: /阶段 6.*Agent 切片与复盘/ }).click()
+  await waitForViewportToSettle(viewport)
+  await expectNodeInsideCanvas(page.getByTestId("stage-6"), canvas)
+
+  await page.getByTestId("day-search-trigger").click()
+  await page.getByTestId("day-search-input").fill("Day 30")
+  await page.getByRole("option", { name: /Day 30.*minimal Tool interface/ }).click()
+  await expect(page.getByTestId("lesson-detail-title")).toHaveText(
+    "minimal Tool interface"
+  )
+  await page.getByRole("button", { name: "关闭学习抽屉" }).click()
+  await waitForViewportToSettle(viewport)
+  await expectNodeInsideCanvas(page.getByTestId("lesson-node-30"), canvas)
+  await expect(page.getByTestId("roadmap-location")).toHaveText(
+    "阶段 6/6 · Day 30"
+  )
+
+  await expect(page.getByTestId("recommended-marker-0")).toHaveText("推荐")
+  await expect(page.getByTestId("lesson-node-0")).not.toHaveAttribute(
+    "data-selected",
+    "true"
+  )
+  await expect(page.getByTestId("lesson-node-30")).toHaveAttribute(
+    "data-selected",
+    "true"
+  )
+  await expect(page.getByTestId("lesson-node-30")).not.toHaveAttribute(
+    "data-recommended",
+    "true"
+  )
+  const recommendationOutline = await page
+    .getByTestId("lesson-node-0")
+    .evaluate((element) => window.getComputedStyle(element).outlineStyle)
+  const selectionRing = await page
+    .getByTestId("lesson-node-30")
+    .evaluate((element) => window.getComputedStyle(element).boxShadow)
+  expect(recommendationOutline).toBe("none")
+  expect(selectionRing).not.toBe("none")
+
+  await page.getByTestId("roadmap-legend-trigger").click()
+  const legend = page.getByTestId("roadmap-legend")
+  await expect(legend).toBeVisible()
+  await expect(legend).toContainText("未开始")
+  await expect(legend).toContainText("定向回炉")
+  await expect(legend).toContainText("重新学习")
+  await expect(legend).toContainText("通过")
+  await expect(legend).toContainText("选中")
+  await expect(legend).toContainText("推荐")
+  await expect(legend).toContainText("阶段内实线")
+  await expect(legend).toContainText("跨阶段虚线")
+  await expect(legend).toContainText("结构线")
+  expectNoRuntimeErrors()
+})
+
+test("移动 Drawer 首屏优先展示当日详情并可展开进度", async ({
+  page,
+}, testInfo) => {
+  test.skip(!testInfo.project.name.startsWith("mobile"), "移动端专属回归")
+  const expectNoRuntimeErrors = watchRuntimeErrors(page)
+
+  await page.goto("/")
+  await page.getByTestId("lesson-node-0").click()
+
+  const drawer = page.getByTestId("learning-drawer")
+  await expect(drawer).toBeVisible()
+  await waitForElementToSettle(drawer)
+  const viewport = page.viewportSize()
+  expect(viewport).not.toBeNull()
+
+  await expect(page.getByTestId("learning-progress-toggle")).toContainText(
+    "总进度 0/37"
+  )
+  await expect(page.getByTestId("progress-overview")).not.toBeVisible()
+  await expect(page.getByTestId("lesson-detail-title")).toBeVisible()
+  await expect(page.getByTestId("lesson-objective")).toBeVisible()
+  await expect(page.getByTestId("lesson-resource-lesson")).toBeVisible()
+  await expectElementInsideViewport(
+    page.getByTestId("lesson-detail-title"),
+    viewport!.height
+  )
+  await expectElementInsideViewport(
+    page.getByTestId("lesson-objective"),
+    viewport!.height
+  )
+  await expectElementInsideViewport(
+    page.getByTestId("lesson-resource-lesson"),
+    viewport!.height
+  )
+
+  await page.getByTestId("learning-progress-toggle").click()
+  await expect(page.getByTestId("progress-overview")).toBeVisible()
+  await expect(page.locator('[data-testid^="stage-progress-"]')).toHaveCount(6)
+  expectNoRuntimeErrors()
 })

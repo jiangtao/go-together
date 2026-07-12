@@ -326,6 +326,102 @@
     padding-bottom: 0;
   }
 
+  .roadmap-panel-header {
+    display: flex;
+    flex: none;
+    flex-direction: column;
+    gap: 0.75rem;
+    padding-bottom: 0.75rem;
+  }
+
+  .roadmap-panel-heading {
+    display: flex;
+    min-width: 0;
+    align-items: flex-start;
+    justify-content: space-between;
+    gap: 1rem;
+  }
+
+  .roadmap-location {
+    flex: none;
+    white-space: nowrap;
+  }
+
+  .roadmap-toolbar {
+    display: flex;
+    min-width: 0;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 0.5rem;
+  }
+
+  .stage-jump-trigger {
+    max-width: 12rem;
+  }
+
+  .day-search-popover {
+    width: min(22rem, calc(100vw - 1rem));
+  }
+
+  .day-search-label {
+    width: 3.75rem;
+    flex: none;
+    font-weight: 620;
+  }
+
+  .roadmap-legend {
+    width: min(21rem, calc(100vw - 1rem));
+  }
+
+  .roadmap-legend-statuses {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 0.375rem;
+  }
+
+  .roadmap-legend-statuses .status-badge {
+    justify-content: flex-start;
+  }
+
+  .roadmap-legend-list {
+    display: grid;
+    gap: 0.5rem;
+    border-top: 1px solid var(--border);
+    padding-top: 0.625rem;
+  }
+
+  .roadmap-legend-list > div {
+    display: grid;
+    grid-template-columns: 5.25rem minmax(0, 1fr);
+    align-items: center;
+    gap: 0.625rem;
+    color: var(--muted-foreground);
+    font-size: 0.75rem;
+  }
+
+  .legend-node-sample {
+    width: 2rem;
+    height: 1.125rem;
+    border: 1px solid var(--primary);
+    border-radius: calc(var(--radius) * 0.6);
+    box-shadow: 0 0 0 2px color-mix(in oklch, var(--primary) 22%, transparent);
+  }
+
+  .legend-line-sample {
+    display: block;
+    width: 4rem;
+    border-top: 2px solid var(--roadmap-edge);
+  }
+
+  .legend-line-sample[data-variant="cross"],
+  .legend-line-sample[data-variant="structure"] {
+    border-top-style: dashed;
+  }
+
+  .legend-line-sample[data-variant="structure"] {
+    border-top-color: var(--roadmap-structure-edge);
+  }
+
   .roadmap-canvas-wrap {
     flex: 1;
     min-height: 0;
@@ -365,18 +461,17 @@
   .overview-node-card {
     width: 100%;
     height: 100%;
-    border: 1px solid var(--border);
-    background: var(--card);
-    box-shadow: 0 8px 24px color-mix(in oklch, var(--foreground) 8%, transparent);
+    border: 0;
+    background: color-mix(in oklch, var(--muted) 72%, var(--card));
+    box-shadow: none !important;
   }
 
   .overview-node-card[data-variant="root"] {
-    border-color: color-mix(in oklch, var(--primary) 58%, var(--border));
-    background: color-mix(in oklch, var(--primary) 5%, var(--card));
+    background: color-mix(in oklch, var(--primary) 9%, var(--card));
   }
 
   .overview-node-card[data-variant="track"] {
-    border-color: color-mix(in oklch, var(--primary) 22%, var(--border));
+    background: color-mix(in oklch, var(--muted) 72%, var(--card));
   }
 
   .overview-node-card [data-slot="card-header"] {
@@ -414,9 +509,9 @@
   .stage-node-card {
     width: 100%;
     height: 100%;
-    border: 1px solid var(--border);
-    background: color-mix(in oklch, var(--muted) 30%, var(--card));
-    box-shadow: none;
+    border: 1px solid color-mix(in oklch, var(--border) 72%, transparent);
+    background: color-mix(in oklch, var(--card) 30%, transparent);
+    box-shadow: none !important;
   }
 
   .stage-node-card [data-slot="card-header"] {
@@ -440,10 +535,13 @@
   }
 
   .lesson-node-card {
+    --card-spacing: 0.625rem;
     width: 100%;
     height: 100%;
+    gap: 0.375rem;
     border: 1px solid color-mix(in oklch, var(--current-status) 32%, var(--border));
     background: color-mix(in oklch, var(--current-status) 4%, var(--card));
+    padding-block: 0.5rem;
     box-shadow: none;
     transition: border-color 160ms ease, box-shadow 160ms ease, transform 160ms ease;
   }
@@ -457,11 +555,6 @@
   .react-flow__node-lesson:focus-visible .lesson-node-card {
     border-color: var(--primary);
     box-shadow: 0 0 0 2px color-mix(in oklch, var(--primary) 22%, transparent);
-  }
-
-  .lesson-node-card[data-recommended="true"] {
-    outline: 2px dashed color-mix(in oklch, var(--primary) 68%, transparent);
-    outline-offset: 3px;
   }
 
   .lesson-node-card [data-slot="card-header"] {
@@ -486,6 +579,30 @@
     min-height: 0;
   }
 
+  .lesson-node-content {
+    display: flex;
+    flex: 1;
+    flex-direction: column;
+    justify-content: flex-start;
+  }
+
+  .lesson-node-footer {
+    justify-content: flex-start;
+    border-top: 0;
+    background: transparent;
+    padding: 0 0.375rem;
+  }
+
+  .lesson-node-course {
+    color: var(--accent-foreground);
+    font-weight: 620;
+  }
+
+  .recommended-marker {
+    color: var(--foreground);
+    font-size: 0.6875rem;
+  }
+
   .lesson-node-title {
     display: -webkit-box;
     overflow: hidden;
@@ -493,8 +610,8 @@
     -webkit-box-orient: vertical;
     -webkit-line-clamp: 2;
     line-clamp: 2;
-    font-size: 0.8125rem;
-    line-height: 1.25;
+    font-size: 0.875rem;
+    line-height: 1.35;
     font-weight: 520;
   }
 
@@ -630,6 +747,43 @@
     flex: none;
   }
 
+  .learning-progress-section {
+    display: flex;
+    flex-direction: column;
+  }
+
+  .learning-progress-toggle {
+    width: 100%;
+    justify-content: flex-start;
+  }
+
+  .learning-progress-toggle strong {
+    margin-left: auto;
+  }
+
+  .learning-progress-recommendation {
+    margin-left: 0.25rem;
+  }
+
+  .learning-progress-chevron {
+    margin-left: 0.25rem;
+    transition: rotate 160ms ease;
+  }
+
+  .learning-progress-toggle[data-state="open"] .learning-progress-chevron {
+    rotate: 180deg;
+  }
+
+  .learning-progress-content {
+    padding-top: 0.75rem;
+  }
+
+  .progress-overview-card {
+    border: 0;
+    background: transparent;
+    box-shadow: none !important;
+  }
+
   .learning-drawer .stage-progress-grid {
     grid-template-columns: repeat(2, minmax(0, 1fr));
   }
@@ -692,6 +846,52 @@
 
   .roadmap-panel [data-slot="card-description"] {
     max-width: 13rem;
+  }
+
+  .roadmap-panel-header {
+    gap: 0.625rem;
+    padding: 0.75rem;
+  }
+
+  .roadmap-panel-heading [data-slot="card-description"] {
+    display: none;
+  }
+
+  .roadmap-toolbar {
+    flex-wrap: wrap;
+    gap: 0.375rem;
+  }
+
+  .roadmap-toolbar > * {
+    flex: none;
+  }
+
+  .stage-jump-trigger {
+    max-width: 9.5rem;
+  }
+
+  .learning-drawer-body {
+    gap: 0.625rem;
+  }
+
+  .learning-progress-content {
+    padding-top: 0.625rem;
+  }
+
+  .learning-progress-recommendation {
+    display: none;
+  }
+
+  .lesson-detail-content {
+    gap: 0.75rem;
+  }
+
+  .lesson-detail [data-slot="card-header"] {
+    padding-bottom: 0;
+  }
+
+  .detail-heading {
+    margin-bottom: 0.375rem;
   }
 
   .stage-node-card [data-slot="card-header"] {

@@ -3,18 +3,13 @@ import {
   BookOpenCheckIcon,
   CircleDashedIcon,
   RotateCcwIcon,
-  RouteIcon,
   WrenchIcon,
 } from "lucide-react"
 
 import { Badge } from "@/components/ui/badge"
 import {
   Card,
-  CardAction,
   CardContent,
-  CardDescription,
-  CardHeader,
-  CardTitle,
 } from "@/components/ui/card"
 import { Progress } from "@/components/ui/progress"
 import { Separator } from "@/components/ui/separator"
@@ -46,26 +41,14 @@ export function ProgressOverview({
   stages,
   stageProgress,
 }: ProgressOverviewProps) {
-  const recommendation =
-    summary.recommendedDay === null
-      ? "全部完成"
-      : `推荐 Day ${summary.recommendedDay}`
-
   return (
-    <Card size="sm" data-testid="progress-overview">
-      <CardHeader>
-        <CardTitle className="flex items-center gap-2">
-          <RouteIcon aria-hidden="true" />
-          总进度 {summary.completed}/{summary.total}
-        </CardTitle>
-        <CardDescription>
-          仅以 notes-eval.md 的评测结论计入学习进度
-        </CardDescription>
-        <CardAction>
-          <Badge variant="secondary">{recommendation}</Badge>
-        </CardAction>
-      </CardHeader>
+    <Card
+      size="sm"
+      className="progress-overview-card"
+      data-testid="progress-overview"
+    >
       <CardContent className="flex flex-col gap-3">
+        <h2 className="sr-only">学习进度详情</h2>
         <div className="flex items-center gap-3">
           <Progress
             value={summary.percentage}

@@ -108,7 +108,21 @@ export function LessonDetail({ lesson, stage }: LessonDetailProps) {
             <TargetIcon aria-hidden="true" />
             当日目标
           </h2>
-          <p className="detail-copy">{lesson.objective}</p>
+          <p className="detail-copy" data-testid="lesson-objective">
+            {lesson.objective}
+          </p>
+        </section>
+
+        <Separator />
+
+        <section aria-labelledby="course-path-heading">
+          <h2 id="course-path-heading" className="detail-heading">
+            <BookOpenIcon aria-hidden="true" />
+            课程入口
+          </h2>
+          {lessonResource ? (
+            <PathRow icon={BookOpenIcon} resource={lessonResource} />
+          ) : null}
         </section>
 
         <Separator />
@@ -127,15 +141,12 @@ export function LessonDetail({ lesson, stage }: LessonDetailProps) {
 
         <Separator />
 
-        <section aria-labelledby="paths-heading">
-          <h2 id="paths-heading" className="detail-heading">
+        <section aria-labelledby="practice-paths-heading">
+          <h2 id="practice-paths-heading" className="detail-heading">
             <FolderCodeIcon aria-hidden="true" />
-            课程与练习路径
+            笔记与评测路径
           </h2>
           <div className="flex flex-col gap-2">
-            {lessonResource ? (
-              <PathRow icon={BookOpenIcon} resource={lessonResource} />
-            ) : null}
             {notesResource ? (
               <PathRow icon={FolderCodeIcon} resource={notesResource} />
             ) : null}

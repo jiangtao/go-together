@@ -4,9 +4,11 @@
 
 路线图按“总路线 → 三条主题主干 → 六个阶段簇 → 37 个 Day 节点”组织，而不是把阶段纵向叠成目录。总进度、四种状态数量、六个阶段分进度和每个图节点的状态都来自同一份生成数据。
 
-跨模块的总览、主干和阶段连接使用动画虚线，跨阶段 Day 路径使用静态虚线，阶段内 Day 学习路径保持实线；系统启用“减少动态效果”时，跨模块连接保留虚线但停止动画。桌面端点击节点后以半屏 Drawer 展示进度和详情，移动端则使用底部 Drawer。
+跨模块的总览、主干和阶段连接使用动画虚线，跨阶段 Day 路径使用静态虚线，阶段内 Day 学习路径保持实线；系统启用“减少动态效果”时，跨模块连接保留虚线但停止动画。图例可随时展开核对状态、选中/推荐语义和连线类型。
 
-选择任意 Day 节点后，桌面端从右侧、移动端从底部打开学习 Drawer，集中展示总进度、阶段进度、当日目标与课程资源。顶部“学习进度”按钮也可随时打开 Drawer，关闭后画布仍保持原视口上下文。
+选择任意 Day 节点后，桌面端从右侧、移动端从底部打开学习 Drawer。Day 节点支持鼠标点击、Enter 和空格；节点内“课程”链接独立打开 Markdown。移动 Drawer 默认优先展示当日目标和课程入口，总进度以可展开摘要保留；桌面默认展开进度明细。顶部“学习进度”按钮也可随时打开 Drawer，关闭后画布仍保持原视口上下文。
+
+画布工具栏提供阶段跳转、Day 搜索、“适配全图”和“定位推荐 Day”。当前位置以“阶段 N/6 · Day N”持续显示，选择普通节点不会把视口自动拉回推荐 Day。
 
 课程内容只来自仓库内的 `docs/go-learning/daily-lessons/day-00...day-36`。学习状态只来自对应练习目录的 `notes-eval.md`，页面不提供手工打卡入口。
 
@@ -66,7 +68,7 @@ exercise/dayN/notes-eval.md
 
 ## 课程与笔记跳转
 
-每个 Day 节点右上角的文件按钮可直接打开课程 Markdown；选择节点后，详情区还会显示三个资源入口：
+每个 Day 节点底部的“课程”入口可直接打开课程 Markdown；选择节点后，详情区还会显示三个资源入口：
 
 | 资源 | 路径约定 | 不存在时 |
 |---|---|---|
@@ -112,4 +114,4 @@ Playwright 截图、trace 与 HTML 报告写入 `output/playwright/`、`playwrig
 
 ## English quick start and data contract
 
-Run `npm install && npm run dev`, then open <http://localhost:5173>. The map is organized as one overall route, three topic tracks, six stage clusters, and 37 Day nodes. Cross-module structure edges are animated and dashed, cross-stage Day transitions are statically dashed, and within-stage learning paths stay solid. Node details open in a half-width desktop drawer or a bottom mobile drawer. Lesson content is generated exclusively from `docs/go-learning/daily-lessons/day-00...day-36`. Progress is evaluation-driven: only `exercise/dayN/notes-eval.md` may set one of the four supported statuses or a 0–100 reference score. Lesson, notes, and evaluation links open deterministic UTF-8 copies under `/sources/`; missing optional files stay disabled. Development mode continuously resynchronizes Markdown changes, and every production build performs a fresh sync first. For Vercel, use a local prebuilt deployment or enable source files outside the `roadmap` Root Directory so the prebuild sync can read the curriculum Markdown.
+Run `npm install && npm run dev`, then open <http://localhost:5173>. The map is organized as one overall route, three topic tracks, six stage clusters, and 37 Day nodes. Cross-module structure edges are animated and dashed, cross-stage Day transitions are statically dashed, and within-stage learning paths stay solid. Day nodes support pointer, Enter, and Space activation; the toolbar provides stage navigation, Day search, fit-all, a semantic legend, and recommended-Day focus. Node details open in a half-width desktop drawer or a bottom mobile drawer, where lesson details appear first and progress stays collapsible. Lesson content is generated exclusively from `docs/go-learning/daily-lessons/day-00...day-36`. Progress is evaluation-driven: only `exercise/dayN/notes-eval.md` may set one of the four supported statuses or a 0–100 reference score. Lesson, notes, and evaluation links open deterministic UTF-8 copies under `/sources/`; missing optional files stay disabled. Development mode continuously resynchronizes Markdown changes, and every production build performs a fresh sync first. For Vercel, use a local prebuilt deployment or enable source files outside the `roadmap` Root Directory so the prebuild sync can read the curriculum Markdown.

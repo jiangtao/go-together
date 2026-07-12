@@ -1,8 +1,14 @@
-import { XIcon } from "lucide-react"
+import { ChevronDownIcon, RouteIcon, XIcon } from "lucide-react"
 
 import { LessonDetail } from "@/components/lesson-detail"
 import { ProgressOverview } from "@/components/progress-overview"
+import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
+import {
+  Collapsible,
+  CollapsibleContent,
+  CollapsibleTrigger,
+} from "@/components/ui/collapsible"
 import {
   Drawer,
   DrawerClose,
@@ -72,11 +78,43 @@ export function LearningDrawer({
           </div>
         </DrawerHeader>
         <div className="learning-drawer-body">
-          <ProgressOverview
-            summary={summary}
-            stages={stages}
-            stageProgress={stageProgress}
-          />
+          <Collapsible
+            key={`${isMobile ? "mobile" : "desktop"}-${lesson.day}`}
+            defaultOpen={!isMobile}
+            className="learning-progress-section"
+          >
+            <CollapsibleTrigger asChild>
+              <Button
+                type="button"
+                variant="outline"
+                className="learning-progress-toggle"
+                data-testid="learning-progress-toggle"
+                aria-label="展开或收起总进度"
+              >
+                <RouteIcon data-icon="inline-start" />
+                <span>
+                  总进度 {summary.completed}/{summary.total}
+                </span>
+                <Badge
+                  variant="secondary"
+                  className="learning-progress-recommendation"
+                >
+                  {summary.recommendedDay === null
+                    ? "全部完成"
+                    : `推荐 Day ${summary.recommendedDay}`}
+                </Badge>
+                <strong className="tabular-nums">{summary.percentage}%</strong>
+                <ChevronDownIcon className="learning-progress-chevron" />
+              </Button>
+            </CollapsibleTrigger>
+            <CollapsibleContent className="learning-progress-content">
+              <ProgressOverview
+                summary={summary}
+                stages={stages}
+                stageProgress={stageProgress}
+              />
+            </CollapsibleContent>
+          </Collapsible>
           <LessonDetail lesson={lesson} stage={stage} />
         </div>
       </DrawerContent>

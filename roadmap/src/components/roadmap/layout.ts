@@ -87,7 +87,7 @@ const DESKTOP_SETTINGS: LayoutSettings = {
   headerHeight: 96,
   horizontalPadding: 24,
   nodeWidth: 170,
-  nodeHeight: 88,
+  nodeHeight: 116,
   columnGap: 18,
   rowGap: 18,
   bottomPadding: 24,
@@ -100,16 +100,16 @@ const DESKTOP_SETTINGS: LayoutSettings = {
   trackY: 152,
   stageTopY: 304,
   stageRowGap: 110,
-  focusZoom: 0.88,
+  focusZoom: 0.84,
 }
 
 const MOBILE_SETTINGS: LayoutSettings = {
   lessonColumns: 2,
-  groupWidth: 364,
+  groupWidth: 376,
   headerHeight: 104,
   horizontalPadding: 20,
-  nodeWidth: 154,
-  nodeHeight: 92,
+  nodeWidth: 160,
+  nodeHeight: 120,
   columnGap: 16,
   rowGap: 16,
   bottomPadding: 24,
@@ -122,7 +122,7 @@ const MOBILE_SETTINGS: LayoutSettings = {
   trackY: 160,
   stageTopY: 320,
   stageRowGap: 100,
-  focusZoom: 0.92,
+  focusZoom: 0.88,
 }
 
 function percentage(completed: number, total: number): number {
@@ -351,7 +351,15 @@ export function buildRoadmapLayout({
         draggable: false,
         selectable: true,
         focusable: true,
-        ariaLabel: `${lesson.dayLabel} ${lesson.title}，状态 ${lesson.status}`,
+        ariaLabel: [
+          `${lesson.dayLabel} ${lesson.title}`,
+          `状态 ${lesson.status}`,
+          lesson.day === selectedDay ? "当前选中" : null,
+          lesson.day === recommendedDay ? "推荐课程" : null,
+          "按 Enter 或空格查看详情",
+        ]
+          .filter(Boolean)
+          .join("，"),
       }
       positionedLessons.push({
         node,

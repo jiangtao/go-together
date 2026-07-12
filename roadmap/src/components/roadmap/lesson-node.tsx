@@ -7,11 +7,13 @@ import {
 import { FileTextIcon } from "lucide-react"
 
 import { StatusBadge } from "@/components/status-badge"
+import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
 import {
   Card,
   CardAction,
   CardContent,
+  CardFooter,
   CardHeader,
   CardTitle,
 } from "@/components/ui/card"
@@ -53,33 +55,46 @@ export function LessonNode({ data, selected }: NodeProps<LessonFlowNode>) {
             <span className="tabular-nums">{lesson.dayLabel}</span>
             <StatusBadge status={lesson.status} />
           </CardTitle>
-          {lessonResource?.exists ? (
+          {data.recommended ? (
             <CardAction>
-              <Button
-                asChild
-                variant="ghost"
-                size="icon-xs"
-                className="nodrag nopan"
+              <Badge
+                variant="secondary"
+                className="recommended-marker"
+                data-testid={`recommended-marker-${lesson.day}`}
               >
-                <a
-                  href={lessonResource.href}
-                  target="_blank"
-                  rel="noreferrer"
-                  aria-label={`打开 ${lesson.dayLabel} 课程 Markdown`}
-                  data-testid={`lesson-node-course-${lesson.day}`}
-                  onClick={(event) => event.stopPropagation()}
-                >
-                  <FileTextIcon data-icon="inline-start" />
-                </a>
-              </Button>
+                推荐
+              </Badge>
             </CardAction>
           ) : null}
         </CardHeader>
-        <CardContent>
+        <CardContent className="lesson-node-content">
           <p className="lesson-node-title" title={lesson.title}>
             {lesson.title}
           </p>
         </CardContent>
+        {lessonResource?.exists ? (
+          <CardFooter className="lesson-node-footer">
+            <Button
+              asChild
+              variant="ghost"
+              size="xs"
+              className="nodrag nopan lesson-node-course"
+            >
+              <a
+                href={lessonResource.href}
+                target="_blank"
+                rel="noreferrer"
+                aria-label={`打开 ${lesson.dayLabel} 课程 Markdown`}
+                data-testid={`lesson-node-course-${lesson.day}`}
+                onClick={(event) => event.stopPropagation()}
+                onKeyDown={(event) => event.stopPropagation()}
+              >
+                <FileTextIcon data-icon="inline-start" />
+                课程
+              </a>
+            </Button>
+          </CardFooter>
+        ) : null}
       </Card>
       <Handle
         type="source"
