@@ -1,0 +1,4 @@
+interface:
+  display_name: "Go 日课准备与评测"
+  short_description: "按指定 Day 创建学习笔记，或执行无答案泄露的严格评测"
+  default_prompt: "使用 $evaluate-go-day 开始 Day 13，安全创建当天学习笔记。"
