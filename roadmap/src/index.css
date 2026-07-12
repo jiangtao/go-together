@@ -1,0 +1,919 @@
+@import "tailwindcss";
+@import "tw-animate-css";
+@import "shadcn/tailwind.css";
+@import "@fontsource-variable/geist";
+
+@custom-variant dark (&:is(.dark *));
+
+@theme inline {
+    --font-heading: var(--font-sans);
+    --font-sans: 'Geist Variable', sans-serif;
+    --color-sidebar-ring: var(--sidebar-ring);
+    --color-sidebar-border: var(--sidebar-border);
+    --color-sidebar-accent-foreground: var(--sidebar-accent-foreground);
+    --color-sidebar-accent: var(--sidebar-accent);
+    --color-sidebar-primary-foreground: var(--sidebar-primary-foreground);
+    --color-sidebar-primary: var(--sidebar-primary);
+    --color-sidebar-foreground: var(--sidebar-foreground);
+    --color-sidebar: var(--sidebar);
+    --color-chart-5: var(--chart-5);
+    --color-chart-4: var(--chart-4);
+    --color-chart-3: var(--chart-3);
+    --color-chart-2: var(--chart-2);
+    --color-chart-1: var(--chart-1);
+    --color-ring: var(--ring);
+    --color-input: var(--input);
+    --color-border: var(--border);
+    --color-destructive: var(--destructive);
+    --color-accent-foreground: var(--accent-foreground);
+    --color-accent: var(--accent);
+    --color-muted-foreground: var(--muted-foreground);
+    --color-muted: var(--muted);
+    --color-secondary-foreground: var(--secondary-foreground);
+    --color-secondary: var(--secondary);
+    --color-primary-foreground: var(--primary-foreground);
+    --color-primary: var(--primary);
+    --color-popover-foreground: var(--popover-foreground);
+    --color-popover: var(--popover);
+    --color-card-foreground: var(--card-foreground);
+    --color-card: var(--card);
+    --color-foreground: var(--foreground);
+    --color-background: var(--background);
+    --radius-sm: calc(var(--radius) * 0.6);
+    --radius-md: calc(var(--radius) * 0.8);
+    --radius-lg: var(--radius);
+    --radius-xl: var(--radius);
+    --radius-2xl: var(--radius);
+    --radius-3xl: var(--radius);
+    --radius-4xl: var(--radius);
+}
+
+:root {
+    --background: oklch(1 0 0);
+    --foreground: oklch(0.145 0 0);
+    --card: oklch(1 0 0);
+    --card-foreground: oklch(0.145 0 0);
+    --popover: oklch(1 0 0);
+    --popover-foreground: oklch(0.145 0 0);
+    --primary: oklch(0.585 0.233 264.376);
+    --primary-foreground: oklch(0.985 0 0);
+    --secondary: oklch(0.97 0 0);
+    --secondary-foreground: oklch(0.205 0 0);
+    --muted: oklch(0.97 0 0);
+    --muted-foreground: oklch(0.556 0 0);
+    --accent: oklch(0.965 0.025 261.126);
+    --accent-foreground: oklch(0.42 0.17 264.376);
+    --destructive: oklch(0.577 0.245 27.325);
+    --border: oklch(0.922 0 0);
+    --input: oklch(0.922 0 0);
+    --ring: oklch(0.585 0.233 264.376);
+    --chart-1: oklch(0.87 0 0);
+    --chart-2: oklch(0.556 0 0);
+    --chart-3: oklch(0.439 0 0);
+    --chart-4: oklch(0.371 0 0);
+    --chart-5: oklch(0.269 0 0);
+    --radius: 0.5rem;
+    --status-not-started: oklch(0.556 0 0);
+    --status-review: oklch(0.637 0.237 25.331);
+    --status-relearn: oklch(0.705 0.177 70.08);
+    --status-passed: oklch(0.627 0.194 149.214);
+    --roadmap-edge: oklch(0.556 0 0);
+    --roadmap-structure-edge: oklch(0.72 0 0);
+    --roadmap-grid: oklch(0.82 0 0);
+    --sidebar: oklch(0.985 0 0);
+    --sidebar-foreground: oklch(0.145 0 0);
+    --sidebar-primary: oklch(0.205 0 0);
+    --sidebar-primary-foreground: oklch(0.985 0 0);
+    --sidebar-accent: oklch(0.97 0 0);
+    --sidebar-accent-foreground: oklch(0.205 0 0);
+    --sidebar-border: oklch(0.922 0 0);
+    --sidebar-ring: oklch(0.708 0 0);
+}
+
+.dark {
+    --background: oklch(0.145 0 0);
+    --foreground: oklch(0.985 0 0);
+    --card: oklch(0.205 0 0);
+    --card-foreground: oklch(0.985 0 0);
+    --popover: oklch(0.205 0 0);
+    --popover-foreground: oklch(0.985 0 0);
+    --primary: oklch(0.922 0 0);
+    --primary-foreground: oklch(0.205 0 0);
+    --secondary: oklch(0.269 0 0);
+    --secondary-foreground: oklch(0.985 0 0);
+    --muted: oklch(0.269 0 0);
+    --muted-foreground: oklch(0.708 0 0);
+    --accent: oklch(0.269 0 0);
+    --accent-foreground: oklch(0.985 0 0);
+    --destructive: oklch(0.704 0.191 22.216);
+    --border: oklch(1 0 0 / 10%);
+    --input: oklch(1 0 0 / 15%);
+    --ring: oklch(0.556 0 0);
+    --chart-1: oklch(0.87 0 0);
+    --chart-2: oklch(0.556 0 0);
+    --chart-3: oklch(0.439 0 0);
+    --chart-4: oklch(0.371 0 0);
+    --chart-5: oklch(0.269 0 0);
+    --sidebar: oklch(0.205 0 0);
+    --sidebar-foreground: oklch(0.985 0 0);
+    --sidebar-primary: oklch(0.488 0.243 264.376);
+    --sidebar-primary-foreground: oklch(0.985 0 0);
+    --sidebar-accent: oklch(0.269 0 0);
+    --sidebar-accent-foreground: oklch(0.985 0 0);
+    --sidebar-border: oklch(1 0 0 / 10%);
+    --sidebar-ring: oklch(0.556 0 0);
+}
+
+@layer base {
+  * {
+    @apply border-border outline-ring/50;
+    }
+  body {
+    @apply bg-background text-foreground;
+    }
+  html {
+    @apply font-sans;
+    }
+}
+
+@layer base {
+  html {
+    min-width: 320px;
+    background: var(--background);
+  }
+
+  body {
+    min-width: 320px;
+    min-height: 100dvh;
+    margin: 0;
+    overflow: hidden;
+  }
+
+  #root {
+    height: 100dvh;
+  }
+
+  button,
+  [role="button"] {
+    -webkit-tap-highlight-color: transparent;
+  }
+}
+
+@layer components {
+  .app-shell {
+    display: flex;
+    width: 100%;
+    height: 100dvh;
+    min-height: 0;
+    flex-direction: column;
+    gap: 0.75rem;
+    overflow: hidden;
+    padding: 0.75rem;
+  }
+
+  .page-header {
+    display: flex;
+    flex: none;
+    align-items: center;
+    gap: 0.75rem;
+  }
+
+  .page-header h1 {
+    font-size: clamp(1.25rem, 2vw, 1.75rem);
+    line-height: 1.2;
+    font-weight: 650;
+    letter-spacing: -0.025em;
+  }
+
+  .page-header p {
+    margin-top: 0.25rem;
+    color: var(--muted-foreground);
+    font-size: 0.875rem;
+  }
+
+  .brand-mark {
+    display: grid;
+    size: 2.5rem;
+    flex: none;
+    place-items: center;
+    border: 1px solid color-mix(in oklch, var(--primary) 28%, var(--border));
+    border-radius: var(--radius);
+    background: color-mix(in oklch, var(--primary) 6%, var(--card));
+    color: var(--primary);
+  }
+
+  .brand-mark svg {
+    size: 1.25rem;
+  }
+
+  .header-actions {
+    display: flex;
+    flex: none;
+    align-items: center;
+    gap: 0.5rem;
+  }
+
+  .canvas-workspace {
+    display: block;
+    flex: 1;
+    min-width: 0;
+    min-height: 0;
+  }
+
+  .status-count-grid {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 0.5rem;
+  }
+
+  .status-count {
+    display: grid;
+    min-width: 0;
+    grid-template-columns: auto minmax(0, 1fr) auto;
+    align-items: center;
+    gap: 0.375rem;
+    border: 1px solid color-mix(in oklch, var(--current-status) 30%, var(--border));
+    border-radius: var(--radius);
+    background: color-mix(in oklch, var(--current-status) 6%, var(--card));
+    padding: 0.5rem 0.625rem;
+    color: color-mix(in oklch, var(--current-status) 82%, var(--foreground));
+    font-size: 0.75rem;
+  }
+
+  .status-count svg {
+    size: 0.875rem;
+  }
+
+  .status-count span {
+    min-width: 0;
+    overflow-wrap: anywhere;
+  }
+
+  .stage-progress-heading {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 0.75rem;
+    font-size: 0.8125rem;
+  }
+
+  .stage-progress-grid {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 0.5rem;
+  }
+
+  .stage-progress-item {
+    display: flex;
+    min-width: 0;
+    flex-direction: column;
+    gap: 0.375rem;
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    background: color-mix(in oklch, var(--muted) 38%, var(--card));
+    padding: 0.625rem;
+  }
+
+  .stage-progress-item > div {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 0.5rem;
+    color: var(--muted-foreground);
+    font-size: 0.6875rem;
+  }
+
+  .stage-progress-item p {
+    min-width: 0;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    font-size: 0.75rem;
+    font-weight: 560;
+  }
+
+  [data-status="未开始"] {
+    --current-status: var(--status-not-started);
+  }
+
+  [data-status="定向回炉"] {
+    --current-status: var(--status-review);
+  }
+
+  [data-status="重新学习"] {
+    --current-status: var(--status-relearn);
+  }
+
+  [data-status="通过"] {
+    --current-status: var(--status-passed);
+  }
+
+  .status-badge {
+    border-color: color-mix(in oklch, var(--current-status) 36%, var(--border));
+    background: color-mix(in oklch, var(--current-status) 7%, var(--card));
+    color: color-mix(in oklch, var(--current-status) 84%, var(--foreground));
+  }
+
+  .roadmap-panel,
+  .lesson-detail {
+    min-width: 0;
+  }
+
+  .roadmap-panel {
+    height: 100%;
+    min-height: 0;
+    gap: 0;
+    padding-bottom: 0;
+  }
+
+  .roadmap-panel-header {
+    display: flex;
+    flex: none;
+    flex-direction: column;
+    gap: 0.75rem;
+    padding-bottom: 0.75rem;
+  }
+
+  .roadmap-panel-heading {
+    display: flex;
+    min-width: 0;
+    align-items: flex-start;
+    justify-content: space-between;
+    gap: 1rem;
+  }
+
+  .roadmap-location {
+    flex: none;
+    white-space: nowrap;
+  }
+
+  .roadmap-toolbar {
+    display: flex;
+    min-width: 0;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 0.5rem;
+  }
+
+  .stage-jump-trigger {
+    max-width: 12rem;
+  }
+
+  .day-search-popover {
+    width: min(22rem, calc(100vw - 1rem));
+  }
+
+  .day-search-label {
+    width: 3.75rem;
+    flex: none;
+    font-weight: 620;
+  }
+
+  .roadmap-legend {
+    width: min(21rem, calc(100vw - 1rem));
+  }
+
+  .roadmap-legend-statuses {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 0.375rem;
+  }
+
+  .roadmap-legend-statuses .status-badge {
+    justify-content: flex-start;
+  }
+
+  .roadmap-legend-list {
+    display: grid;
+    gap: 0.5rem;
+    border-top: 1px solid var(--border);
+    padding-top: 0.625rem;
+  }
+
+  .roadmap-legend-list > div {
+    display: grid;
+    grid-template-columns: 5.25rem minmax(0, 1fr);
+    align-items: center;
+    gap: 0.625rem;
+    color: var(--muted-foreground);
+    font-size: 0.75rem;
+  }
+
+  .legend-node-sample {
+    width: 2rem;
+    height: 1.125rem;
+    border: 1px solid var(--primary);
+    border-radius: calc(var(--radius) * 0.6);
+    box-shadow: 0 0 0 2px color-mix(in oklch, var(--primary) 22%, transparent);
+  }
+
+  .legend-line-sample {
+    display: block;
+    width: 4rem;
+    border-top: 2px solid var(--roadmap-edge);
+  }
+
+  .legend-line-sample[data-variant="cross"],
+  .legend-line-sample[data-variant="structure"] {
+    border-top-style: dashed;
+  }
+
+  .legend-line-sample[data-variant="structure"] {
+    border-top-color: var(--roadmap-structure-edge);
+  }
+
+  .roadmap-canvas-wrap {
+    flex: 1;
+    min-height: 0;
+    padding: 0;
+  }
+
+  .roadmap-canvas {
+    width: 100%;
+    height: 100%;
+    min-height: 0;
+    overflow: hidden;
+    border-top: 1px solid var(--border);
+    background: color-mix(in oklch, var(--muted) 38%, var(--background));
+  }
+
+  .react-flow__node-overview,
+  .react-flow__node-stage,
+  .react-flow__node-lesson {
+    border: 0;
+    background: transparent;
+    box-shadow: none;
+  }
+
+  .react-flow__node-overview,
+  .react-flow__node-stage {
+    pointer-events: none;
+  }
+
+  .react-flow__node-lesson {
+    cursor: pointer;
+  }
+
+  .react-flow__node-lesson:focus-visible {
+    outline: none;
+  }
+
+  .overview-node-card {
+    width: 100%;
+    height: 100%;
+    border: 0;
+    background: color-mix(in oklch, var(--muted) 72%, var(--card));
+    box-shadow: none !important;
+  }
+
+  .overview-node-card[data-variant="root"] {
+    background: color-mix(in oklch, var(--primary) 9%, var(--card));
+  }
+
+  .overview-node-card[data-variant="track"] {
+    background: color-mix(in oklch, var(--muted) 72%, var(--card));
+  }
+
+  .overview-node-card [data-slot="card-header"] {
+    min-width: 0;
+  }
+
+  .overview-node-card [data-slot="card-title"] {
+    min-width: 0;
+  }
+
+  .overview-node-card [data-slot="card-title"] svg {
+    size: 1rem;
+    flex: none;
+    color: var(--primary);
+  }
+
+  .overview-node-card [data-slot="card-description"] {
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    font-size: 0.6875rem;
+  }
+
+  .overview-node-progress,
+  .stage-node-progress {
+    display: grid;
+    min-width: 0;
+    grid-template-columns: minmax(0, 1fr) auto;
+    align-items: center;
+    gap: 0.5rem;
+    color: var(--muted-foreground);
+    font-size: 0.6875rem;
+  }
+
+  .stage-node-card {
+    width: 100%;
+    height: 100%;
+    border: 1px solid color-mix(in oklch, var(--border) 72%, transparent);
+    background: color-mix(in oklch, var(--card) 30%, transparent);
+    box-shadow: none !important;
+  }
+
+  .stage-node-card [data-slot="card-header"] {
+    min-width: 0;
+  }
+
+  .stage-node-card [data-slot="card-title"] {
+    overflow-wrap: anywhere;
+  }
+
+  .stage-node-card [data-slot="card-description"] {
+    display: -webkit-box;
+    overflow: hidden;
+    -webkit-box-orient: vertical;
+    -webkit-line-clamp: 2;
+    line-clamp: 2;
+  }
+
+  .stage-node-progress {
+    align-self: start;
+  }
+
+  .lesson-node-card {
+    --card-spacing: 0.625rem;
+    width: 100%;
+    height: 100%;
+    gap: 0.375rem;
+    border: 1px solid color-mix(in oklch, var(--current-status) 32%, var(--border));
+    background: color-mix(in oklch, var(--current-status) 4%, var(--card));
+    padding-block: 0.5rem;
+    box-shadow: none;
+    transition: border-color 160ms ease, box-shadow 160ms ease, transform 160ms ease;
+  }
+
+  .lesson-node-card:hover {
+    border-color: color-mix(in oklch, var(--current-status) 58%, var(--border));
+    transform: translateY(-1px);
+  }
+
+  .lesson-node-card[data-selected="true"],
+  .react-flow__node-lesson:focus-visible .lesson-node-card {
+    border-color: var(--primary);
+    box-shadow: 0 0 0 2px color-mix(in oklch, var(--primary) 22%, transparent);
+  }
+
+  .lesson-node-card [data-slot="card-header"] {
+    min-width: 0;
+    padding-bottom: 0;
+  }
+
+  .lesson-node-card [data-slot="card-title"] {
+    min-width: 0;
+  }
+
+  .lesson-node-card [data-slot="card-action"] {
+    margin-top: -0.125rem;
+  }
+
+  .lesson-node-card .status-badge {
+    padding-inline: 0.375rem;
+    font-size: 0.625rem;
+  }
+
+  .lesson-node-card [data-slot="card-content"] {
+    min-height: 0;
+  }
+
+  .lesson-node-content {
+    display: flex;
+    flex: 1;
+    flex-direction: column;
+    justify-content: flex-start;
+  }
+
+  .lesson-node-footer {
+    justify-content: flex-start;
+    border-top: 0;
+    background: transparent;
+    padding: 0 0.375rem;
+  }
+
+  .lesson-node-course {
+    color: var(--accent-foreground);
+    font-weight: 620;
+  }
+
+  .recommended-marker {
+    color: var(--foreground);
+    font-size: 0.6875rem;
+  }
+
+  .lesson-node-title {
+    display: -webkit-box;
+    overflow: hidden;
+    overflow-wrap: anywhere;
+    -webkit-box-orient: vertical;
+    -webkit-line-clamp: 2;
+    line-clamp: 2;
+    font-size: 0.875rem;
+    line-height: 1.35;
+    font-weight: 520;
+  }
+
+  .roadmap-handle {
+    size: 0.5rem;
+    border: 2px solid var(--card);
+    background: var(--roadmap-edge);
+  }
+
+  .roadmap-structure-handle {
+    size: 0.5rem;
+    border: 2px solid var(--card);
+    background: var(--roadmap-structure-edge);
+  }
+
+  .react-flow__edge.roadmap-structure-edge.animated
+    path.react-flow__edge-path {
+    stroke-dasharray: 8 7;
+    animation-duration: 0.9s;
+  }
+
+  .react-flow__edge.roadmap-cross-stage-edge path.react-flow__edge-path {
+    stroke-dasharray: 8 7;
+  }
+
+  .react-flow__controls {
+    overflow: hidden;
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    box-shadow: 0 4px 16px color-mix(in oklch, var(--foreground) 8%, transparent);
+  }
+
+  .react-flow__controls-button {
+    border-bottom-color: var(--border);
+    background: var(--card);
+    color: var(--foreground);
+  }
+
+  .react-flow__controls-button:hover {
+    background: var(--accent);
+    color: var(--accent-foreground);
+  }
+
+  .lesson-detail {
+    height: auto;
+  }
+
+  .lesson-detail-content {
+    display: flex;
+    min-height: 0;
+    flex-direction: column;
+    gap: 1rem;
+  }
+
+  .detail-heading {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    margin-bottom: 0.5rem;
+    font-size: 0.875rem;
+    line-height: 1.3;
+    font-weight: 620;
+  }
+
+  .detail-heading svg,
+  .path-row > svg {
+    size: 1rem;
+    flex: none;
+    color: var(--muted-foreground);
+  }
+
+  .detail-copy,
+  .goal-list {
+    color: var(--muted-foreground);
+    font-size: 0.8125rem;
+    line-height: 1.6;
+  }
+
+  .goal-list {
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+    padding-left: 1.1rem;
+    list-style: disc;
+  }
+
+  .path-row {
+    display: grid;
+    min-width: 0;
+    grid-template-columns: auto minmax(0, 1fr) auto;
+    align-items: center;
+    gap: 0.625rem;
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    background: color-mix(in oklch, var(--muted) 45%, var(--card));
+    padding: 0.625rem;
+  }
+
+  .path-row span {
+    display: block;
+    margin-bottom: 0.25rem;
+    color: var(--muted-foreground);
+    font-size: 0.6875rem;
+  }
+
+  .path-row code {
+    display: block;
+    overflow-wrap: anywhere;
+    font-size: 0.6875rem;
+    line-height: 1.45;
+  }
+
+  .learning-drawer[data-vaul-drawer-direction="right"] {
+    width: 50vw !important;
+    max-width: none !important;
+  }
+
+  .learning-drawer[data-vaul-drawer-direction="bottom"] {
+    max-height: 90dvh;
+  }
+
+  .learning-drawer-body {
+    display: flex;
+    min-height: 0;
+    flex: 1;
+    flex-direction: column;
+    gap: 0.75rem;
+    overflow-y: auto;
+    padding: 0 1rem 1rem;
+  }
+
+  .learning-drawer-body > * {
+    flex: none;
+  }
+
+  .learning-progress-section {
+    display: flex;
+    flex-direction: column;
+  }
+
+  .learning-progress-toggle {
+    width: 100%;
+    justify-content: flex-start;
+  }
+
+  .learning-progress-toggle strong {
+    margin-left: auto;
+  }
+
+  .learning-progress-recommendation {
+    margin-left: 0.25rem;
+  }
+
+  .learning-progress-chevron {
+    margin-left: 0.25rem;
+    transition: rotate 160ms ease;
+  }
+
+  .learning-progress-toggle[data-state="open"] .learning-progress-chevron {
+    rotate: 180deg;
+  }
+
+  .learning-progress-content {
+    padding-top: 0.75rem;
+  }
+
+  .progress-overview-card {
+    border: 0;
+    background: transparent;
+    box-shadow: none !important;
+  }
+
+  .learning-drawer .stage-progress-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .learning-drawer .lesson-detail,
+  .learning-drawer .lesson-detail-content {
+    height: auto;
+    overflow: visible;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .react-flow__edge.roadmap-structure-edge.animated
+    path.react-flow__edge-path {
+    animation: none;
+    stroke-dasharray: 8 7;
+  }
+}
+
+@media (min-width: 640px) {
+  .status-count-grid {
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+  }
+
+  .stage-progress-grid {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+  }
+}
+
+@media (min-width: 1200px) {
+  .stage-progress-grid {
+    grid-template-columns: repeat(6, minmax(0, 1fr));
+  }
+}
+
+@media (max-width: 767px) {
+  .app-shell {
+    gap: 0.5rem;
+    padding: 0.5rem;
+  }
+
+  .page-header {
+    align-items: flex-start;
+    flex-wrap: wrap;
+  }
+
+  .brand-copy {
+    flex-basis: calc(100% - 3.25rem);
+  }
+
+  .brand-copy p {
+    display: none;
+  }
+
+  .header-actions {
+    width: 100%;
+    justify-content: flex-end;
+    padding-left: 3.25rem;
+  }
+
+  .roadmap-panel [data-slot="card-description"] {
+    max-width: 13rem;
+  }
+
+  .roadmap-panel-header {
+    gap: 0.625rem;
+    padding: 0.75rem;
+  }
+
+  .roadmap-panel-heading [data-slot="card-description"] {
+    display: none;
+  }
+
+  .roadmap-toolbar {
+    flex-wrap: wrap;
+    gap: 0.375rem;
+  }
+
+  .roadmap-toolbar > * {
+    flex: none;
+  }
+
+  .stage-jump-trigger {
+    max-width: 9.5rem;
+  }
+
+  .learning-drawer-body {
+    gap: 0.625rem;
+  }
+
+  .learning-progress-content {
+    padding-top: 0.625rem;
+  }
+
+  .learning-progress-recommendation {
+    display: none;
+  }
+
+  .lesson-detail-content {
+    gap: 0.75rem;
+  }
+
+  .lesson-detail [data-slot="card-header"] {
+    padding-bottom: 0;
+  }
+
+  .detail-heading {
+    margin-bottom: 0.375rem;
+  }
+
+  .stage-node-card [data-slot="card-header"] {
+    grid-template-columns: minmax(0, 1fr) auto;
+  }
+
+  .stage-node-card [data-slot="card-description"] {
+    max-width: 9.5rem;
+  }
+
+  .overview-node-card [data-slot="card-description"] {
+    max-width: 12rem;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    scroll-behavior: auto !important;
+    transition-duration: 0.01ms !important;
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+  }
+}
