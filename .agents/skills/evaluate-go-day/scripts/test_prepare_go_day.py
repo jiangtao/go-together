@@ -45,6 +45,34 @@ class ParseDayTest(unittest.TestCase):
             ):
                 parse_day(command)
 
+    def test_rejects_compact_day_sequences_as_ambiguous(self):
+        commands = (
+            "Day 1-3",
+            "day-01–03",
+            "Day 13 to 14",
+            "Day 13 至 14",
+            "Day 13 and 14",
+            "Day 13 or 14",
+            "Day 13 和 14",
+            "Day 13 或 14",
+            "Day 13、14",
+            "Day 13, 14",
+            "Day 13，14",
+            "Day 13 & 14",
+        )
+        for command in commands:
+            with self.subTest(command=command), self.assertRaisesRegex(
+                PreparationError, "ambiguous"
+            ):
+                parse_day(command)
+
+    def test_reports_three_digit_days_as_out_of_range(self):
+        for command in ("Day 100", "Day 13 and Day 100"):
+            with self.subTest(command=command), self.assertRaisesRegex(
+                PreparationError, "between 0 and 36"
+            ):
+                parse_day(command)
+
 
 class DiscoverDayPathsTest(unittest.TestCase):
     def setUp(self):
