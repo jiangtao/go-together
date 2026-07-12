@@ -10,9 +10,20 @@ from pathlib import Path
 from typing import Optional
 
 
+DAY_CANDIDATE_PATTERN = re.compile(
+    r"(?<![A-Za-z0-9_])day(?:[ \t]*-[ \t]*|[ \t]*)([0-9]+)"
+    r"(?![A-Za-z0-9_])",
+    re.IGNORECASE,
+)
 DAY_REFERENCE_PATTERN = re.compile(
     r"(?<![A-Za-z0-9_])day(?:[ \t]*-[ \t]*|[ \t]*)([0-9]{1,2})"
     r"(?![A-Za-z0-9_])",
+    re.IGNORECASE,
+)
+AMBIGUOUS_DAY_SEQUENCE_PATTERN = re.compile(
+    r"(?<![A-Za-z0-9_])day(?:[ \t]*-[ \t]*|[ \t]*)([0-9]{1,2})"
+    r"[ \t]*(?:[-–—~～/&,，、]|to\b|and\b|or\b|至|到|和|与|或)[ \t]*"
+    r"(?:day(?:[ \t]*-[ \t]*|[ \t]*))?[0-9]+(?![A-Za-z0-9_])",
     re.IGNORECASE,
 )
 COURSE_TITLE_PATTERN = re.compile(
@@ -72,13 +83,19 @@ class _Heading:
 
 
 def parse_day(request: str) -> int:
+    candidates = [
+        int(match.group(1)) for match in DAY_CANDIDATE_PATTERN.finditer(request)
+    ]
+    if any(day > 36 for day in candidates):
+        raise PreparationError("day must be between 0 and 36")
+
     matches = [int(match.group(1)) for match in DAY_REFERENCE_PATTERN.finditer(request)]
     if not matches:
         raise PreparationError(
             "request must contain exactly one explicit Day reference"
         )
-    if any(day < 0 or day > 36 for day in matches):
-        raise PreparationError("day must be between 0 and 36")
+    if AMBIGUOUS_DAY_SEQUENCE_PATTERN.search(request):
+        raise PreparationError("request contains ambiguous Day references")
 
     days = set(matches)
     if len(days) != 1:
