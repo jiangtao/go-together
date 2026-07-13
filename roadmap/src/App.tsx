@@ -16,13 +16,13 @@ import {
   shouldToggleZen,
   type Surface,
 } from "@/lib/app-state"
-import { parseCourseData } from "@/lib/course-data"
+import { loadCanonicalCourse } from "@/lib/canonical-course"
 import { summarizeProgress } from "@/lib/progress"
 import type { CourseData, CourseLesson, CourseResource } from "@/types/course"
 
 type CourseLoadState =
   | { status: "loading"; course: null; error: "" }
-  | { status: "ready"; course: CourseData; error: "" }
+  | { status: "ready"; course: CourseData; courseRevision: string; error: "" }
   | { status: "error"; course: null; error: string }
 
 const INITIAL_LOAD_STATE: CourseLoadState = {
@@ -71,7 +71,13 @@ function CourseLoadingScreen({
   )
 }
 
-function RoadmapApplication({ courseData }: { courseData: CourseData }) {
+function RoadmapApplication({
+  courseData,
+  courseRevision,
+}: {
+  courseData: CourseData
+  courseRevision: string
+}) {
   const summary = summarizeProgress(courseData.lessons)
   const [zen, setZen] = useState(false)
   const [surface, setSurface] = useState<Surface>({ kind: "canvas" })
@@ -251,7 +257,11 @@ function RoadmapApplication({ courseData }: { courseData: CourseData }) {
   const dayStage = surface.kind === "day" ? panelStage : null
 
   return (
-    <div className="app-shell" data-zen={zen ? "true" : "false"}>
+    <div
+      className="app-shell"
+      data-zen={zen ? "true" : "false"}
+      data-course-revision={courseRevision}
+    >
       {!zen ? (
         <header className="page-header">
           <div className="brand-mark" aria-hidden="true">
@@ -324,19 +334,16 @@ function App() {
 
   useEffect(() => {
     const controller = new AbortController()
-    void fetch("/course.json", {
+    void loadCanonicalCourse(window.location.pathname, {
       signal: controller.signal,
-      credentials: "same-origin",
-      headers: { Accept: "application/json" },
     })
-      .then((response) => {
-        if (!response.ok) {
-          throw new Error(`公开课程数据加载失败（HTTP ${response.status}）`)
-        }
-        return response.json() as Promise<unknown>
-      })
-      .then((value) => {
-        setLoadState({ status: "ready", course: parseCourseData(value), error: "" })
+      .then((result) => {
+        setLoadState({
+          status: "ready",
+          course: result.courseData,
+          courseRevision: result.courseRevision,
+          error: "",
+        })
       })
       .catch((error: unknown) => {
         if (controller.signal.aborted) return
@@ -350,7 +357,12 @@ function App() {
   }, [requestVersion])
 
   if (loadState.status === "ready") {
-    return <RoadmapApplication courseData={loadState.course} />
+    return (
+      <RoadmapApplication
+        courseData={loadState.course}
+        courseRevision={loadState.courseRevision}
+      />
+    )
   }
   return (
     <CourseLoadingScreen

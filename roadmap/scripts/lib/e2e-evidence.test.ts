@@ -1,4 +1,4 @@
-import { mkdtemp, mkdir, rm, writeFile } from "node:fs/promises"
+import { mkdtemp, mkdir, readFile, rm, symlink, writeFile } from "node:fs/promises"
 import os from "node:os"
 import path from "node:path"
 import { deflateSync } from "node:zlib"
@@ -11,6 +11,7 @@ import {
   createE2eEvidenceManifest,
   REQUIRED_EVIDENCE,
   validateEvidenceFileNames,
+  writeE2eEvidenceManifestAtomically,
 } from "./e2e-evidence.ts"
 
 const CANDIDATE_HEAD = "eb283d72fa4eac26e9c39db3789d3dc2c630cb06"
@@ -226,6 +227,14 @@ describe("E2E 截图证据契约", () => {
       "utf8"
     )
     await expect(
+      createE2eEvidenceManifest(
+        fixture.evidenceDirectory,
+        fixture.repositoryRoot,
+        "qa-hash",
+        CANDIDATE_HEAD
+      )
+    ).resolves.toEqual(manifest)
+    await expect(
       auditE2eEvidenceManifest(
         manifest,
         fixture.evidenceDirectory,
@@ -246,5 +255,38 @@ describe("E2E 截图证据契约", () => {
         CANDIDATE_HEAD
       )
     ).rejects.toThrow("清单与当前截图或候选内容不一致")
+  })
+
+  it("拒绝非普通旧清单且原子写入不跟随符号链接", async () => {
+    const linked = await createCandidateFixture()
+    const sentinel = path.join(linked.repositoryRoot, "sentinel.txt")
+    await writeFile(sentinel, "unchanged", "utf8")
+    await symlink(
+      sentinel,
+      path.join(linked.evidenceDirectory, "evidence-manifest.json")
+    )
+    await expect(
+      createE2eEvidenceManifest(
+        linked.evidenceDirectory,
+        linked.repositoryRoot,
+        "qa-linked",
+        CANDIDATE_HEAD
+      )
+    ).rejects.toThrow("普通文件")
+    await expect(
+      writeE2eEvidenceManifestAtomically(linked.evidenceDirectory, "changed")
+    ).rejects.toThrow("普通文件")
+    await expect(readFile(sentinel, "utf8")).resolves.toBe("unchanged")
+
+    const directory = await createCandidateFixture()
+    await mkdir(path.join(directory.evidenceDirectory, "evidence-manifest.json"))
+    await expect(
+      createE2eEvidenceManifest(
+        directory.evidenceDirectory,
+        directory.repositoryRoot,
+        "qa-directory",
+        CANDIDATE_HEAD
+      )
+    ).rejects.toThrow("普通文件")
   })
 })

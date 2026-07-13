@@ -3,12 +3,17 @@ import tailwindcss from '@tailwindcss/vite'
 import react from '@vitejs/plugin-react'
 import { defineConfig } from 'vite'
 
+import { strictPublicFilesPlugin } from './scripts/lib/strict-public-files'
+
+const publicDirectory = path.resolve(__dirname, './.generated/public')
+
 // https://vite.dev/config/
 export default defineConfig({
   base: '/',
-  publicDir: path.resolve(__dirname, './.generated/public'),
-  plugins: [react(), tailwindcss()],
+  publicDir: publicDirectory,
+  plugins: [strictPublicFilesPlugin(publicDirectory), react(), tailwindcss()],
   build: {
+    manifest: 'vite-manifest.json',
     sourcemap: false,
   },
   resolve: {

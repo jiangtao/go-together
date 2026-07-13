@@ -1,5 +1,5 @@
 import { createHash } from "node:crypto"
-import { mkdir, readFile, writeFile } from "node:fs/promises"
+import { mkdir, readFile } from "node:fs/promises"
 import path from "node:path"
 import { fileURLToPath } from "node:url"
 
@@ -7,6 +7,7 @@ import {
   auditE2eEvidenceManifest,
   createE2eEvidenceManifest,
   type E2eEvidenceManifest,
+  writeE2eEvidenceManifestAtomically,
 } from "./lib/e2e-evidence.ts"
 
 const roadmapDirectory = path.resolve(
@@ -33,7 +34,7 @@ try {
   }
   const serialized = `${JSON.stringify(manifest, null, 2)}\n`
   const outputFile = path.join(evidenceDirectory, "evidence-manifest.json")
-  await writeFile(outputFile, serialized, "utf8")
+  await writeE2eEvidenceManifestAtomically(evidenceDirectory, serialized)
   const writtenManifest = JSON.parse(
     await readFile(outputFile, "utf8")
   ) as E2eEvidenceManifest

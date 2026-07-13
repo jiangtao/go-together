@@ -23,7 +23,15 @@ async function fixture() {
   const lessonsDirectory = path.join(repositoryRoot, "input/lessons")
   const progressFile = path.join(repositoryRoot, "input/progress.public.json")
   const distDirectory = path.join(roadmapDirectory, "dist")
+  const expectedPublicDirectory = path.join(
+    roadmapDirectory,
+    ".generated/public"
+  )
   const outputDirectory = path.join(roadmapDirectory, ".vercel/output")
+  const assetManifestFile = path.join(
+    roadmapDirectory,
+    ".generated/vite-asset-manifest.json"
+  )
   const manifestFile = path.join(
     roadmapDirectory,
     ".generated/prebuilt-manifest.json"
@@ -47,22 +55,45 @@ async function fixture() {
     Array.from({ length: 37 }, (_, day) => {
       const padded = String(day).padStart(2, "0")
       return writeFile(
-        path.join(lessonsDirectory, `day-${padded}-lesson.md`),
+        path.join(lessonsDirectory, `day-${padded}-lesson-${padded}.md`),
         `# Day ${padded}：课程 ${day}\n\n### 学习目标\n\n- 完成目标 ${day}\n`
       )
     })
   )
+  await buildPublicArtifacts({
+    lessonsDirectory,
+    progressFile,
+    outputDirectory: expectedPublicDirectory,
+  })
   await buildPublicArtifacts({ lessonsDirectory, progressFile, outputDirectory: distDirectory })
   await writeFile(
     path.join(distDirectory, "index.html"),
-    '<div id="root"></div><script src="/assets/app.js"></script>'
+    '<div id="root"></div><script src="/assets/app-AaBb1234.js"></script>'
   )
   await mkdir(path.join(distDirectory, "assets"))
-  await writeFile(path.join(distDirectory, "assets/app.js"), "export {}")
-  await writeFile(path.join(distDirectory, "assets/font.woff2"), "font")
+  await writeFile(
+    path.join(distDirectory, "assets/app-AaBb1234.js"),
+    'export const font = "/assets/font-AaBb1234.woff2"'
+  )
+  await writeFile(
+    path.join(distDirectory, "assets/font-AaBb1234.woff2"),
+    Buffer.from("wOF2fixture")
+  )
+  await writeFile(
+    assetManifestFile,
+    JSON.stringify({
+      "index.html": {
+        file: "assets/app-AaBb1234.js",
+        isEntry: true,
+        assets: ["assets/font-AaBb1234.woff2"],
+      },
+    })
+  )
   return {
     repositoryRoot,
     distDirectory,
+    expectedPublicDirectory,
+    assetManifestFile,
     outputDirectory,
     manifestFile,
   }
@@ -85,13 +116,16 @@ describe("Vercel Build Output API v3 预构建包", () => {
 
     expect(first).toEqual(second)
     expect(audited).toEqual(first)
-    expect(first.files).toHaveLength(42)
+    expect(first.files).toHaveLength(82)
     expect(first.files[0].path).toBe("config.json")
     expect(
       first.files.every(
         (file) => file.path === "config.json" || file.path.startsWith("static/")
       )
     ).toBe(true)
+    expect(first.files.some((file) => file.path.includes("vite-manifest"))).toBe(
+      false
+    )
     expect(
       first.files.some((file) =>
         /(?:^|\/)(?:src|scripts|tests|docs|exercise|output)(?:\/|$)|\.test\./.test(
@@ -107,6 +141,42 @@ describe("Vercel Build Output API v3 预构建包", () => {
     expect(
       PREBUILT_CONFIG.routes[0].headers["Content-Security-Policy"]
     ).toContain("connect-src 'self' https://api.github.com")
+    const encodedGuard = PREBUILT_CONFIG.routes.findIndex(
+      (route) => "status" in route && route.src.includes("%")
+    )
+    const uppercaseGuard = PREBUILT_CONFIG.routes.findIndex(
+      (route) => "status" in route && route.src.includes("[A-Z]")
+    )
+    const filesystem = PREBUILT_CONFIG.routes.findIndex(
+      (route) => "handle" in route && route.handle === "filesystem"
+    )
+    const missingFileGuard = PREBUILT_CONFIG.routes.findIndex(
+      (route) =>
+        "status" in route &&
+        route.src.includes("course\\.json") &&
+        !route.src.includes("%")
+    )
+    const missingAssetGuard = PREBUILT_CONFIG.routes.findIndex(
+      (route) =>
+        "status" in route &&
+        route.src.includes("assets/")
+    )
+    const spaFallback = PREBUILT_CONFIG.routes.findIndex(
+      (route) => "dest" in route && route.dest === "/index.html"
+    )
+    const privateManifestGuard = PREBUILT_CONFIG.routes.findIndex(
+      (route) => "status" in route && route.src.includes("vite-manifest\\.json")
+    )
+    expect(encodedGuard).toBeGreaterThan(0)
+    expect(encodedGuard).toBeLessThan(filesystem)
+    expect(uppercaseGuard).toBeGreaterThan(0)
+    expect(uppercaseGuard).toBeLessThan(filesystem)
+    expect(missingFileGuard).toBeGreaterThan(filesystem)
+    expect(missingFileGuard).toBeLessThan(spaFallback)
+    expect(missingAssetGuard).toBeGreaterThan(filesystem)
+    expect(missingAssetGuard).toBeLessThan(spaFallback)
+    expect(privateManifestGuard).toBeGreaterThan(filesystem)
+    expect(privateManifestGuard).toBeLessThan(spaFallback)
   })
 
   it("拒绝预构建目录中的额外文件、source map 与符号链接", async () => {

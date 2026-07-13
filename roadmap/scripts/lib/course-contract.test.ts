@@ -223,7 +223,7 @@ function publicCourse(compiled = compileCourseContract(sourceCourse(), authoring
           contentRevision: compiled.lessons.find(
             (candidate) => candidate.lessonId === lesson.lessonId
           )!.contentRevision,
-          lessonHref: `/courses/go-backend/lessons/${lesson.lessonId}.md`,
+          lessonHref: `/courses/go-backend/sources/lessons/${lesson.lessonId}.md`,
         })),
       })),
     })),
@@ -540,6 +540,13 @@ describe("multi-course domain contracts", () => {
     malicious.tracks[0].stages[0].lessons[0].contentPath =
       "../../private/answer.md"
     expect(() => parseSourceCourse(malicious)).toThrow("安全相对 POSIX 路径")
+
+    const uppercasePublicResource = structuredClone(sourceCourse())
+    uppercasePublicResource.publicResources[0].path =
+      "resources/public/API-Guide.md"
+    expect(() => parseSourceCourse(uppercasePublicResource)).toThrow(
+      "Public Resource 路径必须全小写"
+    )
   })
 
   it("derives stable learning identity only from courseId and lessonId", () => {

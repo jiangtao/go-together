@@ -5,6 +5,21 @@ import {
   COURSE_STATUSES,
   type CourseStatus,
 } from "../../src/types/course.ts"
+import {
+  parsePublicCatalog as parseSharedPublicCatalog,
+  parsePublicCourse as parseSharedPublicCourse,
+  parsePublicProgress as parseSharedPublicProgress,
+  validatePublicCatalogCoursePair as validateSharedPublicCatalogCoursePair,
+  type PublicCatalog as SharedPublicCatalog,
+  type PublicCatalogCourse as SharedPublicCatalogCourse,
+  type PublicCourse as SharedPublicCourse,
+  type PublicLanguage as SharedPublicLanguage,
+  type PublicLesson as SharedPublicLesson,
+  type PublicProgress as SharedPublicProgress,
+  type PublicProgressLesson as SharedProgressLesson,
+  type PublicStage as SharedPublicStage,
+  type PublicTrack as SharedPublicTrack,
+} from "../../src/lib/public-course-contract.ts"
 
 const ID_PATTERN = /^[a-z0-9]+(?:-[a-z0-9]+)*$/
 const REVISION_PATTERN = /^sha256:[a-f0-9]{64}$/
@@ -14,11 +29,15 @@ type JsonRecord = Record<string, unknown>
 export type CourseLifecycle = "draft" | "published" | "retired"
 export type PublicCourseLifecycle = Exclude<CourseLifecycle, "draft">
 export type LessonLifecycle = "active" | "retired"
-
-export interface Language {
-  id: string
-  label: string
-}
+export type Language = SharedPublicLanguage
+export type PublicCatalogCourse = SharedPublicCatalogCourse
+export type PublicCatalog = SharedPublicCatalog
+export type PublicLesson = SharedPublicLesson
+export type PublicStage = SharedPublicStage
+export type PublicTrack = SharedPublicTrack
+export type PublicCourse = SharedPublicCourse
+export type ProgressLesson = SharedProgressLesson
+export type PublicProgress = SharedPublicProgress
 
 export interface SourceCatalogCourse {
   courseId: string
@@ -86,75 +105,6 @@ export interface SourceCourse {
   publicResources: CourseResource[]
   internalResources: CourseResource[]
   tracks: SourceTrack[]
-}
-
-export interface PublicCatalogCourse {
-  courseId: string
-  courseRevision: string
-  title: string
-  description: string
-  language: Language
-  lifecycle: PublicCourseLifecycle
-  replacementCourseId: string | null
-  pageHref: string
-  courseHref: string
-  progressHref: string
-}
-
-export interface PublicCatalog {
-  schemaVersion: 1
-  defaultCourseId: string
-  courses: PublicCatalogCourse[]
-}
-
-export interface PublicLesson {
-  lessonId: string
-  lifecycle: LessonLifecycle
-  day: number | null
-  title: string
-  objective: string
-  goals: string[]
-  contentRevision: string
-  lessonHref: string
-}
-
-export interface PublicStage {
-  stageId: string
-  title: string
-  description: string
-  lessons: PublicLesson[]
-}
-
-export interface PublicTrack {
-  trackId: string
-  title: string
-  description: string
-  stages: PublicStage[]
-}
-
-export interface PublicCourse {
-  schemaVersion: 1
-  courseId: string
-  courseRevision: string
-  title: string
-  description: string
-  language: Language
-  lifecycle: PublicCourseLifecycle
-  replacementCourseId: string | null
-  tracks: PublicTrack[]
-}
-
-export interface ProgressLesson {
-  lessonId: string
-  status: CourseStatus
-  referenceScore: number | null
-}
-
-export interface PublicProgress {
-  schemaVersion: 1
-  courseId: string
-  courseRevision: string
-  lessons: ProgressLesson[]
 }
 
 export interface ReleaseProgressSnapshot extends PublicProgress {
@@ -260,39 +210,6 @@ const EVALUATION_CONTRACT_KEYS = [
   "scoringBasis",
 ] as const
 const COMPETENCY_CONTRACT_KEYS = ["competencyId", "title"] as const
-const PUBLIC_CATALOG_COURSE_KEYS = [
-  "courseId",
-  "courseRevision",
-  "title",
-  "description",
-  "language",
-  "lifecycle",
-  "replacementCourseId",
-  "pageHref",
-  "courseHref",
-  "progressHref",
-] as const
-const PUBLIC_COURSE_KEYS = [
-  "schemaVersion",
-  "courseId",
-  "courseRevision",
-  "title",
-  "description",
-  "language",
-  "lifecycle",
-  "replacementCourseId",
-  "tracks",
-] as const
-const PUBLIC_LESSON_KEYS = [
-  "lessonId",
-  "lifecycle",
-  "day",
-  "title",
-  "objective",
-  "goals",
-  "contentRevision",
-  "lessonHref",
-] as const
 const PROGRESS_KEYS = ["schemaVersion", "courseId", "courseRevision", "lessons"] as const
 const SNAPSHOT_KEYS = [
   "schemaVersion",
@@ -359,15 +276,6 @@ function nullableId(value: unknown, context: string): asserts value is string | 
 function lifecycle(value: unknown, context: string): asserts value is CourseLifecycle {
   if (!["draft", "published", "retired"].includes(String(value))) {
     throw new Error(`${context} 不是有效 Course 生命周期`)
-  }
-}
-
-function publicLifecycle(
-  value: unknown,
-  context: string
-): asserts value is PublicCourseLifecycle {
-  if (!["published", "retired"].includes(String(value))) {
-    throw new Error(`${context} 只允许 Published 或 Retired`)
   }
 }
 
@@ -795,6 +703,9 @@ export function parseSourceCourse(value: unknown): SourceCourse {
   const publicResources = course.publicResources.map((resource, index) =>
     parseResource(resource, `sourceCourse.publicResources[${index}]`, "resources/public/")
   )
+  if (publicResources.some((resource) => resource.path !== resource.path.toLowerCase())) {
+    throw new Error("Public Resource 路径必须全小写")
+  }
   const internalResources = course.internalResources.map((resource, index) =>
     parseResource(resource, `sourceCourse.internalResources[${index}]`, "resources/internal/")
   )
@@ -841,102 +752,12 @@ export function parseSourceCourse(value: unknown): SourceCourse {
   }
 }
 
-function parsePublicCatalogCourse(value: unknown, context: string): PublicCatalogCourse {
-  const course = record(value, context)
-  exact(course, PUBLIC_CATALOG_COURSE_KEYS, context)
-  id(course.courseId, `${context}.courseId`)
-  revision(course.courseRevision, `${context}.courseRevision`)
-  string(course.title, `${context}.title`)
-  string(course.description, `${context}.description`)
-  const language = parseLanguage(course.language, `${context}.language`)
-  publicLifecycle(course.lifecycle, `${context}.lifecycle`)
-  nullableId(course.replacementCourseId, `${context}.replacementCourseId`)
-  string(course.pageHref, `${context}.pageHref`)
-  string(course.courseHref, `${context}.courseHref`)
-  string(course.progressHref, `${context}.progressHref`)
-  if (course.pageHref !== `/courses/${course.courseId}`) {
-    throw new Error(`${context}.pageHref 与 courseId 不一致`)
-  }
-  if (course.courseHref !== `/courses/${course.courseId}/course.json`) {
-    throw new Error(`${context}.courseHref 与 courseId 不一致`)
-  }
-  if (course.progressHref !== `/courses/${course.courseId}/progress.json`) {
-    throw new Error(`${context}.progressHref 与 courseId 不一致`)
-  }
-  return { ...structuredClone(course), language } as unknown as PublicCatalogCourse
-}
-
 export function parsePublicCatalog(value: unknown): PublicCatalog {
-  const catalog = record(value, "publicCatalog")
-  exact(catalog, SOURCE_CATALOG_KEYS, "publicCatalog")
-  schemaOne(catalog.schemaVersion, "publicCatalog")
-  id(catalog.defaultCourseId, "publicCatalog.defaultCourseId")
-  if (!Array.isArray(catalog.courses) || catalog.courses.length === 0) {
-    throw new Error("publicCatalog.courses 必须是非空数组")
-  }
-  const courses = catalog.courses.map((course, index) =>
-    parsePublicCatalogCourse(course, `publicCatalog.courses[${index}]`)
-  )
-  unique(courses.map((course) => course.courseId), "publicCatalog.courseId")
-  validateCatalogRelationships(courses, catalog.defaultCourseId)
-  return { schemaVersion: 1, defaultCourseId: catalog.defaultCourseId, courses }
-}
-
-function parsePublicLesson(
-  value: unknown,
-  context: string,
-  courseId: string
-): PublicLesson {
-  const lesson = record(value, context)
-  exact(lesson, PUBLIC_LESSON_KEYS, context)
-  id(lesson.lessonId, `${context}.lessonId`)
-  lessonLifecycle(lesson.lifecycle, `${context}.lifecycle`)
-  day(lesson.day, `${context}.day`)
-  string(lesson.title, `${context}.title`)
-  string(lesson.objective, `${context}.objective`)
-  const goals = stringArray(lesson.goals, `${context}.goals`)
-  revision(lesson.contentRevision, `${context}.contentRevision`)
-  string(lesson.lessonHref, `${context}.lessonHref`)
-  if (lesson.lessonHref !== `/courses/${courseId}/lessons/${lesson.lessonId}.md`) {
-    throw new Error(`${context}.lessonHref 与稳定 identity 不一致`)
-  }
-  return { ...structuredClone(lesson), goals } as unknown as PublicLesson
+  return parseSharedPublicCatalog(value)
 }
 
 export function parsePublicCourse(value: unknown): PublicCourse {
-  const course = record(value, "publicCourse")
-  exact(course, PUBLIC_COURSE_KEYS, "publicCourse")
-  schemaOne(course.schemaVersion, "publicCourse")
-  id(course.courseId, "publicCourse.courseId")
-  const courseId = course.courseId
-  revision(course.courseRevision, "publicCourse.courseRevision")
-  string(course.title, "publicCourse.title")
-  string(course.description, "publicCourse.description")
-  const language = parseLanguage(course.language, "publicCourse.language")
-  publicLifecycle(course.lifecycle, "publicCourse.lifecycle")
-  nullableId(course.replacementCourseId, "publicCourse.replacementCourseId")
-  if (course.replacementCourseId === course.courseId) {
-    throw new Error("Public Course 不能替代自身")
-  }
-  if (course.replacementCourseId !== null && course.lifecycle !== "retired") {
-    throw new Error("只有 Retired Public Course 可以声明 Replacement")
-  }
-  const tracks = parseCurriculum(
-    course.tracks,
-    "publicCourse.tracks",
-    (lesson, context) => parsePublicLesson(lesson, context, courseId)
-  )
-  return {
-    schemaVersion: 1,
-    courseId: course.courseId,
-    courseRevision: course.courseRevision,
-    title: course.title,
-    description: course.description,
-    language,
-    lifecycle: course.lifecycle,
-    replacementCourseId: course.replacementCourseId,
-    tracks,
-  }
+  return parseSharedPublicCourse(value)
 }
 
 function parseProgressLesson(value: unknown, context: string): ProgressLesson {
@@ -990,7 +811,7 @@ function parseProgressLike(
 }
 
 export function parsePublicProgress(value: unknown): PublicProgress {
-  return parseProgressLike(value, "publicProgress", false) as PublicProgress
+  return parseSharedPublicProgress(value)
 }
 
 export function parseReleaseProgressSnapshot(
@@ -1369,24 +1190,20 @@ export function validatePublicReleaseBundle(
     input.course,
     input.publicLessonFiles
   )
-  const catalogCourse = catalog.courses.find(
-    (candidate) => candidate.courseId === course.courseId
-  )
-  if (!catalogCourse) throw new Error("Public Catalog 缺少 Public Course")
-  if (
-    catalogCourse.courseRevision !== course.courseRevision ||
-    catalogCourse.title !== course.title ||
-    catalogCourse.description !== course.description ||
-    catalogCourse.language.id !== course.language.id ||
-    catalogCourse.language.label !== course.language.label ||
-    catalogCourse.lifecycle !== course.lifecycle ||
-    catalogCourse.replacementCourseId !== course.replacementCourseId
-  ) {
-    throw new Error("Public Catalog 与 Public Course 声明不一致")
-  }
+  validatePublicCatalogCoursePair(catalog, course)
   return {
     catalog,
     course,
     snapshot: validateReleaseSnapshotForPublicCourse(input.snapshot, course),
   }
+}
+
+export function validatePublicCatalogCoursePair(
+  catalogValue: unknown,
+  courseValue: unknown
+): { catalog: PublicCatalog; course: PublicCourse } {
+  const catalog = parsePublicCatalog(catalogValue)
+  const course = parsePublicCourse(courseValue)
+  validateSharedPublicCatalogCoursePair(catalog, course)
+  return { catalog, course }
 }

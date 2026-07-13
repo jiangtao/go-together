@@ -40,13 +40,26 @@ export const PREBUILT_CONFIG = {
       continue: true,
     },
     {
-      src: "/(index\\.html|course\\.json|sources/.*)",
+      src: "/(index\\.html|course\\.json|sources/.*|courses/.*(?:\\.json|/sources/.*))",
       headers: {
         "Cache-Control": "public, max-age=0, must-revalidate",
       },
       continue: true,
     },
+    {
+      src: "/(?:vite-manifest|course|courses|sources).*%(?:00|25|2[eE]|2[fF]|5[cC]).*",
+      status: 404,
+    },
+    {
+      src: "/(?:[vV][iI][tT][eE]-[mM][aA][nN][iI][fF][eE][sS][tT]|[cC][oO][uU][rR][sS][eE][sS]?|[sS][oO][uU][rR][cC][eE][sS]).*[A-Z].*",
+      status: 404,
+    },
     { handle: "filesystem" },
+    { src: "/assets/.*", status: 404 },
+    {
+      src: "/(?:vite-manifest\\.json|course\\.json|sources/lessons/.*|courses/(?:catalog\\.json|[^/]+/(?:course\\.json|progress\\.json|sources/.*)))",
+      status: 404,
+    },
     { src: "/.*", dest: "/index.html" },
   ],
 } as const
@@ -54,6 +67,8 @@ export const PREBUILT_CONFIG = {
 export interface PrebuiltPackagePaths {
   repositoryRoot: string
   distDirectory: string
+  expectedPublicDirectory: string
+  assetManifestFile: string
   outputDirectory: string
   manifestFile: string
 }
@@ -130,7 +145,12 @@ async function inspectPrebuiltPackage(
   paths: PrebuiltPackagePaths
 ): Promise<PrebuiltManifest> {
   await assertSourceDeploymentDisabled(paths.repositoryRoot)
-  await auditPublicDirectory(paths.distDirectory, "dist")
+  await auditPublicDirectory(
+    paths.distDirectory,
+    "dist",
+    paths.expectedPublicDirectory,
+    paths.assetManifestFile
+  )
 
   const outputMetadata = await lstat(paths.outputDirectory)
   if (outputMetadata.isSymbolicLink() || !outputMetadata.isDirectory()) {
@@ -163,7 +183,9 @@ async function inspectPrebuiltPackage(
   }
   await auditPublicDirectory(
     path.join(paths.outputDirectory, "static"),
-    "dist"
+    "dist",
+    paths.expectedPublicDirectory,
+    paths.assetManifestFile
   )
 
   const files = await Promise.all(
@@ -191,7 +213,12 @@ export async function packagePrebuiltOutput(
   paths: PrebuiltPackagePaths
 ): Promise<PrebuiltManifest> {
   await assertSourceDeploymentDisabled(paths.repositoryRoot)
-  await auditPublicDirectory(paths.distDirectory, "dist")
+  await auditPublicDirectory(
+    paths.distDirectory,
+    "dist",
+    paths.expectedPublicDirectory,
+    paths.assetManifestFile
+  )
   const distFiles = await listRegularFiles(paths.distDirectory)
 
   await rm(paths.outputDirectory, { recursive: true, force: true })

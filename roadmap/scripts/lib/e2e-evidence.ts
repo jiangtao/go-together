@@ -1,6 +1,13 @@
 import { createHash } from "node:crypto"
 import { execFileSync } from "node:child_process"
-import { lstat, readFile, readdir } from "node:fs/promises"
+import {
+  lstat,
+  readFile,
+  readdir,
+  rename,
+  rm,
+  writeFile,
+} from "node:fs/promises"
 import path from "node:path"
 import { inflateSync } from "node:zlib"
 
@@ -252,6 +259,46 @@ export function validateEvidenceFileNames(
   }
 }
 
+const EVIDENCE_MANIFEST_FILE = "evidence-manifest.json"
+
+async function assertReplaceableEvidenceManifest(
+  evidenceDirectory: string
+): Promise<void> {
+  try {
+    const metadata = await lstat(
+      path.join(evidenceDirectory, EVIDENCE_MANIFEST_FILE)
+    )
+    if (metadata.isSymbolicLink() || !metadata.isFile()) {
+      throw new Error("旧 E2E 证据清单必须是普通文件且不得为符号链接")
+    }
+  } catch (error) {
+    if ((error as NodeJS.ErrnoException).code === "ENOENT") return
+    throw error
+  }
+}
+
+export async function writeE2eEvidenceManifestAtomically(
+  evidenceDirectory: string,
+  serialized: string
+): Promise<void> {
+  await assertReplaceableEvidenceManifest(evidenceDirectory)
+  const outputFile = path.join(evidenceDirectory, EVIDENCE_MANIFEST_FILE)
+  const temporaryFile = `${outputFile}.tmp`
+  let temporaryCreated = false
+  try {
+    await writeFile(temporaryFile, serialized, {
+      encoding: "utf8",
+      flag: "wx",
+      mode: 0o600,
+    })
+    temporaryCreated = true
+    await rename(temporaryFile, outputFile)
+    temporaryCreated = false
+  } finally {
+    if (temporaryCreated) await rm(temporaryFile, { force: true })
+  }
+}
+
 function paeth(left: number, up: number, upLeft: number): number {
   const estimate = left + up - upLeft
   const leftDistance = Math.abs(estimate - left)
@@ -353,7 +400,15 @@ async function inspectE2eEvidenceManifest(
     throw new Error("E2E_RUN_ID 只能包含字母、数字、点、下划线和连字符")
   }
   const directoryFiles = await readdir(evidenceDirectory)
-  validateEvidenceFileNames(directoryFiles, includeManifest)
+  if (!includeManifest && directoryFiles.includes(EVIDENCE_MANIFEST_FILE)) {
+    await assertReplaceableEvidenceManifest(evidenceDirectory)
+  }
+  validateEvidenceFileNames(
+    includeManifest
+      ? directoryFiles
+      : directoryFiles.filter((file) => file !== EVIDENCE_MANIFEST_FILE),
+    includeManifest
+  )
   const candidateHead = resolveCandidateHead(repositoryRoot, explicitCandidateHead)
   const candidateFingerprint = await createCandidateFingerprint(repositoryRoot)
   const images = await Promise.all(

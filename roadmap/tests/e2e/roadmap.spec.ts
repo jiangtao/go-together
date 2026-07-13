@@ -226,7 +226,7 @@ test("公开课程数据提供确定加载态", async ({ page }, testInfo) => {
     releaseResponse = resolve
   })
 
-  await page.route("**/course.json", async (route) => {
+  await page.route("**/courses/catalog.json", async (route) => {
     await responseGate
     await route.continue()
   })
@@ -261,7 +261,10 @@ test("公开课程数据错误后可重试", async ({ page }, testInfo) => {
           : input instanceof Request
             ? input.url
             : input.toString()
-      if (new URL(url, window.location.origin).pathname === "/course.json") {
+      if (
+        new URL(url, window.location.origin).pathname ===
+        "/courses/catalog.json"
+      ) {
         return new Response('{"error":"temporary"}', {
           status: 503,
           headers: { "Content-Type": "application/json" },
@@ -281,6 +284,45 @@ test("公开课程数据错误后可重试", async ({ page }, testInfo) => {
   })
   await page.getByRole("button", { name: "重新加载" }).click()
   await expect(page.locator(".react-flow__node")).toHaveCount(47)
+  expectNoRuntimeErrors()
+})
+
+test("根路径与规范 Go 路径只消费同一组 canonical revision", async ({
+  page,
+}, testInfo) => {
+  test.skip(
+    testInfo.project.name !== "desktop-chromium",
+    "canonical 网络契约使用 1440 桌面浏览器"
+  )
+  const expectNoRuntimeErrors = watchRuntimeErrors(page)
+  const courseRequests: string[] = []
+  page.on("request", (request) => {
+    const pathname = new URL(request.url()).pathname
+    if (pathname.includes("course") || pathname.includes("sources/lessons")) {
+      courseRequests.push(pathname)
+    }
+  })
+
+  await page.goto("/")
+  const rootRevision = await page.locator(".app-shell").getAttribute(
+    "data-course-revision"
+  )
+  const canonicalRevision = await page.evaluate(async () => {
+    const response = await fetch("/courses/go-backend/course.json")
+    const value = (await response.json()) as { courseRevision: string }
+    return value.courseRevision
+  })
+  expect(rootRevision).toBe(canonicalRevision)
+
+  await page.goto("/courses/go-backend")
+  await expect(page.locator(".app-shell")).toHaveAttribute(
+    "data-course-revision",
+    canonicalRevision
+  )
+  expect(courseRequests).not.toContain("/course.json")
+  expect(courseRequests).toContain("/courses/catalog.json")
+  expect(courseRequests).toContain("/courses/go-backend/course.json")
+  expect(courseRequests).toContain("/courses/go-backend/progress.json")
   expectNoRuntimeErrors()
 })
 
@@ -539,7 +581,7 @@ test("桌面与移动路线图可见、可交互且无布局碰撞", async ({
 
   await expect(page.getByTestId("lesson-node-course-30")).toHaveAttribute(
     "href",
-    "/sources/lessons/day-30-minimal-tool-interface.md"
+    "/courses/go-backend/sources/lessons/minimal-tool-interface.md"
   )
   await expect(page.getByTestId("lesson-resource-notes")).toHaveCount(0)
   await expect(page.getByTestId("lesson-resource-evaluation")).toHaveCount(0)
@@ -703,7 +745,7 @@ test("Day 节点与应用内课程阅读器支持键盘操作", async ({
   await page.getByRole("button", { name: "关闭学习抽屉" }).click()
 
   await page.route(
-    "**/sources/lessons/day-01-module-package-toolchain.md",
+    "**/courses/go-backend/sources/lessons/module-package-toolchain.md",
     async (route) => {
       await route.fulfill({
         contentType: "text/markdown; charset=utf-8",
@@ -779,7 +821,7 @@ test("课程阅读器提供稳定加载态", async ({ page }, testInfo) => {
   })
 
   await page.route(
-    "**/sources/lessons/day-02-value-model-struct-zero-value.md",
+    "**/courses/go-backend/sources/lessons/value-model-struct-zero-value.md",
     async (route) => {
       await responseGate
       await route.fulfill({
@@ -807,7 +849,7 @@ test("课程阅读器提供错误与重试状态", async ({ page }, testInfo) =>
   let requestCount = 0
 
   await page.route(
-    "**/sources/lessons/day-02-value-model-struct-zero-value.md",
+    "**/courses/go-backend/sources/lessons/value-model-struct-zero-value.md",
     async (route) => {
       requestCount += 1
       await route.fulfill({
@@ -831,7 +873,7 @@ test("课程阅读器提供错误与重试状态", async ({ page }, testInfo) =>
           : input instanceof Request
             ? input.url
             : input.toString()
-      if (url.includes("day-02-value-model-struct-zero-value.md")) {
+      if (url.includes("/sources/lessons/value-model-struct-zero-value.md")) {
         return new Response("暂不可用", { status: 503 })
       }
       return originalFetch(input, init)
@@ -868,7 +910,7 @@ test("课程阅读器提供错误与重试状态", async ({ page }, testInfo) =>
           : input instanceof Request
             ? input.url
             : input.toString()
-      if (url.includes("day-03-data-structures-i-array-slice-capacity-copy.md")) {
+      if (url.includes("/sources/lessons/data-structures-i-array-slice-capacity-copy.md")) {
         return new Promise<Response>((_resolve, reject) => {
           init?.signal?.addEventListener(
             "abort",

@@ -115,6 +115,76 @@ describe("安全公开课程生成器", () => {
         "utf8"
       )
     ).resolves.toContain("# Day 36")
+
+    const catalog = JSON.parse(
+      await readFile(
+        path.join(fixture.outputDirectory, "courses/catalog.json"),
+        "utf8"
+      )
+    ) as {
+      courses: Array<{ courseId: string; courseRevision: string }>
+    }
+    const canonical = JSON.parse(
+      await readFile(
+        path.join(
+          fixture.outputDirectory,
+          "courses/go-backend/course.json"
+        ),
+        "utf8"
+      )
+    ) as {
+      schemaVersion: number
+      courseRevision: string
+      tracks: Array<{
+        trackId: string
+        stages: Array<{ lessons: Array<{ lessonId: string }> }>
+      }>
+    }
+    const canonicalProgress = JSON.parse(
+      await readFile(
+        path.join(
+          fixture.outputDirectory,
+          "courses/go-backend/progress.json"
+        ),
+        "utf8"
+      )
+    ) as { courseRevision: string; lessons: unknown[] }
+    expect(catalog.courses).toHaveLength(1)
+    expect(catalog.courses[0].courseId).toBe("go-backend")
+    expect(canonical.schemaVersion).toBe(1)
+    expect(canonical.tracks.map((track) => track.trackId)).toEqual([
+      "language-and-web",
+      "data-and-service-contracts",
+      "runtime-and-agent",
+    ])
+    expect(
+      canonical.tracks.flatMap((track) =>
+        track.stages.flatMap((stage) => stage.lessons)
+      )
+    ).toHaveLength(37)
+    expect(canonicalProgress.lessons).toHaveLength(37)
+    expect(catalog.courses[0].courseRevision).toBe(canonical.courseRevision)
+    expect(canonicalProgress.courseRevision).toBe(canonical.courseRevision)
+    await Promise.all(
+      Array.from({ length: 37 }, async (_, day) => {
+        const padded = String(day).padStart(2, "0")
+        const legacy = await readFile(
+          path.join(
+            fixture.outputDirectory,
+            `sources/lessons/day-${padded}-lesson-${padded}.md`
+          ),
+          "utf8"
+        )
+        const normalized = await readFile(
+          path.join(
+            fixture.outputDirectory,
+            `courses/go-backend/sources/lessons/lesson-${padded}.md`
+          ),
+          "utf8"
+        )
+        expect(normalized).toBe(legacy)
+      })
+    )
   })
 
   it("连续两次生成得到逐字节一致的文件树", async () => {

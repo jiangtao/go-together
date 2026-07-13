@@ -1,11 +1,9 @@
+import { createHash } from "node:crypto"
 import {
   lstat,
-  mkdir,
   readFile,
   readdir,
   realpath,
-  rm,
-  writeFile,
 } from "node:fs/promises"
 import path from "node:path"
 import { fileURLToPath } from "node:url"
@@ -18,6 +16,14 @@ import {
   type CourseStage,
   type CourseStatus,
 } from "../../src/types/course.ts"
+import {
+  compileCourseContract,
+  parseReleaseProgressSnapshot,
+  type AuthoringFiles,
+  type SourceCatalog,
+  type SourceCourse,
+} from "./course-contract.ts"
+import { buildMultiCoursePublicArtifacts } from "./multi-course-public.ts"
 
 const SCRIPT_DIRECTORY = path.dirname(fileURLToPath(import.meta.url))
 export const ROADMAP_DIRECTORY = path.resolve(SCRIPT_DIRECTORY, "../..")
@@ -91,6 +97,39 @@ const STAGE_DEFINITIONS = [
     endDay: 36,
   },
 ] as const
+
+const CANONICAL_STAGE_IDS = [
+  "language-foundations",
+  "http-and-data-entry",
+  "data-boundaries-and-contracts",
+  "grpc-service-chain",
+  "concurrency-and-operability",
+  "agent-slice-and-review",
+] as const
+
+const TRACK_DEFINITIONS = [
+  {
+    trackId: "language-and-web",
+    title: "语言与 Web",
+    description: "建立 Go 语言、HTTP 与数据入口基础。",
+    stageIndexes: [0, 1],
+  },
+  {
+    trackId: "data-and-service-contracts",
+    title: "数据与服务契约",
+    description: "贯通数据库、代码生成与 gRPC 服务契约。",
+    stageIndexes: [2, 3],
+  },
+  {
+    trackId: "runtime-and-agent",
+    title: "运行时与 Agent",
+    description: "掌握并发、可运行性与 Agent 集成切片。",
+    stageIndexes: [4, 5],
+  },
+] as const
+
+export const LEGACY_GO_ADAPTER_REMOVAL_GATE =
+  "Ticket 16 完成 go-backend 规范迁移并切换全部消费者后删除"
 
 interface PublicProgress {
   day: number
@@ -444,6 +483,18 @@ function lessonHref(fileName: string, day: number): string {
   return `/sources/lessons/${fileName}`
 }
 
+function canonicalLessonId(fileName: string): string {
+  const match = fileName.match(/^day-\d{2}-(.+)\.md$/)
+  if (!match) throw new Error(`${fileName}: 无法取得稳定 Lesson ID`)
+  return match[1]
+}
+
+function sha256(value: unknown): string {
+  return `sha256:${createHash("sha256")
+    .update(JSON.stringify(value))
+    .digest("hex")}`
+}
+
 export async function buildPublicArtifacts(
   options: PublicCourseBuildOptions = {}
 ): Promise<CourseData> {
@@ -528,21 +579,116 @@ export async function buildPublicArtifacts(
     lessons,
   })
 
-  await rm(outputDirectory, { recursive: true, force: true })
-  await mkdir(path.join(outputDirectory, "sources/lessons"), { recursive: true })
-  await writeFile(
-    path.join(outputDirectory, "course.json"),
-    `${JSON.stringify(data, null, 2)}\n`,
-    "utf8"
+  const lessonByDay = new Map(
+    parsedLessons.map((lesson) => [lesson.day, lesson])
   )
-  await Promise.all(
-    parsedLessons.map((lesson) =>
-      writeFile(
-        path.join(outputDirectory, "sources/lessons", lesson.fileName),
+  const sourceCourse: SourceCourse = {
+    schemaVersion: 1,
+    courseId: "go-backend",
+    title: "Go 36 天学习路线图",
+    description: "从 Go 语言基础到后端服务与 Agent 工程实践。",
+    language: { id: "go", label: "Go" },
+    lifecycle: "published",
+    replacementCourseId: null,
+    evaluationPolicyPath: "evaluation/policy.md",
+    commandProfilePath: "evaluation/command-profile.json",
+    publicResources: [],
+    internalResources: [],
+    tracks: TRACK_DEFINITIONS.map((track) => ({
+      trackId: track.trackId,
+      title: track.title,
+      description: track.description,
+      stages: track.stageIndexes.map((stageIndex) => {
+        const stage = STAGE_DEFINITIONS[stageIndex]
+        return {
+          stageId: CANONICAL_STAGE_IDS[stageIndex],
+          title: stage.title,
+          description: stage.description,
+          lessons: Array.from(
+            { length: stage.endDay - stage.startDay + 1 },
+            (_, offset) => {
+              const day = stage.startDay + offset
+              const lesson = lessonByDay.get(day)!
+              const lessonId = canonicalLessonId(lesson.fileName)
+              return {
+                lessonId,
+                lifecycle: "active" as const,
+                day,
+                title: lesson.title,
+                objective: lesson.objective,
+                goals: lesson.goals,
+                contentPath: `lessons/${lessonId}.md`,
+                exerciseTemplatePath: null,
+                evaluation: {
+                  competencies: [
+                    {
+                      competencyId: `complete-${lessonId}`,
+                      title: `完成 ${lesson.title}`,
+                    },
+                  ],
+                  requiredEvidence: ["notes", "exercise"],
+                  scoringBasis: ["准确", "可验证"],
+                },
+              }
+            }
+          ),
+        }
+      }),
+    })),
+  }
+  const authoringFiles: AuthoringFiles = {
+    "evaluation/policy.md": "Legacy Go adapter policy v1\n",
+    "evaluation/command-profile.json":
+      '{"commands":[["go","test","./..."],["go","test","-race","./..."],["go","vet","./..."],["go","test","./...","-run","TestName"]]}\n',
+    ...Object.fromEntries(
+      parsedLessons.map((lesson) => [
+        `lessons/${canonicalLessonId(lesson.fileName)}.md`,
         lesson.markdown,
-        "utf8"
-      )
-    )
-  )
+      ])
+    ),
+  }
+  const sourceCatalog: SourceCatalog = {
+    schemaVersion: 1,
+    defaultCourseId: "go-backend",
+    courses: [
+      {
+        courseId: sourceCourse.courseId,
+        title: sourceCourse.title,
+        language: sourceCourse.language,
+        lifecycle: sourceCourse.lifecycle,
+        replacementCourseId: sourceCourse.replacementCourseId,
+        manifestPath: "courses/go-backend/course.json",
+      },
+    ],
+  }
+  const compiled = compileCourseContract(sourceCourse, authoringFiles)
+  const snapshot = parseReleaseProgressSnapshot({
+    schemaVersion: 1,
+    courseId: sourceCourse.courseId,
+    courseRevision: compiled.courseRevision,
+    privateInputDigest: sha256({ adapter: "legacy-go-v1", progress }),
+    lessons: compiled.lessons.map((lesson) => {
+      const record = progress[lesson.day!]
+      return {
+        lessonId: lesson.lessonId,
+        status: record.status,
+        referenceScore: record.referenceScore,
+      }
+    }),
+  })
+
+  await buildMultiCoursePublicArtifacts({
+    sourceCatalog,
+    courses: [{ sourceCourse, authoringFiles, snapshot }],
+    outputDirectory,
+    legacy: {
+      courseId: "go-backend",
+      courseData: data,
+      lessons: parsedLessons.map((lesson) => ({
+        lessonId: canonicalLessonId(lesson.fileName),
+        legacyHref: lessonHref(lesson.fileName, lesson.day),
+      })),
+    },
+  })
   return data
 }

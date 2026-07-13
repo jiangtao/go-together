@@ -15,6 +15,12 @@ describe("Markdown 资源安全边界", () => {
     )
     expect(
       normalizeSourceUrl(
+        "/courses/go-backend/sources/lessons/why-go.md",
+        ORIGIN
+      )
+    ).toBe("/courses/go-backend/sources/lessons/why-go.md")
+    expect(
+      normalizeSourceUrl(
         "http://127.0.0.1:5173/sources/lessons/day%2001.md",
         ORIGIN
       )

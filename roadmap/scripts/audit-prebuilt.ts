@@ -11,6 +11,14 @@ const roadmapDirectory = path.resolve(
 const paths = {
   repositoryRoot: path.resolve(roadmapDirectory, ".."),
   distDirectory: path.join(roadmapDirectory, "dist"),
+  expectedPublicDirectory: path.join(
+    roadmapDirectory,
+    ".generated/public"
+  ),
+  assetManifestFile: path.join(
+    roadmapDirectory,
+    ".generated/vite-asset-manifest.json"
+  ),
   outputDirectory: path.join(roadmapDirectory, ".vercel/output"),
   manifestFile: path.join(
     roadmapDirectory,
