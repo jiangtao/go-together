@@ -195,12 +195,14 @@ export function buildRoadmapLayout({
   isMobile,
   selectedDay,
   recommendedDay,
+  onOpenCourse = () => undefined,
 }: {
   stages: CourseStage[]
   lessons: CourseLesson[]
   isMobile: boolean
-  selectedDay: number
+  selectedDay: number | null
   recommendedDay: number | null
+  onOpenCourse?: (lesson: CourseLesson, trigger: HTMLElement) => void
 }): RoadmapLayout {
   const settings = isMobile ? MOBILE_SETTINGS : DESKTOP_SETTINGS
   const graphWidth =
@@ -346,6 +348,7 @@ export function buildRoadmapLayout({
           recommended: lesson.day === recommendedDay,
           targetPosition: Position.Top,
           sourcePosition: Position.Bottom,
+          onOpenCourse,
         },
         selected: lesson.day === selectedDay,
         draggable: false,

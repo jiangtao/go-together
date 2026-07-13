@@ -8,13 +8,16 @@ pnpm-debug.log*
 lerna-debug.log*
 
 node_modules
+.generated
+public/
 dist
 dist-ssr
 *.local
 output/playwright
 playwright-report
 test-results
-public/sources
+coverage
+*.map
 .vercel
 !package-lock.json
 

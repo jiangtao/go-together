@@ -4,16 +4,13 @@ import {
   type NodeProps,
   type Position,
 } from "@xyflow/react"
-import { FileTextIcon } from "lucide-react"
 
 import { StatusBadge } from "@/components/status-badge"
 import { Badge } from "@/components/ui/badge"
-import { Button } from "@/components/ui/button"
 import {
   Card,
   CardAction,
   CardContent,
-  CardFooter,
   CardHeader,
   CardTitle,
 } from "@/components/ui/card"
@@ -24,15 +21,13 @@ export interface LessonNodeData extends Record<string, unknown> {
   recommended: boolean
   targetPosition: Position
   sourcePosition: Position
+  onOpenCourse: (lesson: CourseLesson, trigger: HTMLElement) => void
 }
 
 export type LessonFlowNode = Node<LessonNodeData, "lesson">
 
 export function LessonNode({ data, selected }: NodeProps<LessonFlowNode>) {
   const { lesson } = data
-  const lessonResource = lesson.resources.find(
-    (resource) => resource.kind === "lesson"
-  )
 
   return (
     <>
@@ -68,33 +63,22 @@ export function LessonNode({ data, selected }: NodeProps<LessonFlowNode>) {
           ) : null}
         </CardHeader>
         <CardContent className="lesson-node-content">
-          <p className="lesson-node-title" title={lesson.title}>
+          <a
+            href={lesson.lessonHref}
+            className="nodrag nopan lesson-node-title lesson-node-course-link"
+            title={`点击查看课程：${lesson.title}`}
+            aria-label={`在应用内阅读 ${lesson.dayLabel} 课程：${lesson.title}`}
+            data-testid={`lesson-node-course-${lesson.day}`}
+            onClick={(event) => {
+              event.preventDefault()
+              event.stopPropagation()
+              data.onOpenCourse(lesson, event.currentTarget)
+            }}
+            onKeyDown={(event) => event.stopPropagation()}
+          >
             {lesson.title}
-          </p>
+          </a>
         </CardContent>
-        {lessonResource?.exists ? (
-          <CardFooter className="lesson-node-footer">
-            <Button
-              asChild
-              variant="ghost"
-              size="xs"
-              className="nodrag nopan lesson-node-course"
-            >
-              <a
-                href={lessonResource.href}
-                target="_blank"
-                rel="noreferrer"
-                aria-label={`打开 ${lesson.dayLabel} 课程 Markdown`}
-                data-testid={`lesson-node-course-${lesson.day}`}
-                onClick={(event) => event.stopPropagation()}
-                onKeyDown={(event) => event.stopPropagation()}
-              >
-                <FileTextIcon data-icon="inline-start" />
-                课程
-              </a>
-            </Button>
-          </CardFooter>
-        ) : null}
       </Card>
       <Handle
         type="source"

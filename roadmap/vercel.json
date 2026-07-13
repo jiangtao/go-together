@@ -1,6 +1,5 @@
 {
   "$schema": "https://openapi.vercel.sh/vercel.json",
   "framework": "vite",
-  "buildCommand": "npm run build",
-  "outputDirectory": "dist"
+  "buildCommand": "node -e \"console.error('Source deployment disabled: use the audited prebuilt workflow'); process.exit(1)\""
 }

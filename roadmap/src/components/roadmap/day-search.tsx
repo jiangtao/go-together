@@ -19,7 +19,7 @@ import type { CourseLesson } from "@/types/course"
 
 interface DaySearchProps {
   lessons: CourseLesson[]
-  selectedDay: number
+  selectedDay: number | null
   onSelect: (lesson: CourseLesson) => void
 }
 

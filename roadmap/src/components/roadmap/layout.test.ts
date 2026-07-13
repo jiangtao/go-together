@@ -38,33 +38,7 @@ const lessons: CourseLesson[] = Array.from({ length: 37 }, (_, day) => {
     objective: `完成 Day ${day}`,
     goals: [`完成 Day ${day}`],
     stageId: stage.id,
-    lessonPath: `docs/day-${day}.md`,
-    exercisePath: `exercise/day${day}`,
-    evaluationPath: `exercise/day${day}/notes-eval.md`,
-    evaluationSourceExists: false,
-    resources: [
-      {
-        kind: "lesson",
-        label: "课程 Markdown",
-        path: `docs/day-${day}.md`,
-        href: `/sources/docs/day-${day}.md`,
-        exists: true,
-      },
-      {
-        kind: "notes",
-        label: "学习笔记",
-        path: `exercise/day${day}/notes.md`,
-        href: `/sources/exercise/day${day}/notes.md`,
-        exists: false,
-      },
-      {
-        kind: "evaluation",
-        label: "评测文件",
-        path: `exercise/day${day}/notes-eval.md`,
-        href: `/sources/exercise/day${day}/notes-eval.md`,
-        exists: false,
-      },
-    ],
+    lessonHref: `/sources/lessons/day-${String(day).padStart(2, "0")}-course.md`,
     status: day === 0 ? "通过" : "未开始",
     referenceScore: null,
   }
@@ -158,5 +132,59 @@ describe("总分结构化路线布局", () => {
         }
       }
     }
+  })
+
+  it("桌面与移动的全部 Day 均包含在阶段簇内并保留课程阅读回调", () => {
+    const onOpenCourse = () => undefined
+
+    for (const isMobile of [false, true]) {
+      const layout = buildRoadmapLayout({
+        stages,
+        lessons,
+        isMobile,
+        selectedDay: 0,
+        recommendedDay: 1,
+        onOpenCourse,
+      })
+      const stageNodes = new Map(
+        layout.nodes
+          .filter((node) => node.type === "stage")
+          .map((node) => [node.id, node])
+      )
+      const lessonNodes = layout.nodes.filter(
+        (node) => node.type === "lesson"
+      )
+
+      expect(lessonNodes).toHaveLength(37)
+      for (const lessonNode of lessonNodes) {
+        const stageNode = stageNodes.get(lessonNode.parentId ?? "")
+        expect(stageNode, `${lessonNode.id} 应属于一个阶段簇`).toBeDefined()
+        expect(lessonNode.data.onOpenCourse).toBe(onOpenCourse)
+        expect(lessonNode.position.x).toBeGreaterThanOrEqual(0)
+        expect(lessonNode.position.y).toBeGreaterThanOrEqual(0)
+        expect(
+          lessonNode.position.x + Number(lessonNode.style?.width ?? 0)
+        ).toBeLessThanOrEqual(Number(stageNode?.style?.width ?? 0))
+        expect(
+          lessonNode.position.y + Number(lessonNode.style?.height ?? 0)
+        ).toBeLessThanOrEqual(Number(stageNode?.style?.height ?? 0))
+      }
+    }
+  })
+
+  it("概览状态不默认选中任何 Day", () => {
+    const layout = buildRoadmapLayout({
+      stages,
+      lessons,
+      isMobile: false,
+      selectedDay: null,
+      recommendedDay: 1,
+    })
+    const lessonNodes = layout.nodes.filter((node) => node.type === "lesson")
+
+    expect(lessonNodes.every((node) => node.selected === false)).toBe(true)
+    expect(
+      lessonNodes.every((node) => !node.ariaLabel?.includes("当前选中"))
+    ).toBe(true)
   })
 })

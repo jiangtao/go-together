@@ -5,7 +5,12 @@ import { defineConfig } from 'vite'
 
 // https://vite.dev/config/
 export default defineConfig({
+  base: '/',
+  publicDir: path.resolve(__dirname, './.generated/public'),
   plugins: [react(), tailwindcss()],
+  build: {
+    sourcemap: false,
+  },
   resolve: {
     alias: {
       '@': path.resolve(__dirname, './src'),

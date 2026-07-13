@@ -7,20 +7,9 @@ export const COURSE_STATUSES = [
 
 export type CourseStatus = (typeof COURSE_STATUSES)[number]
 
-export const COURSE_RESOURCE_KINDS = [
-  "lesson",
-  "notes",
-  "evaluation",
-] as const
-
-export type CourseResourceKind = (typeof COURSE_RESOURCE_KINDS)[number]
-
 export interface CourseResource {
-  kind: CourseResourceKind
   label: string
-  path: string
   href: string
-  exists: boolean
 }
 
 export interface CourseLesson {
@@ -32,13 +21,9 @@ export interface CourseLesson {
   objective: string
   goals: string[]
   stageId: string
-  lessonPath: string
-  exercisePath: string
-  evaluationPath: string
-  evaluationSourceExists: boolean
-  resources: CourseResource[]
   status: CourseStatus
   referenceScore: number | null
+  lessonHref: string
 }
 
 export interface CourseStage {
@@ -52,7 +37,7 @@ export interface CourseStage {
 }
 
 export interface CourseData {
-  schemaVersion: 2
+  schemaVersion: 3
   title: string
   dayRange: {
     start: number

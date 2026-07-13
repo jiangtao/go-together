@@ -1,0 +1,51 @@
+name: roadmap-vercel-manual
+
+on:
+  workflow_dispatch:
+    inputs:
+      target:
+        description: Vercel 部署环境
+        required: true
+        default: preview
+        type: choice
+        options:
+          - preview
+          - production
+
+permissions:
+  contents: read
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: roadmap
+    env:
+      VERCEL_TOKEN: ${{ secrets.VERCEL_TOKEN }}
+      VERCEL_ORG_ID: ${{ secrets.VERCEL_ORG_ID }}
+      VERCEL_PROJECT_ID: ${{ secrets.VERCEL_PROJECT_ID }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 24.x
+          cache: npm
+          cache-dependency-path: roadmap/package-lock.json
+      - run: npm ci
+      - run: npm run build:release
+      - run: npm run audit:prebuilt
+      - name: Write ephemeral Vercel project metadata
+        run: >-
+          node -e "const fs=require('node:fs');fs.mkdirSync('.vercel',{recursive:true});fs.writeFileSync('.vercel/project.json',JSON.stringify({orgId:process.env.VERCEL_ORG_ID,projectId:process.env.VERCEL_PROJECT_ID}))"
+      - name: Deploy prebuilt output
+        id: deploy
+        run: |
+          if [ "${{ inputs.target }}" = "production" ]; then
+            url=$(npx vercel@50.27.1 deploy --prebuilt --prod --yes --token="$VERCEL_TOKEN")
+          else
+            url=$(npx vercel@50.27.1 deploy --prebuilt --yes --token="$VERCEL_TOKEN")
+          fi
+          echo "url=$url" >> "$GITHUB_OUTPUT"
+      - run: npx playwright install --with-deps chromium
+      - run: npm run smoke:deployment -- "${{ steps.deploy.outputs.url }}"

@@ -1,0 +1,35 @@
+name: roadmap-deployment-smoke
+
+on:
+  deployment_status:
+
+permissions:
+  contents: read
+
+jobs:
+  smoke:
+    if: >-
+      github.event.deployment_status.state == 'success' &&
+      github.event.deployment_status.environment_url != '' &&
+      vars.ROADMAP_DEPLOYMENT_CREATOR != '' &&
+      github.event.deployment_status.creator.login == vars.ROADMAP_DEPLOYMENT_CREATOR &&
+      (github.event.deployment.environment == 'Preview' ||
+       github.event.deployment.environment == 'Production' ||
+       github.event.deployment.environment == 'preview' ||
+       github.event.deployment.environment == 'production')
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: roadmap
+    env:
+      DEPLOYMENT_URL: ${{ github.event.deployment_status.environment_url }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 24.x
+          cache: npm
+          cache-dependency-path: roadmap/package-lock.json
+      - run: npm ci
+      - run: npx playwright install --with-deps chromium
+      - run: npm run smoke:deployment -- "$DEPLOYMENT_URL"
