@@ -86,6 +86,19 @@ async function createCandidateFixture(): Promise<{
     ["roadmap/scripts/example.ts", "export const build = true\n"],
     ["roadmap/tests/example.test.ts", "export const tested = true\n"],
     ["roadmap/content/progress.public.json", "[]\n"],
+    [
+      ".agents/skills/evaluate-course-lesson/SKILL.md",
+      "# Generic evaluation\n",
+    ],
+    [
+      ".agents/skills/evaluate-course-lesson/scripts/core.py",
+      "CORE = True\n",
+    ],
+    [".agents/skills/evaluate-go-day/SKILL.md", "# Go router\n"],
+    [
+      ".agents/skills/evaluate-go-day/scripts/router.py",
+      "ROUTER = True\n",
+    ],
   ])
   for (let day = 0; day <= 36; day += 1) {
     const number = String(day).padStart(2, "0")
@@ -118,24 +131,37 @@ async function createCandidateFixture(): Promise<{
 }
 
 describe("E2E 截图证据契约", () => {
-  it("固定为八个唯一视觉状态及明确 CSS×DPR", () => {
+  it("固定为十二个唯一视觉状态及明确 CSS×DPR", () => {
     const names = REQUIRED_EVIDENCE.map(({ state }) => `${state}.png`)
-    expect(names).toHaveLength(8)
-    expect(new Set(names).size).toBe(8)
-    expect(REQUIRED_EVIDENCE.filter(({ deviceScaleFactor }) => deviceScaleFactor === 1)).toHaveLength(4)
-    expect(REQUIRED_EVIDENCE.filter(({ deviceScaleFactor }) => deviceScaleFactor === 3)).toHaveLength(4)
+    expect(names).toEqual([
+      "desktop-normal.png",
+      "desktop-zen.png",
+      "desktop-zen-day.png",
+      "desktop-zen-reader.png",
+      "mobile-normal.png",
+      "mobile-zen.png",
+      "mobile-zen-day.png",
+      "mobile-zen-reader.png",
+      "desktop-course-select.png",
+      "desktop-nondefault-normal.png",
+      "mobile-course-select.png",
+      "mobile-nondefault-normal.png",
+    ])
+    expect(new Set(names).size).toBe(12)
+    expect(REQUIRED_EVIDENCE.filter(({ deviceScaleFactor }) => deviceScaleFactor === 1)).toHaveLength(6)
+    expect(REQUIRED_EVIDENCE.filter(({ deviceScaleFactor }) => deviceScaleFactor === 3)).toHaveLength(6)
     expect(() => validateEvidenceFileNames(names)).not.toThrow()
   })
 
   it("拒绝缺失、额外文件或历史截图", () => {
     const names = REQUIRED_EVIDENCE.map(({ state }) => `${state}.png`)
-    expect(() => validateEvidenceFileNames(names.slice(1))).toThrow("8 个规定状态")
+    expect(() => validateEvidenceFileNames(names.slice(1))).toThrow("12 个规定状态")
     expect(() =>
       validateEvidenceFileNames([...names, "historical.png"])
-    ).toThrow("8 个规定状态")
+    ).toThrow("12 个规定状态")
     expect(() =>
       validateEvidenceFileNames([...names, "notes.txt"])
-    ).toThrow("8 个规定状态")
+    ).toThrow("12 个规定状态")
   })
 
   it("在无 .git 副本中使用显式 HEAD 生成含内容指纹的清单", async () => {
@@ -147,11 +173,11 @@ describe("E2E 截图证据契约", () => {
       CANDIDATE_HEAD
     )
 
-    expect(manifest.schemaVersion).toBe(2)
+    expect(manifest.schemaVersion).toBe(3)
     expect(manifest.candidate.head).toBe(CANDIDATE_HEAD)
     expect(manifest.candidate.fingerprintFileCount).toBeGreaterThan(40)
     expect(manifest.candidate.workingTreeFingerprint).toMatch(/^[a-f0-9]{64}$/)
-    expect(manifest.images).toHaveLength(8)
+    expect(manifest.images).toHaveLength(12)
     expect(manifest.images.find(({ state }) => state === "mobile-normal")).toMatchObject({
       cssViewport: { width: 390, height: 844 },
       deviceScaleFactor: 3,
@@ -211,6 +237,75 @@ describe("E2E 截图证据契约", () => {
     const after = await createCandidateFingerprint(repositoryRoot)
     expect(after.fileCount).toBe(before.fileCount)
     expect(after.sha256).not.toBe(before.sha256)
+  })
+
+  it("候选指纹拒绝 roadmap 根配置与 workflow symlink", async () => {
+    const rootConfig = await createCandidateFixture()
+    await symlink(
+      rootConfig.repositoryRoot,
+      path.join(rootConfig.repositoryRoot, "roadmap/vite.config.ts")
+    )
+    await expect(
+      createCandidateFingerprint(rootConfig.repositoryRoot)
+    ).rejects.toThrow("普通文件")
+
+    const workflow = await createCandidateFixture()
+    const workflowFile = path.join(
+      workflow.repositoryRoot,
+      ".github/workflows/roadmap-quality.yml"
+    )
+    await rm(workflowFile)
+    await symlink(
+      path.join(workflow.repositoryRoot, "roadmap/package.json"),
+      workflowFile
+    )
+    await expect(
+      createCandidateFingerprint(workflow.repositoryRoot)
+    ).rejects.toThrow("普通文件")
+  })
+
+  it("候选指纹拒绝递归扫描根与 workflow 目录根逃逸", async () => {
+    const sourceRoot = await createCandidateFixture()
+    const externalSource = await mkdtemp(
+      path.join(os.tmpdir(), "roadmap-evidence-external-src-")
+    )
+    temporaryDirectories.push(externalSource)
+    await writeFile(
+      path.join(externalSource, "App.tsx"),
+      "export const escaped = true\n",
+      "utf8"
+    )
+    await rm(path.join(sourceRoot.repositoryRoot, "roadmap/src"), {
+      recursive: true,
+    })
+    await symlink(
+      externalSource,
+      path.join(sourceRoot.repositoryRoot, "roadmap/src")
+    )
+    await expect(
+      createCandidateFingerprint(sourceRoot.repositoryRoot)
+    ).rejects.toThrow("普通目录")
+
+    const workflowRoot = await createCandidateFixture()
+    const externalWorkflows = await mkdtemp(
+      path.join(os.tmpdir(), "roadmap-evidence-external-workflows-")
+    )
+    temporaryDirectories.push(externalWorkflows)
+    await writeFile(
+      path.join(externalWorkflows, "roadmap-quality.yml"),
+      "name: escaped\n",
+      "utf8"
+    )
+    await rm(path.join(workflowRoot.repositoryRoot, ".github/workflows"), {
+      recursive: true,
+    })
+    await symlink(
+      externalWorkflows,
+      path.join(workflowRoot.repositoryRoot, ".github/workflows")
+    )
+    await expect(
+      createCandidateFingerprint(workflowRoot.repositoryRoot)
+    ).rejects.toThrow("普通目录")
   })
 
   it("写出的清单会重新核对截图哈希", async () => {

@@ -45,7 +45,7 @@ try {
     process.env.E2E_CANDIDATE_HEAD
   )
   console.log(
-    `E2E 证据清单通过：8 张非空截图，run ${manifest.runId}，manifest sha256 ${createHash("sha256").update(serialized).digest("hex")}`
+    `E2E 证据清单通过：${manifest.images.length} 张非空截图，run ${manifest.runId}，manifest sha256 ${createHash("sha256").update(serialized).digest("hex")}`
   )
 } catch (error) {
   console.error("E2E 证据清单失败：", error)

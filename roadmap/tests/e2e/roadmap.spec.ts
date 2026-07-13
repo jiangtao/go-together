@@ -8,6 +8,9 @@ import { mockGitHubRepositoryApi } from "./github-api"
 const DIAGNOSTIC_SCREENSHOT_DIRECTORY = path.resolve(
   process.env.PLAYWRIGHT_ARTIFACT_DIR ?? ".generated/playwright-artifacts"
 )
+const EVIDENCE_SCREENSHOT_DIRECTORY = path.resolve(
+  process.env.E2E_EVIDENCE_DIR ?? ".generated/e2e-evidence"
+)
 const MULTI_COURSE_REVISION = `sha256:${"4".repeat(64)}`
 const MULTI_CONTENT_REVISION = `sha256:${"5".repeat(64)}`
 
@@ -169,6 +172,14 @@ function watchRuntimeErrors(page: Page) {
     expect(consoleErrors).toEqual([])
     expect(networkErrors).toEqual([])
   }
+}
+
+async function captureEvidenceScreenshot(page: Page, state: string) {
+  await mkdir(EVIDENCE_SCREENSHOT_DIRECTORY, { recursive: true })
+  await page.screenshot({
+    path: path.join(EVIDENCE_SCREENSHOT_DIRECTORY, `${state}.png`),
+    fullPage: true,
+  })
 }
 
 async function waitForViewportToSettle(viewport: Locator) {
@@ -535,6 +546,46 @@ test("Course Select 以 URL 切换任意结构课程并按 history 恢复 transf
   await expect(page.getByTestId("course-heading")).toBeFocused()
   await waitForViewportToSettle(viewport)
   await expect(viewport).toHaveAttribute("style", pythonViewport ?? "")
+  expectNoRuntimeErrors()
+})
+
+test("候选证据固定 Course Select 展开与非默认 Course 全览", async ({
+  page,
+}, testInfo) => {
+  test.skip(
+    !["desktop-chromium", "mobile-390"].includes(testInfo.project.name),
+    "候选视觉证据固定使用 1440 桌面与 390 移动视口"
+  )
+  const expectNoRuntimeErrors = watchRuntimeErrors(page)
+  await mockMultiCourseProjection(page)
+  await page.goto("/")
+  await waitForViewportToSettle(page.locator(".react-flow__viewport"))
+
+  await page.getByTestId("course-select-trigger").click()
+  await expect(
+    page.getByRole("option", { name: "Python · Python Core" })
+  ).toBeVisible()
+  await captureEvidenceScreenshot(
+    page,
+    testInfo.project.name === "desktop-chromium"
+      ? "desktop-course-select"
+      : "mobile-course-select"
+  )
+
+  await page.getByRole("option", { name: "Python · Python Core" }).click()
+  await expect(page).toHaveURL(/\/courses\/python-core$/)
+  await expect(page.getByTestId("course-heading")).toHaveText("Python Core")
+  await waitForViewportToSettle(page.locator(".react-flow__viewport"))
+  await expectWholeRoadmapInsideCanvas(
+    page,
+    page.getByTestId("roadmap-canvas")
+  )
+  await captureEvidenceScreenshot(
+    page,
+    testInfo.project.name === "desktop-chromium"
+      ? "desktop-nondefault-normal"
+      : "mobile-nondefault-normal"
+  )
   expectNoRuntimeErrors()
 })
 
