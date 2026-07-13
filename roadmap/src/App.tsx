@@ -4,6 +4,7 @@ import { AlertCircleIcon, BracesIcon, RotateCwIcon } from "lucide-react"
 
 import { LearningDrawer } from "@/components/learning-drawer"
 import { MarkdownReader } from "@/components/markdown-reader"
+import { RepositoryActions } from "@/components/repository-actions"
 import {
   RoadmapCanvas,
   type RoadmapCanvasHandle,
@@ -261,10 +262,11 @@ function RoadmapApplication({ courseData }: { courseData: CourseData }) {
             <p>课程 Markdown 提供内容，脱敏进度摘要展示状态</p>
           </div>
           <div className="header-actions">
-            <Badge variant="outline">
+            <Badge variant="outline" className="header-course-range">
               Day {courseData.dayRange.start}–{courseData.dayRange.end} ·{" "}
               {courseData.stages.length} 个阶段
             </Badge>
+            <RepositoryActions />
           </div>
         </header>
       ) : null}

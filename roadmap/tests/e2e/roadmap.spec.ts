@@ -3,9 +3,15 @@ import path from "node:path"
 
 import { expect, test, type Locator, type Page } from "@playwright/test"
 
+import { mockGitHubRepositoryApi } from "./github-api"
+
 const DIAGNOSTIC_SCREENSHOT_DIRECTORY = path.resolve(
   process.env.PLAYWRIGHT_ARTIFACT_DIR ?? ".generated/playwright-artifacts"
 )
+
+test.beforeEach(async ({ page }) => {
+  await mockGitHubRepositoryApi(page)
+})
 
 function watchRuntimeErrors(page: Page) {
   const consoleErrors: string[] = []

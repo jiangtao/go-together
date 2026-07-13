@@ -3,9 +3,15 @@ import path from "node:path"
 
 import { expect, test, type Locator, type Page } from "@playwright/test"
 
+import { mockGitHubRepositoryApi } from "./github-api"
+
 const SCREENSHOT_DIRECTORY = path.resolve(
   process.env.E2E_EVIDENCE_DIR ?? ".generated/e2e-evidence"
 )
+
+test.beforeEach(async ({ page }) => {
+  await mockGitHubRepositoryApi(page)
+})
 
 function watchRuntime(page: Page) {
   const consoleErrors: string[] = []

@@ -274,9 +274,29 @@
 
   .header-actions {
     display: flex;
+    min-width: 0;
     flex: none;
     align-items: center;
     gap: 0.5rem;
+  }
+
+  .repository-actions {
+    display: flex;
+    min-width: 0;
+    align-items: center;
+    gap: 0.25rem;
+  }
+
+  .repository-action {
+    min-width: 0;
+  }
+
+  .repository-count {
+    min-width: 1ch;
+    border-left: 1px solid var(--border);
+    padding-left: 0.375rem;
+    color: var(--muted-foreground);
+    font-variant-numeric: tabular-nums;
   }
 
   .canvas-workspace {
@@ -1263,6 +1283,18 @@
     padding-left: 3.25rem;
   }
 
+  .repository-action-label {
+    display: none;
+  }
+
+  .repository-action {
+    padding-inline: 0.5rem;
+  }
+
+  .repository-action:has(.repository-count) {
+    padding-right: 0.5rem;
+  }
+
   .roadmap-panel [data-slot="card-description"] {
     max-width: 13rem;
   }
@@ -1350,6 +1382,12 @@
 
   .overview-node-card [data-slot="card-description"] {
     max-width: 12rem;
+  }
+}
+
+@media (max-width: 420px) {
+  .header-course-range {
+    display: none;
   }
 }
 

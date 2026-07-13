@@ -104,6 +104,9 @@ describe("Vercel Build Output API v3 预构建包", () => {
         await readFile(path.join(paths.outputDirectory, "config.json"), "utf8")
       )
     ).toEqual(PREBUILT_CONFIG)
+    expect(
+      PREBUILT_CONFIG.routes[0].headers["Content-Security-Policy"]
+    ).toContain("connect-src 'self' https://api.github.com")
   })
 
   it("拒绝预构建目录中的额外文件、source map 与符号链接", async () => {
