@@ -1,0 +1,4 @@
+interface:
+  display_name: "Course Lesson 准备与评测"
+  short_description: "按稳定课程身份准备、评测和查询单个 Lesson"
+  default_prompt: "使用 $evaluate-course-lesson 处理显式 courseId 与 lessonId。"

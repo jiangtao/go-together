@@ -187,12 +187,51 @@ function evaluation(
       {
         evaluationRevision,
         status: "通过",
-        referenceScore: 88,
+        referenceScore: 100,
         competencies: [{ competencyId: "explain-tradeoffs", score: 4 }],
       },
     ],
     ...overrides,
   }
+}
+
+function evaluationMarkdown(evaluationRevision: string): string {
+  return `# Evaluation Record\n\n\`\`\`evaluation-record\n${JSON.stringify(
+    {
+      schemaVersion: 2,
+      courseId: "go-backend",
+      lessonId: "motivation-and-setup",
+      legacySourceBase64: null,
+      cycles: [
+        {
+          cycle: 1,
+          evaluationRevision,
+          status: "通过",
+          referenceScore: 100,
+          currentCompetencyId: null,
+          competencies: [
+            { competencyId: "explain-tradeoffs", score: 4, attempts: 1 },
+          ],
+        },
+      ],
+      events: [
+        { sequence: 1, type: "cycle-started", cycle: 1 },
+        {
+          sequence: 2,
+          type: "outcome",
+          cycle: 1,
+          competencyId: "explain-tradeoffs",
+          score: 4,
+          attempt: 1,
+          problemType: "已达标",
+          evidenceLocation: "回答 1",
+          reviewSection: "学习目标",
+        },
+      ],
+    },
+    null,
+    2
+  )}\n\`\`\`\n`
 }
 
 function publicCourse(compiled = compileCourseContract(sourceCourse(), authoringFiles())): PublicCourse {
@@ -567,6 +606,19 @@ describe("multi-course domain contracts", () => {
     expect(() => deriveCourseProgress(compiled, [{ ...record, lessonId: "day-0" }])).toThrow(
       "未知 Lesson"
     )
+    expect(() =>
+      deriveCourseProgress(compiled, [
+        {
+          ...record,
+          history: [
+            {
+              ...record.history[0],
+              competencies: [{ competencyId: "invented", score: 4 }],
+            },
+          ],
+        },
+      ])
+    ).toThrow("能力项")
 
     const movedSource = structuredClone(sourceCourse())
     const lessons = movedSource.tracks[0].stages[0].lessons
@@ -588,7 +640,14 @@ describe("multi-course domain contracts", () => {
         ...record,
         history: [
           ...record.history,
-          { ...record.history[0], status: "重新学习", referenceScore: 60 },
+          {
+            ...record.history[0],
+            status: "重新学习",
+            referenceScore: 50,
+            competencies: [
+              { competencyId: "explain-tradeoffs", score: 2 },
+            ],
+          },
         ],
       })
     ).toThrow("一旦通过便不可回退")
@@ -601,11 +660,88 @@ describe("multi-course domain contracts", () => {
             ...record.history[0],
             evaluationRevision: `sha256:${"7".repeat(64)}`,
             status: "重新学习",
-            referenceScore: 60,
+            referenceScore: 50,
+            competencies: [
+              { competencyId: "explain-tradeoffs", score: 2 },
+            ],
           },
         ],
       })
     ).not.toThrow()
+
+    expect(() =>
+      parseEvaluationRecord({
+        ...record,
+        history: [
+          ...record.history,
+          {
+            ...record.history[0],
+            evaluationRevision: `sha256:${"7".repeat(64)}`,
+            status: "未开始",
+            referenceScore: null,
+            competencies: [
+              { competencyId: "explain-tradeoffs", score: 0 },
+            ],
+          },
+          { ...record.history[0] },
+        ],
+      })
+    ).toThrow("一旦通过便不可回退")
+
+    expect(() =>
+      parseEvaluationRecord({
+        ...record,
+        history: [
+          {
+            ...record.history[0],
+            status: "定向回炉",
+            referenceScore: 50,
+            competencies: [
+              { competencyId: "explain-tradeoffs", score: 2 },
+            ],
+          },
+          {
+            ...record.history[0],
+            status: "未开始",
+            referenceScore: null,
+            competencies: [
+              { competencyId: "explain-tradeoffs", score: 0 },
+            ],
+          },
+        ],
+      })
+    ).toThrow("新周期")
+  })
+
+  it("rejects Evaluation status and referenceScore that drift from 0-4 competency levels", () => {
+    const compiled = compileCourseContract(sourceCourse(), authoringFiles())
+    const record = evaluation(compiled.lessons[0].evaluationRevision)
+    expect(() =>
+      parseEvaluationRecord({
+        ...record,
+        history: [
+          {
+            ...record.history[0],
+            referenceScore: 99,
+          },
+        ],
+      })
+    ).toThrow("referenceScore")
+    expect(() =>
+      parseEvaluationRecord({
+        ...record,
+        history: [
+          {
+            ...record.history[0],
+            status: "通过",
+            referenceScore: 50,
+            competencies: [
+              { competencyId: "explain-tradeoffs", score: 2 },
+            ],
+          },
+        ],
+      })
+    ).toThrow("全部能力")
   })
 
   it("separates content, evaluation, and course revisions deterministically", () => {
@@ -662,11 +798,17 @@ describe("multi-course domain contracts", () => {
       referenceScore: null,
     })
 
+    const retiredRecord = evaluation(
+      compiled.lessons[2].evaluationRevision,
+      { lessonId: "retired-pointers" }
+    )
+    retiredRecord.history[0].competencies = [
+      { competencyId: "read-history", score: 4 },
+    ]
+
     const currentResult = deriveCourseProgress(compiled, [
       evaluation(current.evaluationRevision),
-      evaluation(compiled.lessons[2].evaluationRevision, {
-        lessonId: "retired-pointers",
-      }),
+      retiredRecord,
     ])
     expect(currentResult.summary).toEqual({ activeLessons: 2, passed: 1 })
     expect(currentResult.recommendedLessonId).toBe("values-and-types")
@@ -823,8 +965,8 @@ describe("multi-course domain contracts", () => {
       )
       await mkdir(path.join(lessonDirectory, "workspace"), { recursive: true })
       await writeFile(
-        path.join(lessonDirectory, "evaluation.json"),
-        JSON.stringify(evaluation(compiled.lessons[0].evaluationRevision))
+        path.join(lessonDirectory, "evaluation.md"),
+        evaluationMarkdown(compiled.lessons[0].evaluationRevision)
       )
       await writeFile(
         path.join(lessonDirectory, "notes.md"),
@@ -845,6 +987,11 @@ describe("multi-course domain contracts", () => {
       })
       const serialized = await readFile(output, "utf8")
       expect(JSON.parse(serialized)).toEqual(first)
+      expect(first.lessons[0]).toEqual({
+        lessonId: "motivation-and-setup",
+        status: "通过",
+        referenceScore: 100,
+      })
       expect(serialized).not.toContain("ANSWER_SECRET")
 
       await writeFile(

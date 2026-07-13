@@ -1,75 +1,141 @@
 #!/usr/bin/env python3
 import argparse
 import json
-import os
 import re
+import stat
 import sys
 from pathlib import Path
+from typing import Optional, Union
+
+
+CORE_SCRIPTS = (
+    Path(__file__).resolve().parents[2] / "evaluate-course-lesson/scripts"
+)
+if str(CORE_SCRIPTS) not in sys.path:
+    sys.path.insert(0, str(CORE_SCRIPTS))
+
+from evaluation_core import EvaluationError, resolve_lesson  # noqa: E402
 
 
 DAY_PATTERN = re.compile(r"^day(?:[0-9]|[12][0-9]|3[0-6])$")
+DEFAULT_ADAPTER = (
+    Path(__file__).resolve().parents[1]
+    / "references/go-backend-legacy-adapter.json"
+)
 
 
 class ResolutionError(ValueError):
     pass
 
 
-def _ensure_within_workspace(workspace: Path, path: Path) -> None:
-    workspace_real = workspace.resolve()
-    path_real = path.resolve()
-    if os.path.commonpath((str(workspace_real), str(path_real))) != str(workspace_real):
-        raise ResolutionError(f"path escapes workspace: {path}")
+def _read_adapter(path: Path) -> dict:
+    try:
+        metadata = path.lstat()
+    except FileNotFoundError as error:
+        raise ResolutionError(f"Go Course mapping is missing: {path}") from error
+    if stat.S_ISLNK(metadata.st_mode) or not stat.S_ISREG(metadata.st_mode):
+        raise ResolutionError("Go Course mapping must be a regular non-symlink file")
+    try:
+        value = json.loads(path.read_text(encoding="utf-8"))
+    except json.JSONDecodeError as error:
+        raise ResolutionError("Go Course mapping is invalid JSON") from error
+    if not isinstance(value, dict) or value.get("courseId") != "go-backend":
+        raise ResolutionError("Go Course mapping identity is invalid")
+    if value.get("schemaVersion") != 1 or not isinstance(value.get("lessons"), list):
+        raise ResolutionError("Go Course mapping schema is invalid")
+    return value
 
 
-def resolve_day(workspace: Path, day: str) -> dict[str, object]:
+def resolve_day(
+    workspace: Union[str, Path],
+    day: str,
+    *,
+    adapter_path: Optional[Union[str, Path]] = None,
+    require_notes: bool = True,
+) -> dict:
     if not DAY_PATTERN.fullmatch(day):
         raise ResolutionError("day must be explicit and canonical: day0 through day36")
-
-    workspace = workspace.resolve()
-    if not workspace.is_dir():
-        raise ResolutionError(f"workspace does not exist: {workspace}")
-
     number = int(day[3:])
-    lessons_dir = workspace / "docs/go-learning/daily-lessons"
-    matches = sorted(lessons_dir.glob(f"day-{number:02d}-*.md"))
-    if len(matches) != 1:
-        raise ResolutionError(
-            f"expected exactly one course file for {day}, found {len(matches)}"
+    adapter = Path(adapter_path) if adapter_path is not None else DEFAULT_ADAPTER
+    mapping = _read_adapter(adapter)
+    matches = [
+        item
+        for item in mapping["lessons"]
+        if isinstance(item, dict) and item.get("day") == number
+    ]
+    if len(matches) != 1 or not isinstance(matches[0].get("lessonId"), str):
+        raise ResolutionError(f"expected one explicit Go Day mapping for {day}")
+    lesson_id = matches[0]["lessonId"]
+    try:
+        resolved = resolve_lesson(
+            workspace,
+            "go-backend",
+            lesson_id,
+            adapter_path=adapter,
         )
-
-    exercise_dir = workspace / "exercise" / f"day{number}"
-    notes = exercise_dir / "notes.md"
-    evaluation = exercise_dir / "notes-eval.md"
-    if not notes.is_file():
-        raise ResolutionError(f"required learner file is missing: {notes}")
-
-    for path in (matches[0], notes, evaluation.parent):
-        _ensure_within_workspace(workspace, path)
-
+    except EvaluationError as error:
+        raise ResolutionError(str(error)) from error
+    if require_notes:
+        try:
+            record_metadata = resolved.record_root.lstat()
+            notes_metadata = resolved.notes.lstat()
+        except FileNotFoundError as error:
+            raise ResolutionError(
+                f"required learner notes are missing: {resolved.notes}"
+            ) from error
+        if stat.S_ISLNK(record_metadata.st_mode) or not stat.S_ISDIR(
+            record_metadata.st_mode
+        ):
+            raise ResolutionError("Learning Record directory must be a non-symlink")
+        if stat.S_ISLNK(notes_metadata.st_mode) or not stat.S_ISREG(
+            notes_metadata.st_mode
+        ):
+            raise ResolutionError("learner notes must be a regular non-symlink file")
+        try:
+            resolved.notes.resolve().relative_to(resolved.record_root.resolve())
+        except ValueError as error:
+            raise ResolutionError("learner notes escape the Learning Record") from error
     return {
+        "courseId": "go-backend",
+        "lessonId": lesson_id,
+        "adapter": adapter.resolve(),
         "day": f"day{number}",
         "number": number,
-        "course": matches[0],
-        "notes": notes,
-        "evaluation": evaluation,
+        "course": resolved.content,
+        "policy": resolved.evaluation_policy,
+        "commandProfile": resolved.command_profile,
+        "notes": resolved.notes,
+        "evaluation": resolved.evaluation,
+        "exercise": resolved.exercise,
+        "evaluationRevision": resolved.evaluation_revision,
     }
 
 
 def main() -> int:
     parser = argparse.ArgumentParser(
-        description="Resolve one explicit Go course day without reading adjacent days."
+        description="Route one explicit Go Day to go-backend and the shared Evaluation Core."
     )
     parser.add_argument("day", help="Canonical day argument: day0 through day36")
     parser.add_argument("--workspace", default=".", help="Repository root")
+    parser.add_argument("--adapter", help=argparse.SUPPRESS)
+    parser.add_argument("--allow-missing-notes", action="store_true")
     args = parser.parse_args()
-
     try:
-        result = resolve_day(Path(args.workspace), args.day)
+        result = resolve_day(
+            Path(args.workspace),
+            args.day,
+            adapter_path=args.adapter,
+            require_notes=not args.allow_missing_notes,
+        )
     except ResolutionError as error:
         print(str(error), file=sys.stderr)
         return 2
-
-    print(json.dumps({key: str(value) for key, value in result.items()}, ensure_ascii=False))
+    print(
+        json.dumps(
+            {key: str(value) if isinstance(value, Path) else value for key, value in result.items()},
+            ensure_ascii=False,
+        )
+    )
     return 0
 
 

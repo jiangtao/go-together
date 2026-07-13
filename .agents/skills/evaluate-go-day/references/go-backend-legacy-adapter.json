@@ -1,0 +1,59 @@
+{
+  "schemaVersion": 1,
+  "courseId": "go-backend",
+  "lifecycle": "published",
+  "evaluationPolicyPath": ".agents/skills/evaluate-go-day/references/evaluation-policy.md",
+  "commandProfilePath": ".agents/skills/evaluate-go-day/references/go-command-profile.json",
+  "defaultObjective": "完成当前 Lesson 正文明示的学习、练习与验证要求。",
+  "defaultGoals": ["只依据当前 Lesson 建立能力项并提供可验证证据。"],
+  "defaultEvaluation": {
+    "competencies": [
+      {
+        "competencyId": "lesson-requirements",
+        "title": "完成当前 Lesson 的全部必修要求"
+      }
+    ],
+    "requiredEvidence": ["notes", "explicit-exercise-evidence"],
+    "scoringBasis": ["准确", "完整", "可验证"]
+  },
+  "exercisePathMode": "record-root",
+  "lessons": [
+    {"lessonId":"why-go-after-node","lifecycle":"active","day":0,"title":"为什么 Node.js 开发者要学 Go","contentPath":"docs/go-learning/daily-lessons/day-00-why-go-after-node.md","exerciseTemplatePath":null,"recordPath":"exercise/day0","evaluationFileName":"notes-eval.md"},
+    {"lessonId":"module-package-toolchain","lifecycle":"active","day":1,"title":"module / package / toolchain","contentPath":"docs/go-learning/daily-lessons/day-01-module-package-toolchain.md","exerciseTemplatePath":null,"recordPath":"exercise/day1","evaluationFileName":"notes-eval.md"},
+    {"lessonId":"value-model-struct-zero-value","lifecycle":"active","day":2,"title":"value model / struct / zero value","contentPath":"docs/go-learning/daily-lessons/day-02-value-model-struct-zero-value.md","exerciseTemplatePath":null,"recordPath":"exercise/day2","evaluationFileName":"notes-eval.md"},
+    {"lessonId":"data-structures-i-array-slice-capacity-copy","lifecycle":"active","day":3,"title":"data structures I","contentPath":"docs/go-learning/daily-lessons/day-03-data-structures-i-array-slice-capacity-copy.md","exerciseTemplatePath":null,"recordPath":"exercise/day3","evaluationFileName":"notes-eval.md"},
+    {"lessonId":"data-structures-ii-map-set-index-string-rune","lifecycle":"active","day":4,"title":"data structures II","contentPath":"docs/go-learning/daily-lessons/day-04-data-structures-ii-map-set-index-string-rune.md","exerciseTemplatePath":null,"recordPath":"exercise/day4","evaluationFileName":"notes-eval.md"},
+    {"lessonId":"error-handling","lifecycle":"active","day":5,"title":"error handling","contentPath":"docs/go-learning/daily-lessons/day-05-error-handling.md","exerciseTemplatePath":null,"recordPath":"exercise/day5","evaluationFileName":"notes-eval.md"},
+    {"lessonId":"small-interface-context-timeout","lifecycle":"active","day":6,"title":"small interface + context timeout","contentPath":"docs/go-learning/daily-lessons/day-06-small-interface-context-timeout.md","exerciseTemplatePath":null,"recordPath":"exercise/day6","evaluationFileName":"notes-eval.md"},
+    {"lessonId":"http-routing","lifecycle":"active","day":7,"title":"HTTP Routing","contentPath":"docs/go-learning/daily-lessons/day-07-http-routing.md","exerciseTemplatePath":null,"recordPath":"exercise/day7","evaluationFileName":"notes-eval.md"},
+    {"lessonId":"json-dto","lifecycle":"active","day":8,"title":"JSON DTO","contentPath":"docs/go-learning/daily-lessons/day-08-json-dto.md","exerciseTemplatePath":null,"recordPath":"exercise/day8","evaluationFileName":"notes-eval.md"},
+    {"lessonId":"http-error-mapping","lifecycle":"active","day":9,"title":"HTTP Error Mapping","contentPath":"docs/go-learning/daily-lessons/day-09-http-error-mapping.md","exerciseTemplatePath":null,"recordPath":"exercise/day9","evaluationFileName":"notes-eval.md"},
+    {"lessonId":"middleware-handler-tests","lifecycle":"active","day":10,"title":"Middleware + Handler Tests","contentPath":"docs/go-learning/daily-lessons/day-10-middleware-handler-tests.md","exerciseTemplatePath":null,"recordPath":"exercise/day10","evaluationFileName":"notes-eval.md"},
+    {"lessonId":"pgx-first-contact","lifecycle":"active","day":11,"title":"pgx First Contact","contentPath":"docs/go-learning/daily-lessons/day-11-pgx-first-contact.md","exerciseTemplatePath":null,"recordPath":"exercise/day11","evaluationFileName":"notes-eval.md"},
+    {"lessonId":"migration","lifecycle":"active","day":12,"title":"Migration","contentPath":"docs/go-learning/daily-lessons/day-12-migration.md","exerciseTemplatePath":null,"recordPath":"exercise/day12","evaluationFileName":"notes-eval.md"},
+    {"lessonId":"sqlc-generate","lifecycle":"active","day":13,"title":"sqlc generate","contentPath":"docs/go-learning/daily-lessons/day-13-sqlc-generate.md","exerciseTemplatePath":null,"recordPath":"exercise/day13","evaluationFileName":"notes-eval.md"},
+    {"lessonId":"repository-wrapper","lifecycle":"active","day":14,"title":"repository wrapper","contentPath":"docs/go-learning/daily-lessons/day-14-repository-wrapper.md","exerciseTemplatePath":null,"recordPath":"exercise/day14","evaluationFileName":"notes-eval.md"},
+    {"lessonId":"transaction-boundary","lifecycle":"active","day":15,"title":"transaction boundary","contentPath":"docs/go-learning/daily-lessons/day-15-transaction-boundary.md","exerciseTemplatePath":null,"recordPath":"exercise/day15","evaluationFileName":"notes-eval.md"},
+    {"lessonId":"db-verification","lifecycle":"active","day":16,"title":"DB verification","contentPath":"docs/go-learning/daily-lessons/day-16-db-verification.md","exerciseTemplatePath":null,"recordPath":"exercise/day16","evaluationFileName":"notes-eval.md"},
+    {"lessonId":"proto-contract","lifecycle":"active","day":17,"title":"proto contract","contentPath":"docs/go-learning/daily-lessons/day-17-proto-contract.md","exerciseTemplatePath":null,"recordPath":"exercise/day17","evaluationFileName":"notes-eval.md"},
+    {"lessonId":"code-generation","lifecycle":"active","day":18,"title":"code generation","contentPath":"docs/go-learning/daily-lessons/day-18-code-generation.md","exerciseTemplatePath":null,"recordPath":"exercise/day18","evaluationFileName":"notes-eval.md"},
+    {"lessonId":"unary-server","lifecycle":"active","day":19,"title":"unary server","contentPath":"docs/go-learning/daily-lessons/day-19-unary-server.md","exerciseTemplatePath":null,"recordPath":"exercise/day19","evaluationFileName":"notes-eval.md"},
+    {"lessonId":"client-test","lifecycle":"active","day":20,"title":"client + test","contentPath":"docs/go-learning/daily-lessons/day-20-client-test.md","exerciseTemplatePath":null,"recordPath":"exercise/day20","evaluationFileName":"notes-eval.md"},
+    {"lessonId":"server-streaming-context","lifecycle":"active","day":21,"title":"server streaming + context","contentPath":"docs/go-learning/daily-lessons/day-21-server-streaming-context.md","exerciseTemplatePath":null,"recordPath":"exercise/day21","evaluationFileName":"notes-eval.md"},
+    {"lessonId":"interceptor-metadata","lifecycle":"active","day":22,"title":"interceptor + metadata","contentPath":"docs/go-learning/daily-lessons/day-22-interceptor-metadata.md","exerciseTemplatePath":null,"recordPath":"exercise/day22","evaluationFileName":"notes-eval.md"},
+    {"lessonId":"goroutine-waitgroup","lifecycle":"active","day":23,"title":"goroutine + WaitGroup","contentPath":"docs/go-learning/daily-lessons/day-23-goroutine-waitgroup.md","exerciseTemplatePath":null,"recordPath":"exercise/day23","evaluationFileName":"notes-eval.md"},
+    {"lessonId":"errgroup-context","lifecycle":"active","day":24,"title":"errgroup + context","contentPath":"docs/go-learning/daily-lessons/day-24-errgroup-context.md","exerciseTemplatePath":null,"recordPath":"exercise/day24","evaluationFileName":"notes-eval.md"},
+    {"lessonId":"channel-progress-broadcaster","lifecycle":"active","day":25,"title":"channel progress broadcaster","contentPath":"docs/go-learning/daily-lessons/day-25-channel-progress-broadcaster.md","exerciseTemplatePath":null,"recordPath":"exercise/day25","evaluationFileName":"notes-eval.md"},
+    {"lessonId":"race-detector","lifecycle":"active","day":26,"title":"race detector","contentPath":"docs/go-learning/daily-lessons/day-26-race-detector.md","exerciseTemplatePath":null,"recordPath":"exercise/day26","evaluationFileName":"notes-eval.md"},
+    {"lessonId":"observability","lifecycle":"active","day":27,"title":"observability","contentPath":"docs/go-learning/daily-lessons/day-27-observability.md","exerciseTemplatePath":null,"recordPath":"exercise/day27","evaluationFileName":"notes-eval.md"},
+    {"lessonId":"graceful-shutdown","lifecycle":"active","day":28,"title":"graceful shutdown","contentPath":"docs/go-learning/daily-lessons/day-28-graceful-shutdown.md","exerciseTemplatePath":null,"recordPath":"exercise/day28","evaluationFileName":"notes-eval.md"},
+    {"lessonId":"open-source-reading-pass","lifecycle":"active","day":29,"title":"open-source reading pass","contentPath":"docs/go-learning/daily-lessons/day-29-open-source-reading-pass.md","exerciseTemplatePath":null,"recordPath":"exercise/day29","evaluationFileName":"notes-eval.md"},
+    {"lessonId":"minimal-tool-interface","lifecycle":"active","day":30,"title":"minimal Tool interface","contentPath":"docs/go-learning/daily-lessons/day-30-minimal-tool-interface.md","exerciseTemplatePath":null,"recordPath":"exercise/day30","evaluationFileName":"notes-eval.md"},
+    {"lessonId":"provider-abstraction","lifecycle":"active","day":31,"title":"provider abstraction","contentPath":"docs/go-learning/daily-lessons/day-31-provider-abstraction.md","exerciseTemplatePath":null,"recordPath":"exercise/day31","evaluationFileName":"notes-eval.md"},
+    {"lessonId":"sqlc-backed-memory","lifecycle":"active","day":32,"title":"sqlc-backed memory","contentPath":"docs/go-learning/daily-lessons/day-32-sqlc-backed-memory.md","exerciseTemplatePath":null,"recordPath":"exercise/day32","evaluationFileName":"notes-eval.md"},
+    {"lessonId":"streaming-progress","lifecycle":"active","day":33,"title":"streaming progress","contentPath":"docs/go-learning/daily-lessons/day-33-streaming-progress.md","exerciseTemplatePath":null,"recordPath":"exercise/day33","evaluationFileName":"notes-eval.md"},
+    {"lessonId":"integration-slice","lifecycle":"active","day":34,"title":"integration slice","contentPath":"docs/go-learning/daily-lessons/day-34-integration-slice.md","exerciseTemplatePath":null,"recordPath":"exercise/day34","evaluationFileName":"notes-eval.md"},
+    {"lessonId":"hardening","lifecycle":"active","day":35,"title":"hardening","contentPath":"docs/go-learning/daily-lessons/day-35-hardening.md","exerciseTemplatePath":null,"recordPath":"exercise/day35","evaluationFileName":"notes-eval.md"},
+    {"lessonId":"final-review","lifecycle":"active","day":36,"title":"final review","contentPath":"docs/go-learning/daily-lessons/day-36-final-review.md","exerciseTemplatePath":null,"recordPath":"exercise/day36","evaluationFileName":"notes-eval.md"}
+  ]
+}

@@ -15,13 +15,13 @@ import {
   compileCourseContract,
   exportReleaseProgressSnapshot,
   listAuthoringPaths,
-  parseEvaluationRecord,
   parseSourceCourse,
   type AuthoringFiles,
   type EvaluationRecord,
   type ReleaseProgressSnapshot,
   type SourceCourse,
 } from "./lib/course-contract.ts"
+import { parseEvaluationMarkdown } from "./lib/evaluation-markdown.ts"
 import { COURSE_STATUSES } from "../src/types/course.ts"
 
 interface ExportOptions {
@@ -145,19 +145,14 @@ async function loadEvaluations(
     if (metadata.isSymbolicLink() || !metadata.isDirectory()) {
       throw new Error(`Learning Record Lesson 拒绝 symlink: ${lessonId}`)
     }
-    const evaluationFile = path.join(lessonDirectory, "evaluation.json")
+    const evaluationFile = path.join(lessonDirectory, "evaluation.md")
     if (!(await pathExists(evaluationFile))) continue
     const source = await readRegularFile(
       evaluationFile,
       `Evaluation ${lessonId}`
     )
-    let value: unknown
-    try {
-      value = JSON.parse(source)
-    } catch {
-      throw new Error(`Evaluation ${lessonId} 不是有效 JSON`)
-    }
-    const evaluation = parseEvaluationRecord(value)
+    const evaluation = parseEvaluationMarkdown(source)
+    if (evaluation === null) continue
     if (
       evaluation.courseId !== course.courseId ||
       evaluation.lessonId !== lessonId

@@ -857,15 +857,42 @@ export function parseEvaluationRecord(value: unknown): EvaluationRecord {
       return structuredClone(competency) as { competencyId: string; score: number }
     })
     unique(competencies.map((item) => item.competencyId), `${context}.competencyId`)
+    const calculatedReferenceScore = Math.round(
+      (competencies.reduce((sum, competency) => sum + competency.score, 0) * 100) /
+        (competencies.length * 4)
+    )
+    if (entry.status === "未开始") {
+      if (competencies.some((competency) => competency.score !== 0)) {
+        throw new Error(`${context} 未开始时能力等级必须为 0`)
+      }
+    } else if (entry.referenceScore !== calculatedReferenceScore) {
+      throw new Error(`${context}.referenceScore 与 0-4 能力等级不一致`)
+    }
+    const hasUnmetCompetency = competencies.some(
+      (competency) => competency.score < 3
+    )
+    if (entry.status === "通过" && hasUnmetCompetency) {
+      throw new Error(`${context} 通过时全部能力必须至少 3`)
+    }
+    if (
+      (entry.status === "定向回炉" || entry.status === "重新学习") &&
+      !hasUnmetCompetency
+    ) {
+      throw new Error(`${context} 未达标状态必须存在低于 3 的能力`)
+    }
     return { ...structuredClone(entry), competencies } as unknown as EvaluationHistoryEntry
   })
   const passedRevisions = new Set<string>()
-  for (const entry of history) {
-    if (
-      passedRevisions.has(entry.evaluationRevision) &&
-      entry.status !== "通过"
-    ) {
+  for (const [index, entry] of history.entries()) {
+    if (passedRevisions.has(entry.evaluationRevision)) {
       throw new Error("同一 evaluationRevision 一旦通过便不可回退")
+    }
+    const previous = history[index - 1]
+    if (
+      previous?.evaluationRevision === entry.evaluationRevision &&
+      previous.status !== "重新学习"
+    ) {
+      throw new Error("同一 evaluationRevision 只能在重新学习后开始新周期")
     }
     if (entry.status === "通过") passedRevisions.add(entry.evaluationRevision)
   }
@@ -998,14 +1025,43 @@ function parsedEvaluations(
   compiled: CompiledCourseContract,
   values: unknown[]
 ): EvaluationRecord[] {
-  const lessonIds = new Set(compiled.lessons.map((lesson) => lesson.lessonId))
+  const lessonsById = new Map(
+    compiled.lessons.map((lesson) => [lesson.lessonId, lesson])
+  )
+  const sourceLessonsById = new Map(
+    flattenSourceLessons(compiled.course).map(({ lesson }) => [
+      lesson.lessonId,
+      lesson,
+    ])
+  )
   const evaluations = values.map(parseEvaluationRecord)
   for (const evaluation of evaluations) {
     if (evaluation.courseId !== compiled.course.courseId) {
       throw new Error("Evaluation 属于错误 Course")
     }
-    if (!lessonIds.has(evaluation.lessonId)) {
+    const compiledLesson = lessonsById.get(evaluation.lessonId)
+    if (!compiledLesson) {
       throw new Error(`Evaluation 引用了未知 Lesson: ${evaluation.lessonId}`)
+    }
+    const expectedCompetencies = sourceLessonsById
+      .get(evaluation.lessonId)!
+      .evaluation.competencies.map(({ competencyId }) => competencyId)
+    for (const entry of evaluation.history) {
+      if (entry.evaluationRevision !== compiledLesson.evaluationRevision) continue
+      const actualCompetencies = entry.competencies.map(
+        ({ competencyId }) => competencyId
+      )
+      if (
+        actualCompetencies.length !== expectedCompetencies.length ||
+        actualCompetencies.some(
+          (competencyId, index) =>
+            competencyId !== expectedCompetencies[index]
+        )
+      ) {
+        throw new Error(
+          `Evaluation 当前 revision 能力项与 manifest 不一致: ${evaluation.lessonId}`
+        )
+      }
     }
   }
   unique(evaluations.map((entry) => entry.lessonId), "Evaluation lessonId")
