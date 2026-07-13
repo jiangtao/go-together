@@ -6,41 +6,20 @@ import { afterEach, describe, expect, it } from "vitest"
 
 import { auditPublicDirectory } from "./public-audit.ts"
 import { buildPublicArtifacts } from "./public-course.ts"
+import { createPublicCourseFixture } from "./public-course.test-fixture.ts"
 
 const temporaryDirectories: string[] = []
 
 async function generatedFixture() {
   const root = await mkdtemp(path.join(os.tmpdir(), "roadmap-public-audit-"))
   temporaryDirectories.push(root)
-  const lessonsDirectory = path.join(root, "input/lessons")
-  const progressFile = path.join(root, "input/progress.public.json")
   const outputDirectory = path.join(root, "public")
   const expectedDirectory = path.join(root, "expected")
   const assetManifestFile = path.join(root, "vite-asset-manifest.json")
-  await mkdir(lessonsDirectory, { recursive: true })
-  await writeFile(
-    progressFile,
-    JSON.stringify(
-      Array.from({ length: 37 }, (_, day) => ({
-        day,
-        status: "未开始",
-        referenceScore: null,
-      }))
-    )
-  )
-  await Promise.all(
-    Array.from({ length: 37 }, (_, day) => {
-      const padded = String(day).padStart(2, "0")
-      return writeFile(
-        path.join(lessonsDirectory, `day-${padded}-lesson-${padded}.md`),
-        `# Day ${padded}：课程 ${day}\n\n### 学习目标\n\n- 完成目标 ${day}\n`
-      )
-    })
-  )
-  await buildPublicArtifacts({ lessonsDirectory, progressFile, outputDirectory })
+  await createPublicCourseFixture(root)
+  await buildPublicArtifacts({ repositoryRoot: root, outputDirectory })
   await buildPublicArtifacts({
-    lessonsDirectory,
-    progressFile,
+    repositoryRoot: root,
     outputDirectory: expectedDirectory,
   })
   return { root, outputDirectory, expectedDirectory, assetManifestFile }

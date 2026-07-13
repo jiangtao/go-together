@@ -2,12 +2,12 @@
 
 ## 公开边界
 
-公开站点只包含两类内容：`docs/go-learning/daily-lessons` 下 Day 0–36 教程的安全公开投影，以及 `content/progress.public.json` 中的脱敏状态与参考分数。投影按 Markdown 结构移除 rubric、答案/评测材料和仓库治理路径，同时保留教学正文、命令及 `cmd/`、`internal/` 等教学代码路径。
+公开站点只包含 `courses/catalog.json` 正向枚举的 Course 安全投影、对应 `release-progress/<courseId>.json` 的最小状态，以及默认 Go Course 的永久 legacy aliases。Markdown 投影按结构移除 rubric、答案/评测材料和仓库治理路径，同时保留教学正文与教学代码路径。
 
 构建与部署产物不得包含回答、学习笔记、评测正文、`exercise`、旧 `src/data/course.json`、私有/本机路径、环境文件、测试证据、source map 或源码。固定数据链如下：
 
 ```text
-Day 0–36 教程 → public projection + progress.public.json
+Catalog + Course Source + Release Progress Snapshot
   → generate:public → audit:generated
   → .generated/public → Vite → dist → audit:dist
   → package:prebuilt → .vercel/output → audit:prebuilt
@@ -85,7 +85,7 @@ E2E_RUN_ID=<RUN_ID> \
 npm run test:e2e
 ```
 
-`evidence-manifest.json` 必须登记且只登记八个规定视觉状态。每条包含 CSS 视口、DPR、PNG 像素尺寸、文件大小、SHA-256、run ID、候选 HEAD 与由相关产品/配置/脚本/测试/工作流及 37 篇教程内容生成的确定性指纹。生成器拒绝缺图、多图、历史文件、空白图、错误 CSS×DPR、非法 HEAD 或缺失教程输入，也可在无 `.git` 的隔离副本中使用显式 HEAD。
+`evidence-manifest.json` 必须登记且只登记十二个规定视觉状态。每条包含 CSS 视口、DPR、PNG 像素尺寸、文件大小、SHA-256、run ID、候选 HEAD 与由产品、Course Source、Snapshot、配置、脚本、测试和工作流生成的确定性指纹。生成器拒绝缺图、多图、历史文件、空白图、错误 CSS×DPR、非法 HEAD 或缺失 Course 输入，也可在无 `.git` 的隔离副本中使用显式 HEAD。
 
 ## Preview、Production 与本地 Smoke
 
@@ -103,9 +103,9 @@ Preview smoke 未通过时不得 promote。Production 只从已经通过同等 s
 
 ## 更新进度与故障诊断
 
-评测仍在私有工作区完成。发布者只更新 `content/progress.public.json` 中的 `day`、四状态之一和 `referenceScore`，不得复制评测正文、回答、笔记或路径。更新后重新执行完整 release build 与独立 QA。
+评测仍在私有工作区完成。发布者只能使用 `export:progress` 从规范 Evaluation 导出 `release-progress/<courseId>.json`，不得手工抄写状态或复制评测正文、回答、笔记与路径。更新后重新执行完整 release gate 与独立 QA。
 
-1. `generate:public` 失败：检查 37 个 Day 输入及 progress 严格 schema。
+1. `generate:public` 失败：检查 Catalog/Course/Snapshot 一一配对、修订与严格 schema。
 2. `audit:*` 失败：按命中文件移除私有路径、秘密、旧字段、额外文件或 source map；不得放宽规则绕过。
 3. `audit:prebuilt` 失败：重新从 audited dist 打包；不要手工向 `.vercel/output` 添加文件。
 4. source deployment 被拒绝：这是预期保护；只使用人工 prebuilt 工作流。

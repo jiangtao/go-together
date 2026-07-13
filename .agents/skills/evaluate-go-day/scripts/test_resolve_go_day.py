@@ -6,90 +6,57 @@ import tempfile
 import unittest
 from pathlib import Path
 
+from go_day_test_fixture import write_course_fixture
 from resolve_go_day import ResolutionError, resolve_day
 
 
 class ResolveDayRouterTest(unittest.TestCase):
     def setUp(self):
         self.temp_dir = tempfile.TemporaryDirectory()
-        self.workspace = Path(self.temp_dir.name)
-        (self.workspace / "docs").mkdir()
-        (self.workspace / "policy").mkdir()
-        (self.workspace / "exercise/day0").mkdir(parents=True)
-        (self.workspace / "docs/intro.md").write_text("# Intro\n", encoding="utf-8")
-        (self.workspace / "policy/evaluation.md").write_text("# Policy\n", encoding="utf-8")
-        (self.workspace / "policy/profile.json").write_text(
-            '{"schemaVersion":1,"profileId":"go-local","environment":{},"commands":[]}\n',
-            encoding="utf-8",
-        )
-        (self.workspace / "exercise/day0/notes.md").write_text(
-            "# Notes\n", encoding="utf-8"
-        )
-        self.adapter = self.workspace / "adapter.json"
-        self.adapter.write_text(
-            json.dumps(
-                {
-                    "schemaVersion": 1,
-                    "courseId": "go-backend",
-                    "lifecycle": "published",
-                    "evaluationPolicyPath": "policy/evaluation.md",
-                    "commandProfilePath": "policy/profile.json",
-                    "defaultObjective": "Learn",
-                    "defaultGoals": ["Explain"],
-                    "defaultEvaluation": {
-                        "competencies": [
-                            {
-                                "competencyId": "lesson-requirements",
-                                "title": "Complete lesson requirements",
-                            }
-                        ],
-                        "requiredEvidence": ["notes"],
-                        "scoringBasis": ["accurate"],
-                    },
-                    "exercisePathMode": "record-root",
-                    "lessons": [
-                        {
-                            "lessonId": "intro",
-                            "lifecycle": "active",
-                            "day": 0,
-                            "title": "Intro",
-                            "contentPath": "docs/intro.md",
-                            "exerciseTemplatePath": None,
-                            "recordPath": "exercise/day0",
-                            "evaluationFileName": "notes-eval.md",
-                        }
-                    ],
-                }
-            )
-            + "\n",
-            encoding="utf-8",
-        )
+        self.workspace = Path(self.temp_dir.name).resolve()
+        write_course_fixture(self.workspace, create_notes=True)
 
     def tearDown(self):
         self.temp_dir.cleanup()
 
-    def test_maps_explicit_day_to_stable_identity_and_same_core(self):
-        result = resolve_day(
-            self.workspace, "day0", adapter_path=self.adapter
-        )
+    def test_maps_explicit_day_to_canonical_stable_identity_and_same_core(self):
+        result = resolve_day(self.workspace, "day0")
 
         self.assertEqual(result["courseId"], "go-backend")
         self.assertEqual(result["lessonId"], "intro")
         self.assertEqual(result["day"], "day0")
-        self.assertEqual(result["course"], (self.workspace / "docs/intro.md").resolve())
-        self.assertEqual(result["notes"], (self.workspace / "exercise/day0/notes.md").resolve())
+        self.assertEqual(
+            result["course"],
+            self.workspace / "courses/go-backend/lessons/intro.md",
+        )
+        self.assertEqual(
+            result["notes"],
+            self.workspace / "learning-records/go-backend/lessons/intro/notes.md",
+        )
         self.assertEqual(
             result["evaluation"],
-            (self.workspace / "exercise/day0/notes-eval.md").resolve(),
+            self.workspace
+            / "learning-records/go-backend/lessons/intro/evaluation.md",
         )
-        self.assertEqual(result["adapter"], self.adapter.resolve())
 
-        legacy_evaluation = (
-            "# Legacy Evaluation\n\n- 状态：未开始\n- 参考分数：待评测\n"
+        canonical_evaluation = (
+            "# Evaluation Record\n\n```evaluation-record\n"
+            + json.dumps(
+                {
+                    "schemaVersion": 2,
+                    "courseId": "go-backend",
+                    "lessonId": "intro",
+                    "legacySourceBase64": None,
+                    "cycles": [],
+                    "events": [],
+                },
+                ensure_ascii=False,
+                indent=2,
+            )
+            + "\n```\n"
         )
-        result["evaluation"].write_text(legacy_evaluation, encoding="utf-8")
+        result["evaluation"].write_text(canonical_evaluation, encoding="utf-8")
         evaluation_before = result["evaluation"].read_bytes()
-
         core = (
             Path(__file__).resolve().parents[2]
             / "evaluate-course-lesson/scripts/evaluation_core.py"
@@ -103,8 +70,6 @@ class ResolveDayRouterTest(unittest.TestCase):
                 result["lessonId"],
                 "--workspace",
                 str(self.workspace),
-                "--adapter",
-                str(result["adapter"]),
             ],
             capture_output=True,
             text=True,
@@ -117,35 +82,37 @@ class ResolveDayRouterTest(unittest.TestCase):
     def test_rejects_noncanonical_unknown_or_missing_notes_without_scanning(self):
         for day in ("day00", "day37", "today", "0"):
             with self.subTest(day=day), self.assertRaises(ResolutionError):
-                resolve_day(self.workspace, day, adapter_path=self.adapter)
+                resolve_day(self.workspace, day)
         with self.assertRaisesRegex(ResolutionError, "mapping"):
-            resolve_day(self.workspace, "day1", adapter_path=self.adapter)
-        (self.workspace / "exercise/day0/notes.md").unlink()
+            resolve_day(self.workspace, "day1")
+        notes = self.workspace / "learning-records/go-backend/lessons/intro/notes.md"
+        notes.unlink()
         with self.assertRaisesRegex(ResolutionError, "notes"):
-            resolve_day(self.workspace, "day0", adapter_path=self.adapter)
-        os.symlink(
-            self.workspace / "docs/intro.md",
-            self.workspace / "exercise/day0/notes.md",
-        )
+            resolve_day(self.workspace, "day0")
+        os.symlink(self.workspace / "courses/go-backend/lessons/intro.md", notes)
         with self.assertRaisesRegex(ResolutionError, "symlink"):
-            resolve_day(self.workspace, "day0", adapter_path=self.adapter)
+            resolve_day(self.workspace, "day0")
 
 
-class GoLegacyMappingContractTest(unittest.TestCase):
-    def test_committed_mapping_is_explicit_complete_and_unique(self):
-        adapter = (
-            Path(__file__).resolve().parents[1]
-            / "references/go-backend-legacy-adapter.json"
+class GoCanonicalMappingContractTest(unittest.TestCase):
+    def test_committed_course_mapping_is_explicit_complete_and_unique(self):
+        course = (
+            Path(__file__).resolve().parents[4]
+            / "courses/go-backend/course.json"
         )
-        value = json.loads(adapter.read_text(encoding="utf-8"))
-        lessons = value["lessons"]
-
+        value = json.loads(course.read_text(encoding="utf-8"))
+        lessons = [
+            lesson
+            for track in value["tracks"]
+            for stage in track["stages"]
+            for lesson in stage["lessons"]
+        ]
         self.assertEqual(value["courseId"], "go-backend")
         self.assertEqual([lesson["day"] for lesson in lessons], list(range(37)))
         self.assertEqual(len({lesson["lessonId"] for lesson in lessons}), 37)
         self.assertEqual(
-            [lesson["recordPath"] for lesson in lessons],
-            [f"exercise/day{day}" for day in range(37)],
+            [lesson["contentPath"] for lesson in lessons],
+            [f"lessons/{lesson['lessonId']}.md" for lesson in lessons],
         )
 
 

@@ -5,9 +5,9 @@ import re
 import sys
 from dataclasses import dataclass
 from pathlib import Path
-from typing import Optional, Union
+from typing import Union
 
-from resolve_go_day import DEFAULT_ADAPTER, ResolutionError, resolve_day
+from resolve_go_day import ResolutionError, resolve_day
 
 
 CORE_SCRIPTS = (
@@ -80,22 +80,18 @@ def prepare_notes(
     dry_run: bool = False,
     initialize_exercise: bool = False,
     force_exercise: bool = False,
-    adapter_path: Optional[Union[str, Path]] = None,
 ) -> PreparationResult:
     day = parse_day(request)
-    adapter = Path(adapter_path) if adapter_path is not None else DEFAULT_ADAPTER
     try:
         route = resolve_day(
             workspace,
             f"day{day}",
-            adapter_path=adapter,
             require_notes=False,
         )
         resolved = resolve_lesson(
             workspace,
             "go-backend",
             str(route["lessonId"]),
-            adapter_path=adapter,
         )
         content = render_notes(resolved)
         if dry_run:
@@ -134,7 +130,6 @@ def main() -> int:
     parser.add_argument("--dry-run", action="store_true", help="Preview without writing")
     parser.add_argument("--initialize-exercise", action="store_true")
     parser.add_argument("--force-exercise", action="store_true")
-    parser.add_argument("--adapter", help=argparse.SUPPRESS)
     args = parser.parse_args()
     try:
         result = prepare_notes(
@@ -144,7 +139,6 @@ def main() -> int:
             dry_run=args.dry_run,
             initialize_exercise=args.initialize_exercise,
             force_exercise=args.force_exercise,
-            adapter_path=args.adapter,
         )
     except PreparationError as error:
         print(str(error), file=sys.stderr)

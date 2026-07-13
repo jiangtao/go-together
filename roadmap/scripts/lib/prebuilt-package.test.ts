@@ -5,6 +5,7 @@ import path from "node:path"
 import { afterEach, describe, expect, it } from "vitest"
 
 import { buildPublicArtifacts } from "./public-course.ts"
+import { createPublicCourseFixture } from "./public-course.test-fixture.ts"
 import {
   auditPrebuiltPackage,
   packagePrebuiltOutput,
@@ -20,8 +21,6 @@ async function fixture() {
   )
   temporaryDirectories.push(repositoryRoot)
   const roadmapDirectory = path.join(repositoryRoot, "roadmap")
-  const lessonsDirectory = path.join(repositoryRoot, "input/lessons")
-  const progressFile = path.join(repositoryRoot, "input/progress.public.json")
   const distDirectory = path.join(roadmapDirectory, "dist")
   const expectedPublicDirectory = path.join(
     roadmapDirectory,
@@ -36,36 +35,16 @@ async function fixture() {
     roadmapDirectory,
     ".generated/prebuilt-manifest.json"
   )
-  await mkdir(lessonsDirectory, { recursive: true })
+  await createPublicCourseFixture(repositoryRoot)
   await writeFile(
     path.join(repositoryRoot, ".vercelignore"),
     SOURCE_DEPLOYMENT_DISABLED_IGNORE
   )
-  await writeFile(
-    progressFile,
-    JSON.stringify(
-      Array.from({ length: 37 }, (_, day) => ({
-        day,
-        status: "未开始",
-        referenceScore: null,
-      }))
-    )
-  )
-  await Promise.all(
-    Array.from({ length: 37 }, (_, day) => {
-      const padded = String(day).padStart(2, "0")
-      return writeFile(
-        path.join(lessonsDirectory, `day-${padded}-lesson-${padded}.md`),
-        `# Day ${padded}：课程 ${day}\n\n### 学习目标\n\n- 完成目标 ${day}\n`
-      )
-    })
-  )
   await buildPublicArtifacts({
-    lessonsDirectory,
-    progressFile,
+    repositoryRoot,
     outputDirectory: expectedPublicDirectory,
   })
-  await buildPublicArtifacts({ lessonsDirectory, progressFile, outputDirectory: distDirectory })
+  await buildPublicArtifacts({ repositoryRoot, outputDirectory: distDirectory })
   await writeFile(
     path.join(distDirectory, "index.html"),
     '<div id="root"></div><script src="/assets/app-AaBb1234.js"></script>'

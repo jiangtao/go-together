@@ -720,6 +720,13 @@ test("非默认无 Day Course 在四视口保持全览、触控尺寸与 Reader 
   expect(selectBox).not.toBeNull()
   expect(selectBox!.height).toBeGreaterThanOrEqual(44)
 
+  await page.getByTestId("roadmap-legend-trigger").click()
+  await expect(page.getByTestId("roadmap-legend")).toContainText("当前推荐课次")
+  await expect(page.getByTestId("roadmap-legend")).not.toContainText(
+    "当前推荐 Day"
+  )
+  await page.keyboard.press("Escape")
+
   await page.getByTestId("lesson-node-course-functions").click()
   const reader = page.getByTestId("markdown-reader")
   await expect(reader).toBeVisible()

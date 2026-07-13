@@ -1,0 +1,271 @@
+{
+  "schemaVersion": 1,
+  "courseId": "go-backend",
+  "legacyTitle": "Go 36 天学习路线图",
+  "dayRange": {
+    "start": 0,
+    "end": 36
+  },
+  "stages": [
+    {
+      "stageId": "stage-1",
+      "canonicalStageId": "language-foundations",
+      "title": "起步与语言基础",
+      "description": "从学习动机进入 Go 工具链、值模型、数据结构与接口边界。"
+    },
+    {
+      "stageId": "stage-2",
+      "canonicalStageId": "http-and-data-entry",
+      "title": "HTTP 与数据入口",
+      "description": "串起路由、DTO、错误映射、测试、pgx 与 migration。"
+    },
+    {
+      "stageId": "stage-3",
+      "canonicalStageId": "data-boundaries-and-contracts",
+      "title": "数据边界与契约",
+      "description": "掌握 sqlc、repository、事务、真实 DB 验证与 proto 生成。"
+    },
+    {
+      "stageId": "stage-4",
+      "canonicalStageId": "grpc-service-chain",
+      "title": "gRPC 服务链路",
+      "description": "完成 unary、client、streaming、context 与 metadata 链路。"
+    },
+    {
+      "stageId": "stage-5",
+      "canonicalStageId": "concurrency-and-operability",
+      "title": "并发与可运行性",
+      "description": "用 goroutine、errgroup、channel、race、观测和关闭机制收敛系统。"
+    },
+    {
+      "stageId": "stage-6",
+      "canonicalStageId": "agent-slice-and-review",
+      "title": "Agent 切片与复盘",
+      "description": "阅读开源模式，构造最小 Agent 切片并完成集成、加固和复盘。"
+    }
+  ],
+  "lessons": [
+    {
+      "lessonId": "why-go-after-node",
+      "legacyId": "day-00",
+      "legacyHref": "/sources/lessons/day-00-why-go-after-node.md",
+      "englishTitle": "Day 00: Why Learn Go After Node.js"
+    },
+    {
+      "lessonId": "module-package-toolchain",
+      "legacyId": "day-01",
+      "legacyHref": "/sources/lessons/day-01-module-package-toolchain.md",
+      "englishTitle": "Day 01: module / package / toolchain"
+    },
+    {
+      "lessonId": "value-model-struct-zero-value",
+      "legacyId": "day-02",
+      "legacyHref": "/sources/lessons/day-02-value-model-struct-zero-value.md",
+      "englishTitle": "Day 02: value model / struct / zero value"
+    },
+    {
+      "lessonId": "data-structures-i-array-slice-capacity-copy",
+      "legacyId": "day-03",
+      "legacyHref": "/sources/lessons/day-03-data-structures-i-array-slice-capacity-copy.md",
+      "englishTitle": "Day 03: data structures I: array / slice / capacity / copy"
+    },
+    {
+      "lessonId": "data-structures-ii-map-set-index-string-rune",
+      "legacyId": "day-04",
+      "legacyHref": "/sources/lessons/day-04-data-structures-ii-map-set-index-string-rune.md",
+      "englishTitle": "Day 04: data structures II: map / set / index / string / rune"
+    },
+    {
+      "lessonId": "error-handling",
+      "legacyId": "day-05",
+      "legacyHref": "/sources/lessons/day-05-error-handling.md",
+      "englishTitle": "Day 05: error handling"
+    },
+    {
+      "lessonId": "small-interface-context-timeout",
+      "legacyId": "day-06",
+      "legacyHref": "/sources/lessons/day-06-small-interface-context-timeout.md",
+      "englishTitle": "Day 06: small interface + context timeout"
+    },
+    {
+      "lessonId": "http-routing",
+      "legacyId": "day-07",
+      "legacyHref": "/sources/lessons/day-07-http-routing.md",
+      "englishTitle": "Day 07: HTTP Routing"
+    },
+    {
+      "lessonId": "json-dto",
+      "legacyId": "day-08",
+      "legacyHref": "/sources/lessons/day-08-json-dto.md",
+      "englishTitle": "Day 08: JSON DTO"
+    },
+    {
+      "lessonId": "http-error-mapping",
+      "legacyId": "day-09",
+      "legacyHref": "/sources/lessons/day-09-http-error-mapping.md",
+      "englishTitle": "Day 09: HTTP Error Mapping"
+    },
+    {
+      "lessonId": "middleware-handler-tests",
+      "legacyId": "day-10",
+      "legacyHref": "/sources/lessons/day-10-middleware-handler-tests.md",
+      "englishTitle": "Day 10: Middleware + Handler Tests"
+    },
+    {
+      "lessonId": "pgx-first-contact",
+      "legacyId": "day-11",
+      "legacyHref": "/sources/lessons/day-11-pgx-first-contact.md",
+      "englishTitle": "Day 11: pgx First Contact"
+    },
+    {
+      "lessonId": "migration",
+      "legacyId": "day-12",
+      "legacyHref": "/sources/lessons/day-12-migration.md",
+      "englishTitle": "Day 12: Migration"
+    },
+    {
+      "lessonId": "sqlc-generate",
+      "legacyId": "day-13",
+      "legacyHref": "/sources/lessons/day-13-sqlc-generate.md",
+      "englishTitle": "Day 13: sqlc generate"
+    },
+    {
+      "lessonId": "repository-wrapper",
+      "legacyId": "day-14",
+      "legacyHref": "/sources/lessons/day-14-repository-wrapper.md",
+      "englishTitle": "Day 14: repository wrapper"
+    },
+    {
+      "lessonId": "transaction-boundary",
+      "legacyId": "day-15",
+      "legacyHref": "/sources/lessons/day-15-transaction-boundary.md",
+      "englishTitle": "Day 15: transaction boundary"
+    },
+    {
+      "lessonId": "db-verification",
+      "legacyId": "day-16",
+      "legacyHref": "/sources/lessons/day-16-db-verification.md",
+      "englishTitle": "Day 16: DB verification"
+    },
+    {
+      "lessonId": "proto-contract",
+      "legacyId": "day-17",
+      "legacyHref": "/sources/lessons/day-17-proto-contract.md",
+      "englishTitle": "Day 17: proto contract"
+    },
+    {
+      "lessonId": "code-generation",
+      "legacyId": "day-18",
+      "legacyHref": "/sources/lessons/day-18-code-generation.md",
+      "englishTitle": "Day 18: code generation"
+    },
+    {
+      "lessonId": "unary-server",
+      "legacyId": "day-19",
+      "legacyHref": "/sources/lessons/day-19-unary-server.md",
+      "englishTitle": "Day 19: unary server"
+    },
+    {
+      "lessonId": "client-test",
+      "legacyId": "day-20",
+      "legacyHref": "/sources/lessons/day-20-client-test.md",
+      "englishTitle": "Day 20: client + test"
+    },
+    {
+      "lessonId": "server-streaming-context",
+      "legacyId": "day-21",
+      "legacyHref": "/sources/lessons/day-21-server-streaming-context.md",
+      "englishTitle": "Day 21: server streaming + context"
+    },
+    {
+      "lessonId": "interceptor-metadata",
+      "legacyId": "day-22",
+      "legacyHref": "/sources/lessons/day-22-interceptor-metadata.md",
+      "englishTitle": "Day 22: interceptor + metadata"
+    },
+    {
+      "lessonId": "goroutine-waitgroup",
+      "legacyId": "day-23",
+      "legacyHref": "/sources/lessons/day-23-goroutine-waitgroup.md",
+      "englishTitle": "Day 23: goroutine + WaitGroup"
+    },
+    {
+      "lessonId": "errgroup-context",
+      "legacyId": "day-24",
+      "legacyHref": "/sources/lessons/day-24-errgroup-context.md",
+      "englishTitle": "Day 24: errgroup + context"
+    },
+    {
+      "lessonId": "channel-progress-broadcaster",
+      "legacyId": "day-25",
+      "legacyHref": "/sources/lessons/day-25-channel-progress-broadcaster.md",
+      "englishTitle": "Day 25: channel progress broadcaster"
+    },
+    {
+      "lessonId": "race-detector",
+      "legacyId": "day-26",
+      "legacyHref": "/sources/lessons/day-26-race-detector.md",
+      "englishTitle": "Day 26: race detector"
+    },
+    {
+      "lessonId": "observability",
+      "legacyId": "day-27",
+      "legacyHref": "/sources/lessons/day-27-observability.md",
+      "englishTitle": "Day 27: observability"
+    },
+    {
+      "lessonId": "graceful-shutdown",
+      "legacyId": "day-28",
+      "legacyHref": "/sources/lessons/day-28-graceful-shutdown.md",
+      "englishTitle": "Day 28: graceful shutdown"
+    },
+    {
+      "lessonId": "open-source-reading-pass",
+      "legacyId": "day-29",
+      "legacyHref": "/sources/lessons/day-29-open-source-reading-pass.md",
+      "englishTitle": "Day 29: open-source reading pass"
+    },
+    {
+      "lessonId": "minimal-tool-interface",
+      "legacyId": "day-30",
+      "legacyHref": "/sources/lessons/day-30-minimal-tool-interface.md",
+      "englishTitle": "Day 30: minimal Tool interface"
+    },
+    {
+      "lessonId": "provider-abstraction",
+      "legacyId": "day-31",
+      "legacyHref": "/sources/lessons/day-31-provider-abstraction.md",
+      "englishTitle": "Day 31: provider abstraction"
+    },
+    {
+      "lessonId": "sqlc-backed-memory",
+      "legacyId": "day-32",
+      "legacyHref": "/sources/lessons/day-32-sqlc-backed-memory.md",
+      "englishTitle": "Day 32: sqlc-backed memory"
+    },
+    {
+      "lessonId": "streaming-progress",
+      "legacyId": "day-33",
+      "legacyHref": "/sources/lessons/day-33-streaming-progress.md",
+      "englishTitle": "Day 33: streaming progress"
+    },
+    {
+      "lessonId": "integration-slice",
+      "legacyId": "day-34",
+      "legacyHref": "/sources/lessons/day-34-integration-slice.md",
+      "englishTitle": "Day 34: integration slice"
+    },
+    {
+      "lessonId": "hardening",
+      "legacyId": "day-35",
+      "legacyHref": "/sources/lessons/day-35-hardening.md",
+      "englishTitle": "Day 35: hardening"
+    },
+    {
+      "lessonId": "final-review",
+      "legacyId": "day-36",
+      "legacyHref": "/sources/lessons/day-36-final-review.md",
+      "englishTitle": "Day 36: final review"
+    }
+  ]
+}

@@ -125,6 +125,11 @@ export interface EvaluationRecord {
   history: EvaluationHistoryEntry[]
 }
 
+export interface PrivateEvaluationInput {
+  lessonId: string
+  sourceDigest: string
+}
+
 export type AuthoringFiles = Record<string, string>
 
 export interface CompiledLesson {
@@ -927,6 +932,13 @@ function normalizedText(value: string, context: string): string {
   return value.replace(/\r\n/g, "\n")
 }
 
+export function contentRevisionForPublicLesson(
+  content: string,
+  context = "Public Lesson"
+): string {
+  return digest({ content: normalizedText(content, context) })
+}
+
 function flattenSourceLessons(course: SourceCourse): Array<{
   trackId: string
   stageId: string
@@ -991,7 +1003,10 @@ export function compileCourseContract(
     lessonId: lesson.lessonId,
     lifecycle: lesson.lifecycle,
     day: lesson.day,
-    contentRevision: digest({ content: files[lesson.contentPath] }),
+    contentRevision: contentRevisionForPublicLesson(
+      files[lesson.contentPath],
+      lesson.contentPath
+    ),
     evaluationRevision: digest({
       evaluation: lesson.evaluation,
       policy,
@@ -1119,8 +1134,45 @@ export function deriveCourseProgress(
 
 function privateInputDigest(
   compiled: CompiledCourseContract,
-  evaluations: EvaluationRecord[]
+  evaluations: EvaluationRecord[],
+  privateInputs?: PrivateEvaluationInput[]
 ): string {
+  if (privateInputs !== undefined) {
+    const knownLessonIds = new Set(
+      compiled.lessons.map((lesson) => lesson.lessonId)
+    )
+    const inputs = privateInputs.map((candidate, index) => {
+      const context = `privateEvaluationInputs[${index}]`
+      const input = record(candidate, context)
+      exact(input, ["lessonId", "sourceDigest"], context)
+      id(input.lessonId, `${context}.lessonId`)
+      const lessonId = input.lessonId
+      revision(input.sourceDigest, `${context}.sourceDigest`)
+      if (!knownLessonIds.has(lessonId)) {
+        throw new Error(`私有 Evaluation 输入引用未知 Lesson: ${lessonId}`)
+      }
+      return {
+        lessonId,
+        sourceDigest: input.sourceDigest as string,
+      }
+    })
+    unique(inputs.map((input) => input.lessonId), "私有 Evaluation 输入 lessonId")
+    const byLesson = new Map(inputs.map((input) => [input.lessonId, input]))
+    for (const evaluation of evaluations) {
+      if (!byLesson.has(evaluation.lessonId)) {
+        throw new Error(
+          `私有 Evaluation 输入缺少已解析记录: ${evaluation.lessonId}`
+        )
+      }
+    }
+    return digest({
+      courseId: compiled.course.courseId,
+      courseRevision: compiled.courseRevision,
+      evaluationInputs: compiled.lessons
+        .map((lesson) => byLesson.get(lesson.lessonId) ?? null)
+        .filter((entry) => entry !== null),
+    })
+  }
   const byLesson = new Map(evaluations.map((entry) => [entry.lessonId, entry]))
   return digest({
     courseId: compiled.course.courseId,
@@ -1134,7 +1186,8 @@ function privateInputDigest(
 export function exportReleaseProgressSnapshot(
   compiled: CompiledCourseContract,
   values: unknown[],
-  files: AuthoringFiles
+  files: AuthoringFiles,
+  privateInputs?: PrivateEvaluationInput[]
 ): ReleaseProgressSnapshot {
   if (compiled.course.lifecycle === "draft") {
     throw new Error("Draft Course 不导出 Release Progress Snapshot")
@@ -1149,7 +1202,7 @@ export function exportReleaseProgressSnapshot(
     schemaVersion: 1,
     courseId: compiled.course.courseId,
     courseRevision: compiled.courseRevision,
-    privateInputDigest: privateInputDigest(compiled, evaluations),
+    privateInputDigest: privateInputDigest(compiled, evaluations, privateInputs),
     lessons: derived.progress.lessons,
   })
 }
@@ -1158,10 +1211,16 @@ export function validateReleaseSnapshotForAuthoring(
   value: unknown,
   compiled: CompiledCourseContract,
   evaluations: unknown[],
-  files: AuthoringFiles
+  files: AuthoringFiles,
+  privateInputs?: PrivateEvaluationInput[]
 ): ReleaseProgressSnapshot {
   const snapshot = parseReleaseProgressSnapshot(value)
-  const expected = exportReleaseProgressSnapshot(compiled, evaluations, files)
+  const expected = exportReleaseProgressSnapshot(
+    compiled,
+    evaluations,
+    files,
+    privateInputs
+  )
   if (snapshot.privateInputDigest !== expected.privateInputDigest) {
     throw new Error("Release Snapshot 私有输入摘要不一致")
   }
@@ -1202,7 +1261,7 @@ export function validatePublicCourseContent(
       throw new Error(`Public Lesson 缺失: ${lesson.lessonHref}`)
     }
     if (
-      digest({ content: normalizedText(content, lesson.lessonHref) }) !==
+      contentRevisionForPublicLesson(content, lesson.lessonHref) !==
       lesson.contentRevision
     ) {
       throw new Error(`Public Lesson 内容摘要不一致: ${lesson.lessonId}`)

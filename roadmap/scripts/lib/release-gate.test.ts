@@ -145,6 +145,7 @@ describe("fail-closed release gate", () => {
         "exercise/day0/notes.md",
         "courses/go-backend/learning-record/why-go/notes.md",
         "courses/go-backend/internal/capstone.md",
+        "courses/go-backend/resources/internal/author-rubric.md",
         "docs/go-learning/daily-lessons/README.md",
         "docs/go-learning/sprint-36-day/capstone-rubric.md",
         "roadmap/src/App.tsx",
@@ -152,6 +153,7 @@ describe("fail-closed release gate", () => {
     ).toEqual([
       "courses/go-backend/internal/capstone.md",
       "courses/go-backend/learning-record/why-go/notes.md",
+      "courses/go-backend/resources/internal/author-rubric.md",
       "docs/go-learning/daily-lessons/README.md",
       "docs/go-learning/sprint-36-day/capstone-rubric.md",
       "exercise/day0/notes.md",
@@ -170,6 +172,34 @@ describe("fail-closed release gate", () => {
         path: "roadmap/src/data/course.json",
         originalPath: "roadmap/src/App.tsx",
       },
+    ])
+  })
+
+  it("即使 git add -f 也识别 canonical internal resource", async () => {
+    const root = await mkdtemp(path.join(os.tmpdir(), "release-private-track-"))
+    temporaryDirectories.push(root)
+    const privateFile = path.join(
+      root,
+      "courses/go-backend/resources/internal/rubric.md"
+    )
+    await mkdir(path.dirname(privateFile), { recursive: true })
+    await writeFile(
+      path.join(root, ".gitignore"),
+      "/courses/*/resources/internal/\n"
+    )
+    await writeFile(privateFile, "private\n")
+    await executeFile("git", ["init", "-q"], { cwd: root })
+    await executeFile(
+      "git",
+      ["add", "-f", "courses/go-backend/resources/internal/rubric.md"],
+      { cwd: root }
+    )
+    const { stdout } = await executeFile("git", ["ls-files", "-z"], {
+      cwd: root,
+      encoding: "utf8",
+    })
+    expect(findPrivateTrackedPaths(stdout.split("\0").filter(Boolean))).toEqual([
+      "courses/go-backend/resources/internal/rubric.md",
     ])
   })
 

@@ -1,0 +1,193 @@
+{
+  "schemaVersion": 1,
+  "courseId": "go-backend",
+  "courseRevision": "sha256:8e1c5182d35b32e3b03320646dd6c48f3539c0ca24131314c9bd9b2ebe77509f",
+  "privateInputDigest": "sha256:85891ebee1cb2ff215f3e5ef80488a36d8b96252bde1e5d52385174d063a3436",
+  "lessons": [
+    {
+      "lessonId": "why-go-after-node",
+      "status": "未开始",
+      "referenceScore": null
+    },
+    {
+      "lessonId": "module-package-toolchain",
+      "status": "未开始",
+      "referenceScore": null
+    },
+    {
+      "lessonId": "value-model-struct-zero-value",
+      "status": "未开始",
+      "referenceScore": null
+    },
+    {
+      "lessonId": "data-structures-i-array-slice-capacity-copy",
+      "status": "未开始",
+      "referenceScore": null
+    },
+    {
+      "lessonId": "data-structures-ii-map-set-index-string-rune",
+      "status": "未开始",
+      "referenceScore": null
+    },
+    {
+      "lessonId": "error-handling",
+      "status": "未开始",
+      "referenceScore": null
+    },
+    {
+      "lessonId": "small-interface-context-timeout",
+      "status": "未开始",
+      "referenceScore": null
+    },
+    {
+      "lessonId": "http-routing",
+      "status": "未开始",
+      "referenceScore": null
+    },
+    {
+      "lessonId": "json-dto",
+      "status": "未开始",
+      "referenceScore": null
+    },
+    {
+      "lessonId": "http-error-mapping",
+      "status": "未开始",
+      "referenceScore": null
+    },
+    {
+      "lessonId": "middleware-handler-tests",
+      "status": "未开始",
+      "referenceScore": null
+    },
+    {
+      "lessonId": "pgx-first-contact",
+      "status": "未开始",
+      "referenceScore": null
+    },
+    {
+      "lessonId": "migration",
+      "status": "未开始",
+      "referenceScore": null
+    },
+    {
+      "lessonId": "sqlc-generate",
+      "status": "未开始",
+      "referenceScore": null
+    },
+    {
+      "lessonId": "repository-wrapper",
+      "status": "未开始",
+      "referenceScore": null
+    },
+    {
+      "lessonId": "transaction-boundary",
+      "status": "未开始",
+      "referenceScore": null
+    },
+    {
+      "lessonId": "db-verification",
+      "status": "未开始",
+      "referenceScore": null
+    },
+    {
+      "lessonId": "proto-contract",
+      "status": "未开始",
+      "referenceScore": null
+    },
+    {
+      "lessonId": "code-generation",
+      "status": "未开始",
+      "referenceScore": null
+    },
+    {
+      "lessonId": "unary-server",
+      "status": "未开始",
+      "referenceScore": null
+    },
+    {
+      "lessonId": "client-test",
+      "status": "未开始",
+      "referenceScore": null
+    },
+    {
+      "lessonId": "server-streaming-context",
+      "status": "未开始",
+      "referenceScore": null
+    },
+    {
+      "lessonId": "interceptor-metadata",
+      "status": "未开始",
+      "referenceScore": null
+    },
+    {
+      "lessonId": "goroutine-waitgroup",
+      "status": "未开始",
+      "referenceScore": null
+    },
+    {
+      "lessonId": "errgroup-context",
+      "status": "未开始",
+      "referenceScore": null
+    },
+    {
+      "lessonId": "channel-progress-broadcaster",
+      "status": "未开始",
+      "referenceScore": null
+    },
+    {
+      "lessonId": "race-detector",
+      "status": "未开始",
+      "referenceScore": null
+    },
+    {
+      "lessonId": "observability",
+      "status": "未开始",
+      "referenceScore": null
+    },
+    {
+      "lessonId": "graceful-shutdown",
+      "status": "未开始",
+      "referenceScore": null
+    },
+    {
+      "lessonId": "open-source-reading-pass",
+      "status": "未开始",
+      "referenceScore": null
+    },
+    {
+      "lessonId": "minimal-tool-interface",
+      "status": "未开始",
+      "referenceScore": null
+    },
+    {
+      "lessonId": "provider-abstraction",
+      "status": "未开始",
+      "referenceScore": null
+    },
+    {
+      "lessonId": "sqlc-backed-memory",
+      "status": "未开始",
+      "referenceScore": null
+    },
+    {
+      "lessonId": "streaming-progress",
+      "status": "未开始",
+      "referenceScore": null
+    },
+    {
+      "lessonId": "integration-slice",
+      "status": "未开始",
+      "referenceScore": null
+    },
+    {
+      "lessonId": "hardening",
+      "status": "未开始",
+      "referenceScore": null
+    },
+    {
+      "lessonId": "final-review",
+      "status": "未开始",
+      "referenceScore": null
+    }
+  ]
+}

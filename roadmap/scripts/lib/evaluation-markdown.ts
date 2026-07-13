@@ -268,7 +268,15 @@ function parseEvents(value: unknown, cycles: ParsedCycle[]): void {
   })
 }
 
-export function parseEvaluationMarkdown(source: string): EvaluationRecord | null {
+export interface ParsedEvaluationMarkdown {
+  courseId: string
+  lessonId: string
+  evaluation: EvaluationRecord | null
+}
+
+export function parseEvaluationMarkdownDocument(
+  source: string
+): ParsedEvaluationMarkdown {
   const matches = [...source.matchAll(/^```evaluation-record\n([\s\S]*?)\n```$/gm)]
   if (matches.length !== 1) {
     throw new Error("Evaluation Markdown 必须包含唯一 evaluation-record 块")
@@ -310,19 +318,28 @@ export function parseEvaluationMarkdown(source: string): EvaluationRecord | null
   if (!Array.isArray(record.cycles)) throw new Error("Evaluation cycles 必须是数组")
   const cycles = record.cycles.map(parseCycle)
   parseEvents(record.events, cycles)
-  if (cycles.length === 0) return null
-  return parseEvaluationRecord({
-    schemaVersion: 1,
+  return {
     courseId,
     lessonId,
-    history: cycles.map((cycle) => ({
-      evaluationRevision: cycle.evaluationRevision,
-      status: cycle.status,
-      referenceScore: cycle.referenceScore,
-      competencies: cycle.competencies.map(({ competencyId, score }) => ({
-        competencyId,
-        score,
-      })),
-    })),
-  })
+    evaluation:
+      cycles.length === 0
+        ? null
+        : parseEvaluationRecord({
+            schemaVersion: 1,
+            courseId,
+            lessonId,
+            history: cycles.map((cycle) => ({
+              evaluationRevision: cycle.evaluationRevision,
+              status: cycle.status,
+              referenceScore: cycle.referenceScore,
+              competencies: cycle.competencies.map(
+                ({ competencyId, score }) => ({ competencyId, score })
+              ),
+            })),
+          }),
+  }
+}
+
+export function parseEvaluationMarkdown(source: string): EvaluationRecord | null {
+  return parseEvaluationMarkdownDocument(source).evaluation
 }

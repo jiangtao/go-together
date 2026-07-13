@@ -1,6 +1,5 @@
 import { chromium } from "@playwright/test"
 
-import { parseCourseData } from "../src/lib/course-data.ts"
 import {
   createChromiumHostResolverRule,
   fetchTrustedResponse,
@@ -8,6 +7,7 @@ import {
   resolveTrustedDeployment,
   type ResolvedDeployment,
 } from "./lib/deployment-url.ts"
+import { parseLegacyCourseData } from "./lib/legacy-course-data.ts"
 
 function deploymentUrl(): URL {
   const input = process.argv[2] ?? process.env.DEPLOYMENT_URL
@@ -63,7 +63,7 @@ async function runHttpSmoke(deployment: ResolvedDeployment) {
     /application\/json/i
   )
   requireHeader(courseResponse, "cache-control", /must-revalidate/i)
-  const course = parseCourseData(await courseResponse.json())
+  const course = parseLegacyCourseData(await courseResponse.json())
   for (const day of [0, 36]) {
     const lesson = course.lessons[day]
     const lessonResponse = await requireResponse(

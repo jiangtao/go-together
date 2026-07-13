@@ -35,7 +35,7 @@ export type ReleaseStepId = (typeof RELEASE_STEPS)[number]["id"]
 const PRIVATE_TRACKED_PATTERNS = [
   /^learning-records(?:\/|$)/,
   /^exercise(?:\/|$)/,
-  /^courses\/[^/]+\/(?:learning-record|learning-records|internal)(?:\/|$)/,
+  /^courses\/[^/]+\/(?:learning-record|learning-records|internal|resources\/internal)(?:\/|$)/,
   /^docs\/go-learning\/daily-lessons\/README\.md$/,
   /^docs\/go-learning\/node-to-go-36-day-course\.md$/,
   /^docs\/go-learning\/sprint-36-day\/capstone-rubric\.md$/,

@@ -83,30 +83,6 @@ go test -bench
 
 ## 评测文件
 
-`notes-eval.md` 顶部维护当前状态和能力项表；历史记录只追加、不删除、不改写。使用以下字段：
+`learning-records/go-backend/lessons/<lessonId>/evaluation.md` 是唯一 Evaluation 事实源，只能由共享 Evaluation Core 原子更新。当前状态、0–4 能力等级、尝试次数与追加事件必须保持可校验一致；通过不可回退，旧 evaluationRevision 历史不得删除。
 
-```markdown
-## 当前状态
-
-- 状态：未开始 / 定向回炉 / 重新学习 / 通过
-- 参考分数：0-100 或待评测
-- 当前问题：能力项 ID 或无
-
-## 能力项
-
-| ID | 课程依据 | 等级 | 状态 | 尝试次数 |
-|---|---|---:|---|---:|
-
-## 评测历史
-
-### YYYY-MM-DD HH:MM - 第 N 次评测
-
-- 能力项：
-- 判定：
-- 问题类型：
-- 依据位置：
-- 回炉范围：
-- 尝试次数：
-```
-
-不得在评测文件中保存标准答案、答案提示、密钥、DSN 或完整隐私数据。
+不得在 Evaluation 中保存标准答案、答案提示、密钥、DSN 或完整隐私数据。Notes、Exercise、Release Progress Snapshot、Public Progress 和 Roadmap 均不得反向改写 Evaluation。

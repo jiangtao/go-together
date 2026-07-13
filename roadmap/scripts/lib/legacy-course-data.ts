@@ -1,10 +1,39 @@
 import {
   COURSE_STATUSES,
-  type CourseData,
-  type CourseLesson,
-  type CourseStage,
   type CourseStatus,
-} from "../types/course.ts"
+} from "../../src/types/course.ts"
+
+export interface LegacyCourseLesson {
+  id: string
+  day: number
+  dayLabel: string
+  title: string
+  englishTitle: string | null
+  objective: string
+  goals: string[]
+  stageId: string
+  status: CourseStatus
+  referenceScore: number | null
+  lessonHref: string
+}
+
+export interface LegacyCourseStage {
+  id: string
+  order: number
+  title: string
+  description: string
+  startDay: number
+  endDay: number
+  lessonDays: number[]
+}
+
+export interface LegacyCourseData {
+  schemaVersion: 3
+  title: string
+  dayRange: { start: number; end: number }
+  stages: LegacyCourseStage[]
+  lessons: LegacyCourseLesson[]
+}
 
 type JsonRecord = Record<string, unknown>
 
@@ -41,55 +70,44 @@ const LESSON_KEYS = [
 const LESSON_HREF_PATTERN =
   /^\/sources\/lessons\/day-(\d{2})-[a-z0-9]+(?:-[a-z0-9]+)*\.md$/
 
-function isRecord(value: unknown): value is JsonRecord {
-  return typeof value === "object" && value !== null && !Array.isArray(value)
-}
-
-function assertRecord(value: unknown, context: string): JsonRecord {
-  if (!isRecord(value)) {
+function record(value: unknown, context: string): JsonRecord {
+  if (typeof value !== "object" || value === null || Array.isArray(value)) {
     throw new Error(`${context} 必须是对象`)
   }
-  return value
+  return value as JsonRecord
 }
 
-function assertExactKeys(
+function exact(
   value: JsonRecord,
   expectedKeys: readonly string[],
   context: string
 ): void {
-  const actualKeys = Object.keys(value).sort()
+  const actual = Object.keys(value).sort()
   const expected = [...expectedKeys].sort()
   if (
-    actualKeys.length !== expected.length ||
-    actualKeys.some((key, index) => key !== expected[index])
+    actual.length !== expected.length ||
+    actual.some((key, index) => key !== expected[index])
   ) {
     throw new Error(`${context} 包含缺失或非白名单字段`)
   }
 }
 
-function assertString(value: unknown, context: string): asserts value is string {
+function string(value: unknown, context: string): asserts value is string {
   if (typeof value !== "string" || value.trim() === "") {
     throw new Error(`${context} 必须是非空字符串`)
   }
 }
 
-function assertInteger(value: unknown, context: string): asserts value is number {
-  if (!Number.isInteger(value)) {
-    throw new Error(`${context} 必须是整数`)
-  }
+function integer(value: unknown, context: string): asserts value is number {
+  if (!Number.isInteger(value)) throw new Error(`${context} 必须是整数`)
 }
 
-function assertDay(value: unknown, context: string): asserts value is number {
-  assertInteger(value, context)
-  if (value < 0 || value > 36) {
-    throw new Error(`${context} 必须位于 Day 0-36`)
-  }
+function day(value: unknown, context: string): asserts value is number {
+  integer(value, context)
+  if (value < 0 || value > 36) throw new Error(`${context} 必须位于 Day 0-36`)
 }
 
-function assertScore(
-  value: unknown,
-  context: string
-): asserts value is number | null {
+function score(value: unknown, context: string): asserts value is number | null {
   if (
     value !== null &&
     (typeof value !== "number" ||
@@ -101,59 +119,54 @@ function assertScore(
   }
 }
 
-function assertStatus(
-  value: unknown,
-  context: string
-): asserts value is CourseStatus {
+function status(value: unknown, context: string): asserts value is CourseStatus {
   if (!COURSE_STATUSES.includes(value as CourseStatus)) {
     throw new Error(`${context} 不是允许的学习状态`)
   }
 }
 
-function parseStage(value: unknown, index: number): CourseStage {
+function parseStage(value: unknown, index: number): LegacyCourseStage {
   const context = `stages[${index}]`
-  const stage = assertRecord(value, context)
-  assertExactKeys(stage, STAGE_KEYS, context)
-  assertString(stage.id, `${context}.id`)
-  assertInteger(stage.order, `${context}.order`)
-  assertString(stage.title, `${context}.title`)
-  assertString(stage.description, `${context}.description`)
-  assertDay(stage.startDay, `${context}.startDay`)
-  assertDay(stage.endDay, `${context}.endDay`)
-  if (stage.startDay > stage.endDay) {
-    throw new Error(`${context} 的日期范围无效`)
-  }
+  const stage = record(value, context)
+  exact(stage, STAGE_KEYS, context)
+  string(stage.id, `${context}.id`)
+  integer(stage.order, `${context}.order`)
+  string(stage.title, `${context}.title`)
+  string(stage.description, `${context}.description`)
+  day(stage.startDay, `${context}.startDay`)
+  day(stage.endDay, `${context}.endDay`)
+  if (stage.startDay > stage.endDay) throw new Error(`${context} 的日期范围无效`)
   if (!Array.isArray(stage.lessonDays) || stage.lessonDays.length === 0) {
     throw new Error(`${context}.lessonDays 必须是非空数组`)
   }
-  stage.lessonDays.forEach((day, dayIndex) =>
-    assertDay(day, `${context}.lessonDays[${dayIndex}]`)
+  stage.lessonDays.forEach((value, dayIndex) =>
+    day(value, `${context}.lessonDays[${dayIndex}]`)
   )
-  return stage as unknown as CourseStage
+  return stage as unknown as LegacyCourseStage
 }
 
-function parseLesson(value: unknown, index: number): CourseLesson {
+function parseLesson(value: unknown, index: number): LegacyCourseLesson {
   const context = `lessons[${index}]`
-  const lesson = assertRecord(value, context)
-  assertExactKeys(lesson, LESSON_KEYS, context)
-  assertString(lesson.id, `${context}.id`)
-  assertDay(lesson.day, `${context}.day`)
-  assertString(lesson.dayLabel, `${context}.dayLabel`)
-  assertString(lesson.title, `${context}.title`)
+  const lesson = record(value, context)
+  exact(lesson, LESSON_KEYS, context)
+  string(lesson.id, `${context}.id`)
+  day(lesson.day, `${context}.day`)
+  string(lesson.dayLabel, `${context}.dayLabel`)
+  string(lesson.title, `${context}.title`)
   if (lesson.englishTitle !== null) {
-    assertString(lesson.englishTitle, `${context}.englishTitle`)
+    string(lesson.englishTitle, `${context}.englishTitle`)
   }
-  assertString(lesson.objective, `${context}.objective`)
+  string(lesson.objective, `${context}.objective`)
   if (!Array.isArray(lesson.goals) || lesson.goals.length === 0) {
     throw new Error(`${context}.goals 必须是非空数组`)
   }
   lesson.goals.forEach((goal, goalIndex) =>
-    assertString(goal, `${context}.goals[${goalIndex}]`)
+    string(goal, `${context}.goals[${goalIndex}]`)
   )
-  assertString(lesson.stageId, `${context}.stageId`)
-  assertStatus(lesson.status, `${context}.status`)
-  assertScore(lesson.referenceScore, `${context}.referenceScore`)
-  assertString(lesson.lessonHref, `${context}.lessonHref`)
+  string(lesson.stageId, `${context}.stageId`)
+  status(lesson.status, `${context}.status`)
+  score(lesson.referenceScore, `${context}.referenceScore`)
+  string(lesson.lessonHref, `${context}.lessonHref`)
   const hrefMatch = lesson.lessonHref.match(LESSON_HREF_PATTERN)
   if (!hrefMatch || Number(hrefMatch[1]) !== lesson.day) {
     throw new Error(`${context}.lessonHref 不是对应 Day 的安全同源课程地址`)
@@ -164,32 +177,25 @@ function parseLesson(value: unknown, index: number): CourseLesson {
   if (lesson.dayLabel !== `Day ${lesson.day}`) {
     throw new Error(`${context}.dayLabel 与 Day 不一致`)
   }
-  return lesson as unknown as CourseLesson
+  return lesson as unknown as LegacyCourseLesson
 }
 
-export function parseCourseData(value: unknown): CourseData {
-  const course = assertRecord(value, "course")
-  assertExactKeys(course, TOP_LEVEL_KEYS, "course")
-  if (course.schemaVersion !== 3) {
-    throw new Error("course.schemaVersion 必须为 3")
-  }
-  assertString(course.title, "course.title")
-
-  const dayRange = assertRecord(course.dayRange, "course.dayRange")
-  assertExactKeys(dayRange, DAY_RANGE_KEYS, "course.dayRange")
+export function parseLegacyCourseData(value: unknown): LegacyCourseData {
+  const course = record(value, "course")
+  exact(course, TOP_LEVEL_KEYS, "course")
+  if (course.schemaVersion !== 3) throw new Error("course.schemaVersion 必须为 3")
+  string(course.title, "course.title")
+  const dayRange = record(course.dayRange, "course.dayRange")
+  exact(dayRange, DAY_RANGE_KEYS, "course.dayRange")
   if (dayRange.start !== 0 || dayRange.end !== 36) {
     throw new Error("course.dayRange 必须完整覆盖 Day 0-36")
   }
-
   if (!Array.isArray(course.stages) || course.stages.length !== 6) {
     throw new Error("course.stages 必须包含 6 个阶段")
   }
   const stages = course.stages.map(parseStage)
   const stageIds = new Set(stages.map((stage) => stage.id))
-  if (stageIds.size !== stages.length) {
-    throw new Error("course.stages 包含重复 id")
-  }
-
+  if (stageIds.size !== stages.length) throw new Error("course.stages 包含重复 id")
   if (!Array.isArray(course.lessons) || course.lessons.length !== 37) {
     throw new Error("course.lessons 必须包含 Day 0-36 共 37 天")
   }
@@ -202,7 +208,6 @@ export function parseCourseData(value: unknown): CourseData {
       throw new Error(`Day ${lesson.day} 引用了未知阶段`)
     }
   })
-
   stages.forEach((stage, index) => {
     if (stage.order !== index + 1) {
       throw new Error("course.stages 必须按 order 连续排序")
@@ -212,12 +217,11 @@ export function parseCourseData(value: unknown): CourseData {
       .map((lesson) => lesson.day)
     if (
       stage.lessonDays.length !== expectedDays.length ||
-      stage.lessonDays.some((day, dayIndex) => day !== expectedDays[dayIndex])
+      stage.lessonDays.some((value, dayIndex) => value !== expectedDays[dayIndex])
     ) {
       throw new Error(`${stage.id}.lessonDays 与课程归属不一致`)
     }
   })
-
   return {
     schemaVersion: 3,
     title: course.title,

@@ -1,0 +1,1219 @@
+{
+  "schemaVersion": 1,
+  "courseId": "go-backend",
+  "title": "Go 36 天学习路线图",
+  "description": "从 Go 语言基础到后端服务与 Agent 工程实践。",
+  "language": {
+    "id": "go",
+    "label": "Go"
+  },
+  "lifecycle": "published",
+  "replacementCourseId": null,
+  "evaluationPolicyPath": "evaluation/policy.md",
+  "commandProfilePath": "evaluation/command-profile.json",
+  "publicResources": [],
+  "internalResources": [],
+  "tracks": [
+    {
+      "trackId": "language-and-web",
+      "title": "语言与 Web",
+      "description": "建立 Go 语言、HTTP 与数据入口基础。",
+      "stages": [
+        {
+          "stageId": "language-foundations",
+          "title": "起步与语言基础",
+          "description": "从学习动机进入 Go 工具链、值模型、数据结构与接口边界。",
+          "lessons": [
+            {
+              "lessonId": "why-go-after-node",
+              "lifecycle": "active",
+              "day": 0,
+              "title": "为什么 Node.js 开发者要学 Go",
+              "objective": "本文件是正式 Day 1 之前的前言。今天不写代码，目标是搞清楚背景、动机和判断标准：不是为了证明 Go 比 Node.js 高级，也不是为了抛弃 Node.js，而是为了扩展你作为后端工程师能稳定处理的问题范围。",
+              "goals": [
+                "本文件是正式 Day 1 之前的前言。今天不写代码，目标是搞清楚背景、动机和判断标准：不是为了证明 Go 比 Node.js 高级，也不是为了抛弃 Node.js，而是为了扩展你作为后端工程师能稳定处理的问题范围。"
+              ],
+              "contentPath": "lessons/why-go-after-node.md",
+              "exerciseTemplatePath": null,
+              "evaluation": {
+                "competencies": [
+                  {
+                    "competencyId": "lesson-requirements",
+                    "title": "完成当前 Lesson 的全部必修要求"
+                  }
+                ],
+                "requiredEvidence": [
+                  "notes",
+                  "explicit-exercise-evidence"
+                ],
+                "scoringBasis": [
+                  "准确",
+                  "完整",
+                  "可验证"
+                ]
+              }
+            },
+            {
+              "lessonId": "module-package-toolchain",
+              "lifecycle": "active",
+              "day": 1,
+              "title": "module / package / toolchain",
+              "objective": "本文件只服务当天学习。今天只完成今天的目标，不提前展开后续天数，避免主题互相干扰。",
+              "goals": [
+                "能解释 go.mod、module path、package name、import path 的关系。",
+                "能用 cmd/ 放可执行入口，用 internal/ 放不希望被外部导入的学习代码。",
+                "能用 go run、go test、gofmt 完成最小开发循环。",
+                "能区分 Go 的导出规则和 TypeScript 的 export 心智。"
+              ],
+              "contentPath": "lessons/module-package-toolchain.md",
+              "exerciseTemplatePath": null,
+              "evaluation": {
+                "competencies": [
+                  {
+                    "competencyId": "lesson-requirements",
+                    "title": "完成当前 Lesson 的全部必修要求"
+                  }
+                ],
+                "requiredEvidence": [
+                  "notes",
+                  "explicit-exercise-evidence"
+                ],
+                "scoringBasis": [
+                  "准确",
+                  "完整",
+                  "可验证"
+                ]
+              }
+            },
+            {
+              "lessonId": "value-model-struct-zero-value",
+              "lifecycle": "active",
+              "day": 2,
+              "title": "value model / struct / zero value",
+              "objective": "本文件只服务当天学习。今天只完成今天的目标，不提前展开后续天数，避免主题互相干扰。",
+              "goals": [
+                "能用 struct 定义 Trip、Member、TripStatus 等领域值。",
+                "能解释 zero value 与 JavaScript undefined / null 的差异。",
+                "能根据是否修改接收者选择 value receiver 或 pointer receiver。",
+                "能写构造函数表达必要业务约束，但不过度初始化所有字段。"
+              ],
+              "contentPath": "lessons/value-model-struct-zero-value.md",
+              "exerciseTemplatePath": null,
+              "evaluation": {
+                "competencies": [
+                  {
+                    "competencyId": "lesson-requirements",
+                    "title": "完成当前 Lesson 的全部必修要求"
+                  }
+                ],
+                "requiredEvidence": [
+                  "notes",
+                  "explicit-exercise-evidence"
+                ],
+                "scoringBasis": [
+                  "准确",
+                  "完整",
+                  "可验证"
+                ]
+              }
+            },
+            {
+              "lessonId": "data-structures-i-array-slice-capacity-copy",
+              "lifecycle": "active",
+              "day": 3,
+              "title": "data structures I: array / slice / capacity / copy",
+              "objective": "本文件只服务当天学习。今天只完成今天的目标，不提前展开后续天数，避免主题互相干扰。",
+              "goals": [
+                "能区分 Go array 和 slice，而不是把它们都理解成 JS Array。",
+                "能解释 len、cap、底层数组、子切片共享和 append 重新分配。",
+                "能用 copy 做防御性复制，避免外部调用方修改内部 itinerary。",
+                "能为 AddStop、InsertStop、RemoveStop、CloneStops 写覆盖边界的测试。"
+              ],
+              "contentPath": "lessons/data-structures-i-array-slice-capacity-copy.md",
+              "exerciseTemplatePath": null,
+              "evaluation": {
+                "competencies": [
+                  {
+                    "competencyId": "lesson-requirements",
+                    "title": "完成当前 Lesson 的全部必修要求"
+                  }
+                ],
+                "requiredEvidence": [
+                  "notes",
+                  "explicit-exercise-evidence"
+                ],
+                "scoringBasis": [
+                  "准确",
+                  "完整",
+                  "可验证"
+                ]
+              }
+            },
+            {
+              "lessonId": "data-structures-ii-map-set-index-string-rune",
+              "lifecycle": "active",
+              "day": 4,
+              "title": "data structures II: map / set / index / string / rune",
+              "objective": "本文件只服务当天学习。今天只完成今天的目标，不提前展开后续天数，避免主题互相干扰。",
+              "goals": [
+                "能用 map 做 MemberIndex，理解 key 查询、zero value 和 comma-ok。",
+                "能用 map[string]struct{} 模拟 set，表达 tag 去重。",
+                "能解释 nil map 可读不可写，并为写入路径做初始化或 guard。",
+                "能区分 string、byte、rune，写出 rune-safe 的文本辅助函数。",
+                "能用表驱动测试覆盖 map、set、index、中文、emoji、ASCII 场景。"
+              ],
+              "contentPath": "lessons/data-structures-ii-map-set-index-string-rune.md",
+              "exerciseTemplatePath": null,
+              "evaluation": {
+                "competencies": [
+                  {
+                    "competencyId": "lesson-requirements",
+                    "title": "完成当前 Lesson 的全部必修要求"
+                  }
+                ],
+                "requiredEvidence": [
+                  "notes",
+                  "explicit-exercise-evidence"
+                ],
+                "scoringBasis": [
+                  "准确",
+                  "完整",
+                  "可验证"
+                ]
+              }
+            },
+            {
+              "lessonId": "error-handling",
+              "lifecycle": "active",
+              "day": 5,
+              "title": "error handling",
+              "objective": "本文件只服务当天学习。今天只完成今天的目标，不提前展开后续天数，避免主题互相干扰。",
+              "goals": [
+                "能从 Node.js throw/catch 心智迁移到 Go 的显式 value, error 返回。",
+                "能定义稳定的 sentinel error，并用 errors.Is 判断错误类别。",
+                "能用 fmt.Errorf(\"%w\", err) 包装错误，同时保留错误链。",
+                "能区分错误类别、错误上下文和展示给外部协议层的错误信息。"
+              ],
+              "contentPath": "lessons/error-handling.md",
+              "exerciseTemplatePath": null,
+              "evaluation": {
+                "competencies": [
+                  {
+                    "competencyId": "lesson-requirements",
+                    "title": "完成当前 Lesson 的全部必修要求"
+                  }
+                ],
+                "requiredEvidence": [
+                  "notes",
+                  "explicit-exercise-evidence"
+                ],
+                "scoringBasis": [
+                  "准确",
+                  "完整",
+                  "可验证"
+                ]
+              }
+            },
+            {
+              "lessonId": "small-interface-context-timeout",
+              "lifecycle": "active",
+              "day": 6,
+              "title": "small interface + context timeout",
+              "objective": "本文件只服务当天学习。今天只完成今天的目标，不提前展开后续天数，避免主题互相干扰。",
+              "goals": [
+                "能从“依赖完整对象”迁移到“由使用方定义小接口”的 Go 风格。",
+                "能定义 TripStore，让 service 依赖行为而不是具体数据库或内存实现。",
+                "能正确传递 context.Context，支持 timeout、deadline 和 parent cancel。",
+                "能用 fake store 测试 found、not found、invalid id、timeout、cancel 场景。"
+              ],
+              "contentPath": "lessons/small-interface-context-timeout.md",
+              "exerciseTemplatePath": null,
+              "evaluation": {
+                "competencies": [
+                  {
+                    "competencyId": "lesson-requirements",
+                    "title": "完成当前 Lesson 的全部必修要求"
+                  }
+                ],
+                "requiredEvidence": [
+                  "notes",
+                  "explicit-exercise-evidence"
+                ],
+                "scoringBasis": [
+                  "准确",
+                  "完整",
+                  "可验证"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "stageId": "http-and-data-entry",
+          "title": "HTTP 与数据入口",
+          "description": "串起路由、DTO、错误映射、测试、pgx 与 migration。",
+          "lessons": [
+            {
+              "lessonId": "http-routing",
+              "lifecycle": "active",
+              "day": 7,
+              "title": "HTTP Routing",
+              "objective": "把 Express/Fastify 的 route 心智迁移到 Go net/http 的 http.Handler / http.HandlerFunc。当天结束时，你应该能解释一个 request 如何从 ServeMux 进入 handler，handler 如何解析路径参数并调用 service，以及为什么 handler 测试不需要启动真实端口。",
+              "goals": [
+                "实现 GET /healthz。",
+                "实现 GET /trips/{id}。",
+                "把路由构造封装成 NewRouter(...) http.Handler。",
+                "用 httptest 验证 handler 行为。"
+              ],
+              "contentPath": "lessons/http-routing.md",
+              "exerciseTemplatePath": null,
+              "evaluation": {
+                "competencies": [
+                  {
+                    "competencyId": "lesson-requirements",
+                    "title": "完成当前 Lesson 的全部必修要求"
+                  }
+                ],
+                "requiredEvidence": [
+                  "notes",
+                  "explicit-exercise-evidence"
+                ],
+                "scoringBasis": [
+                  "准确",
+                  "完整",
+                  "可验证"
+                ]
+              }
+            },
+            {
+              "lessonId": "json-dto",
+              "lifecycle": "active",
+              "day": 8,
+              "title": "JSON DTO",
+              "objective": "把 Node.js 自动 body parser、class-validator、DTO class 的心智迁移到 Go 显式 encoding/json decode、struct tag 和 DTO/domain 转换。当天结束时，你应该能写出 POST /trips 的 request DTO、response DTO、转换函数和 JSON handler tests。",
+              "goals": [
+                "定义 CreateTripRequest。",
+                "定义 TripResponse。",
+                "使用 json.Decoder 解码 request body。",
+                "明确 unknown field 策略。",
+                "把 DTO 转成 domain/service input，再把 domain 转成 response DTO。"
+              ],
+              "contentPath": "lessons/json-dto.md",
+              "exerciseTemplatePath": null,
+              "evaluation": {
+                "competencies": [
+                  {
+                    "competencyId": "lesson-requirements",
+                    "title": "完成当前 Lesson 的全部必修要求"
+                  }
+                ],
+                "requiredEvidence": [
+                  "notes",
+                  "explicit-exercise-evidence"
+                ],
+                "scoringBasis": [
+                  "准确",
+                  "完整",
+                  "可验证"
+                ]
+              }
+            },
+            {
+              "lessonId": "http-error-mapping",
+              "lifecycle": "active",
+              "day": 9,
+              "title": "HTTP Error Mapping",
+              "objective": "把 Node.js exception filter / error middleware 的心智迁移到 Go 显式 error classification 和 HTTP response mapping。当天结束时，你应该能实现统一 WriteError，把 domain/service error 映射为稳定的 HTTP status、error code 和安全 message。",
+              "goals": [
+                "定义统一 error response body。",
+                "使用 errors.Is / errors.As 识别错误类别。",
+                "区分 not found、validation、deadline/cancel、unknown。",
+                "保证 500 response 不泄露内部错误细节。",
+                "测试 wrapped error 仍能正确映射。"
+              ],
+              "contentPath": "lessons/http-error-mapping.md",
+              "exerciseTemplatePath": null,
+              "evaluation": {
+                "competencies": [
+                  {
+                    "competencyId": "lesson-requirements",
+                    "title": "完成当前 Lesson 的全部必修要求"
+                  }
+                ],
+                "requiredEvidence": [
+                  "notes",
+                  "explicit-exercise-evidence"
+                ],
+                "scoringBasis": [
+                  "准确",
+                  "完整",
+                  "可验证"
+                ]
+              }
+            },
+            {
+              "lessonId": "middleware-handler-tests",
+              "lifecycle": "active",
+              "day": 10,
+              "title": "Middleware + Handler Tests",
+              "objective": "把 Express middleware 和 Jest/Supertest 心智迁移到 Go 的 func(http.Handler) http.Handler、函数组合和标准库 httptest。当天结束时，你应该能写 request id、access log、panic recovery middleware，并用 table-driven tests 覆盖 handler 行为。",
+              "goals": [
+                "实现 request id middleware。",
+                "实现 access log middleware。",
+                "实现 panic recovery middleware。",
+                "用 httptest.NewRequest 和 httptest.ResponseRecorder 写 handler tests。",
+                "用 fake service 覆盖 success、not found、bad id、JSON error。"
+              ],
+              "contentPath": "lessons/middleware-handler-tests.md",
+              "exerciseTemplatePath": null,
+              "evaluation": {
+                "competencies": [
+                  {
+                    "competencyId": "lesson-requirements",
+                    "title": "完成当前 Lesson 的全部必修要求"
+                  }
+                ],
+                "requiredEvidence": [
+                  "notes",
+                  "explicit-exercise-evidence"
+                ],
+                "scoringBasis": [
+                  "准确",
+                  "完整",
+                  "可验证"
+                ]
+              }
+            },
+            {
+              "lessonId": "pgx-first-contact",
+              "lifecycle": "active",
+              "day": 11,
+              "title": "pgx First Contact",
+              "objective": "把 Prisma/TypeORM client 或 Node PostgreSQL pool 的心智迁移到 Go 的 pgxpool、显式 query、Scan 和 context-aware DB 调用。当天结束时，你应该能创建 pgxpool.Pool，实现一个 GetTrip(ctx, id) repository 方法，并正确处理 pgx.ErrNoRows。",
+              "goals": [
+                "用 DATABASEURL 创建 pgxpool.Pool。",
+                "显式关闭 pool。",
+                "写 GetTrip(ctx, id) 查询。",
+                "把 row scan 到 domain struct 或 repository row type。",
+                "把 pgx.ErrNoRows 映射成 domain ErrTripNotFound。"
+              ],
+              "contentPath": "lessons/pgx-first-contact.md",
+              "exerciseTemplatePath": null,
+              "evaluation": {
+                "competencies": [
+                  {
+                    "competencyId": "lesson-requirements",
+                    "title": "完成当前 Lesson 的全部必修要求"
+                  }
+                ],
+                "requiredEvidence": [
+                  "notes",
+                  "explicit-exercise-evidence"
+                ],
+                "scoringBasis": [
+                  "准确",
+                  "完整",
+                  "可验证"
+                ]
+              }
+            },
+            {
+              "lessonId": "migration",
+              "lifecycle": "active",
+              "day": 12,
+              "title": "Migration",
+              "objective": "把 ORM migration 或“应用启动时自动同步 schema”的心智迁移到可审查、可回滚的 SQL migration。当天结束时，你应该能写 000001createtrips.up.sql 和 000001createtrips.down.sql，包含 trips、tripmembers、owner/member 关系和必要索引，并能执行 up/down 验证。",
+              "goals": [
+                "编写第一组 up/down SQL migration。",
+                "在 schema 中表达主键、外键、唯一约束、check 约束和索引。",
+                "能解释每个约束对应的业务不变量。",
+                "能用 migration 工具或 psql 在本地验证 up/down。"
+              ],
+              "contentPath": "lessons/migration.md",
+              "exerciseTemplatePath": null,
+              "evaluation": {
+                "competencies": [
+                  {
+                    "competencyId": "lesson-requirements",
+                    "title": "完成当前 Lesson 的全部必修要求"
+                  }
+                ],
+                "requiredEvidence": [
+                  "notes",
+                  "explicit-exercise-evidence"
+                ],
+                "scoringBasis": [
+                  "准确",
+                  "完整",
+                  "可验证"
+                ]
+              }
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "trackId": "data-and-service-contracts",
+      "title": "数据与服务契约",
+      "description": "贯通数据库、代码生成与 gRPC 服务契约。",
+      "stages": [
+        {
+          "stageId": "data-boundaries-and-contracts",
+          "title": "数据边界与契约",
+          "description": "掌握 sqlc、repository、事务、真实 DB 验证与 proto 生成。",
+          "lessons": [
+            {
+              "lessonId": "sqlc-generate",
+              "lifecycle": "active",
+              "day": 13,
+              "title": "sqlc generate",
+              "objective": "掌握 sqlc 的基本工作流：用 schema 和 query 作为源头，生成类型安全的 Go 查询代码。今天结束时，你应该能解释 sqlc.yaml、schema.sql、query.sql、生成 package 之间的关系，并能跑通 CreateTrip、GetTrip、ListTripMembers 的代码生成。",
+              "goals": [
+                "掌握 sqlc 的基本工作流：用 schema 和 query 作为源头，生成类型安全的 Go 查询代码。今天结束时，你应该能解释 sqlc.yaml、schema.sql、query.sql、生成 package 之间的关系，并能跑通 CreateTrip、GetTrip、ListTripMembers 的代码生成。"
+              ],
+              "contentPath": "lessons/sqlc-generate.md",
+              "exerciseTemplatePath": null,
+              "evaluation": {
+                "competencies": [
+                  {
+                    "competencyId": "lesson-requirements",
+                    "title": "完成当前 Lesson 的全部必修要求"
+                  }
+                ],
+                "requiredEvidence": [
+                  "notes",
+                  "explicit-exercise-evidence"
+                ],
+                "scoringBasis": [
+                  "准确",
+                  "完整",
+                  "可验证"
+                ]
+              }
+            },
+            {
+              "lessonId": "repository-wrapper",
+              "lifecycle": "active",
+              "day": 14,
+              "title": "repository wrapper",
+              "objective": "把 sqlc 生成的 db.Queries 包进应用自己的 repository boundary，避免 generated types 扩散到 handler、service、domain。今天结束时，你应该能实现 Store wrapper，完成 generated row 到 domain model 的转换，并用 service test 证明上层只依赖小接口。",
+              "goals": [
+                "把 sqlc 生成的 db.Queries 包进应用自己的 repository boundary，避免 generated types 扩散到 handler、service、domain。今天结束时，你应该能实现 Store wrapper，完成 generated row 到 domain model 的转换，并用 service test 证明上层只依赖小接口。"
+              ],
+              "contentPath": "lessons/repository-wrapper.md",
+              "exerciseTemplatePath": null,
+              "evaluation": {
+                "competencies": [
+                  {
+                    "competencyId": "lesson-requirements",
+                    "title": "完成当前 Lesson 的全部必修要求"
+                  }
+                ],
+                "requiredEvidence": [
+                  "notes",
+                  "explicit-exercise-evidence"
+                ],
+                "scoringBasis": [
+                  "准确",
+                  "完整",
+                  "可验证"
+                ]
+              }
+            },
+            {
+              "lessonId": "transaction-boundary",
+              "lifecycle": "active",
+              "day": 15,
+              "title": "transaction boundary",
+              "objective": "把事务理解成 use case 的一致性边界，而不是某条 SQL 的附属细节。今天结束时，你应该能实现 CreateTripWithOwner(ctx, input)：在一个事务里创建 trip，再创建 owner member；任一步失败都 rollback；commit error 不被忽略。",
+              "goals": [
+                "把事务理解成 use case 的一致性边界，而不是某条 SQL 的附属细节。今天结束时，你应该能实现 CreateTripWithOwner(ctx, input)：在一个事务里创建 trip，再创建 owner member；任一步失败都 rollback；commit error 不被忽略。"
+              ],
+              "contentPath": "lessons/transaction-boundary.md",
+              "exerciseTemplatePath": null,
+              "evaluation": {
+                "competencies": [
+                  {
+                    "competencyId": "lesson-requirements",
+                    "title": "完成当前 Lesson 的全部必修要求"
+                  }
+                ],
+                "requiredEvidence": [
+                  "notes",
+                  "explicit-exercise-evidence"
+                ],
+                "scoringBasis": [
+                  "准确",
+                  "完整",
+                  "可验证"
+                ]
+              }
+            },
+            {
+              "lessonId": "db-verification",
+              "lifecycle": "active",
+              "day": 16,
+              "title": "DB verification",
+              "objective": "把 DB 层从“代码能写”推进到“失败行为能证明”。今天结束时，你应该有可重复的测试 DB helper，并覆盖 rollback、unique conflict、context cancel、no rows mapping 等关键失败路径。",
+              "goals": [
+                "把 DB 层从“代码能写”推进到“失败行为能证明”。今天结束时，你应该有可重复的测试 DB helper，并覆盖 rollback、unique conflict、context cancel、no rows mapping 等关键失败路径。"
+              ],
+              "contentPath": "lessons/db-verification.md",
+              "exerciseTemplatePath": null,
+              "evaluation": {
+                "competencies": [
+                  {
+                    "competencyId": "lesson-requirements",
+                    "title": "完成当前 Lesson 的全部必修要求"
+                  }
+                ],
+                "requiredEvidence": [
+                  "notes",
+                  "explicit-exercise-evidence"
+                ],
+                "scoringBasis": [
+                  "准确",
+                  "完整",
+                  "可验证"
+                ]
+              }
+            },
+            {
+              "lessonId": "proto-contract",
+              "lifecycle": "active",
+              "day": 17,
+              "title": "proto contract",
+              "objective": "从 REST DTO 心智迁移到 contract-first 的 .proto 设计。今天结束时，你应该能写出 TripService.CreateTrip 的 proto contract，理解 field number、message、service、gopackage 的稳定性，并能做一次人工 proto review。",
+              "goals": [
+                "从 REST DTO 心智迁移到 contract-first 的 .proto 设计。今天结束时，你应该能写出 TripService.CreateTrip 的 proto contract，理解 field number、message、service、gopackage 的稳定性，并能做一次人工 proto review。"
+              ],
+              "contentPath": "lessons/proto-contract.md",
+              "exerciseTemplatePath": null,
+              "evaluation": {
+                "competencies": [
+                  {
+                    "competencyId": "lesson-requirements",
+                    "title": "完成当前 Lesson 的全部必修要求"
+                  }
+                ],
+                "requiredEvidence": [
+                  "notes",
+                  "explicit-exercise-evidence"
+                ],
+                "scoringBasis": [
+                  "准确",
+                  "完整",
+                  "可验证"
+                ]
+              }
+            },
+            {
+              "lessonId": "code-generation",
+              "lifecycle": "active",
+              "day": 18,
+              "title": "code generation",
+              "objective": "理解 .proto 如何生成 Go message struct、client、server interface。今天结束时，你应该能安装或确认 protoc-gen-go、protoc-gen-go-grpc，生成 .pb.go 与 grpc.pb.go，并能指出哪些代码可以读、哪些代码不能手改。",
+              "goals": [
+                "理解 .proto 如何生成 Go message struct、client、server interface。今天结束时，你应该能安装或确认 protoc-gen-go、protoc-gen-go-grpc，生成 .pb.go 与 grpc.pb.go，并能指出哪些代码可以读、哪些代码不能手改。"
+              ],
+              "contentPath": "lessons/code-generation.md",
+              "exerciseTemplatePath": null,
+              "evaluation": {
+                "competencies": [
+                  {
+                    "competencyId": "lesson-requirements",
+                    "title": "完成当前 Lesson 的全部必修要求"
+                  }
+                ],
+                "requiredEvidence": [
+                  "notes",
+                  "explicit-exercise-evidence"
+                ],
+                "scoringBasis": [
+                  "准确",
+                  "完整",
+                  "可验证"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "stageId": "grpc-service-chain",
+          "title": "gRPC 服务链路",
+          "description": "完成 unary、client、streaming、context 与 metadata 链路。",
+          "lessons": [
+            {
+              "lessonId": "unary-server",
+              "lifecycle": "active",
+              "day": 19,
+              "title": "unary server",
+              "objective": "本文件只服务当天学习。今天只完成今天的目标，不提前展开后续天数，避免主题互相干扰。",
+              "goals": [
+                "实现 generated TripServiceServer 的 unary RPC handler。",
+                "把 CreateTripRequest 显式转换为 service input，把 service result 显式转换为 CreateTripResponse。",
+                "学会把 domain/service error 映射成 gRPC status + codes。"
+              ],
+              "contentPath": "lessons/unary-server.md",
+              "exerciseTemplatePath": null,
+              "evaluation": {
+                "competencies": [
+                  {
+                    "competencyId": "lesson-requirements",
+                    "title": "完成当前 Lesson 的全部必修要求"
+                  }
+                ],
+                "requiredEvidence": [
+                  "notes",
+                  "explicit-exercise-evidence"
+                ],
+                "scoringBasis": [
+                  "准确",
+                  "完整",
+                  "可验证"
+                ]
+              }
+            },
+            {
+              "lessonId": "client-test",
+              "lifecycle": "active",
+              "day": 20,
+              "title": "client + test",
+              "objective": "本文件只服务当天学习。今天只完成今天的目标，不提前展开后续天数，避免主题互相干扰。",
+              "goals": [
+                "用 generated gRPC client 从调用方视角验证 TripService.CreateTrip contract。",
+                "建立不依赖真实端口的测试 server，覆盖成功、输入错误和 deadline。",
+                "学会断言 gRPC response、status.Code(err) 和 context 行为。"
+              ],
+              "contentPath": "lessons/client-test.md",
+              "exerciseTemplatePath": null,
+              "evaluation": {
+                "competencies": [
+                  {
+                    "competencyId": "lesson-requirements",
+                    "title": "完成当前 Lesson 的全部必修要求"
+                  }
+                ],
+                "requiredEvidence": [
+                  "notes",
+                  "explicit-exercise-evidence"
+                ],
+                "scoringBasis": [
+                  "准确",
+                  "完整",
+                  "可验证"
+                ]
+              }
+            },
+            {
+              "lessonId": "server-streaming-context",
+              "lifecycle": "active",
+              "day": 21,
+              "title": "server streaming + context",
+              "objective": "本文件只服务当天学习。今天只完成今天的目标，不提前展开后续天数，避免主题互相干扰。",
+              "goals": [
+                "把 WatchTrip 建成 typed server-streaming RPC。",
+                "理解 stream 也是 RPC：有 request、有 context、有 status、有生命周期。",
+                "写出客户端 cancel 后服务端发送循环能退出的测试。"
+              ],
+              "contentPath": "lessons/server-streaming-context.md",
+              "exerciseTemplatePath": null,
+              "evaluation": {
+                "competencies": [
+                  {
+                    "competencyId": "lesson-requirements",
+                    "title": "完成当前 Lesson 的全部必修要求"
+                  }
+                ],
+                "requiredEvidence": [
+                  "notes",
+                  "explicit-exercise-evidence"
+                ],
+                "scoringBasis": [
+                  "准确",
+                  "完整",
+                  "可验证"
+                ]
+              }
+            },
+            {
+              "lessonId": "interceptor-metadata",
+              "lifecycle": "active",
+              "day": 22,
+              "title": "interceptor + metadata",
+              "objective": "本文件只服务当天学习。今天只完成今天的目标，不提前展开后续天数，避免主题互相干扰。",
+              "goals": [
+                "把 HTTP middleware 心智迁移到 gRPC unary interceptor。",
+                "使用 metadata 读取调用方传入的 auth/header-like 信息。",
+                "实现最小 logging/auth interceptor，并用测试证明失败返回 Unauthenticated。"
+              ],
+              "contentPath": "lessons/interceptor-metadata.md",
+              "exerciseTemplatePath": null,
+              "evaluation": {
+                "competencies": [
+                  {
+                    "competencyId": "lesson-requirements",
+                    "title": "完成当前 Lesson 的全部必修要求"
+                  }
+                ],
+                "requiredEvidence": [
+                  "notes",
+                  "explicit-exercise-evidence"
+                ],
+                "scoringBasis": [
+                  "准确",
+                  "完整",
+                  "可验证"
+                ]
+              }
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "trackId": "runtime-and-agent",
+      "title": "运行时与 Agent",
+      "description": "掌握并发、可运行性与 Agent 集成切片。",
+      "stages": [
+        {
+          "stageId": "concurrency-and-operability",
+          "title": "并发与可运行性",
+          "description": "用 goroutine、errgroup、channel、race、观测和关闭机制收敛系统。",
+          "lessons": [
+            {
+              "lessonId": "goroutine-waitgroup",
+              "lifecycle": "active",
+              "day": 23,
+              "title": "goroutine + WaitGroup",
+              "objective": "本文件只服务当天学习。今天只完成今天的目标，不提前展开后续天数，避免主题互相干扰。",
+              "goals": [
+                "从 Promise.all 迁移到 goroutine + sync.WaitGroup。",
+                "实现一个并发 enrichment 练习，证明耗时接近最慢分支而不是所有分支相加。",
+                "学会 WaitGroup 的边界：它只等待，不负责 error 收敛、取消或数据安全。"
+              ],
+              "contentPath": "lessons/goroutine-waitgroup.md",
+              "exerciseTemplatePath": null,
+              "evaluation": {
+                "competencies": [
+                  {
+                    "competencyId": "lesson-requirements",
+                    "title": "完成当前 Lesson 的全部必修要求"
+                  }
+                ],
+                "requiredEvidence": [
+                  "notes",
+                  "explicit-exercise-evidence"
+                ],
+                "scoringBasis": [
+                  "准确",
+                  "完整",
+                  "可验证"
+                ]
+              }
+            },
+            {
+              "lessonId": "errgroup-context",
+              "lifecycle": "active",
+              "day": 24,
+              "title": "errgroup + context",
+              "objective": "本文件只服务当天学习。今天只完成今天的目标，不提前展开后续天数，避免主题互相干扰。",
+              "goals": [
+                "从手写 WaitGroup + error 收敛迁移到 errgroup.WithContext。",
+                "理解第一个错误如何取消派生 context，以及慢任务为什么必须主动观察 ctx.Done()。",
+                "使用 SetLimit 控制 fan-out 并发上限，避免无界 goroutine。"
+              ],
+              "contentPath": "lessons/errgroup-context.md",
+              "exerciseTemplatePath": null,
+              "evaluation": {
+                "competencies": [
+                  {
+                    "competencyId": "lesson-requirements",
+                    "title": "完成当前 Lesson 的全部必修要求"
+                  }
+                ],
+                "requiredEvidence": [
+                  "notes",
+                  "explicit-exercise-evidence"
+                ],
+                "scoringBasis": [
+                  "准确",
+                  "完整",
+                  "可验证"
+                ]
+              }
+            },
+            {
+              "lessonId": "channel-progress-broadcaster",
+              "lifecycle": "active",
+              "day": 25,
+              "title": "channel progress broadcaster",
+              "objective": "本文件只服务当天学习。今天只完成今天的目标，不提前展开后续天数，避免主题互相干扰。",
+              "goals": [
+                "能用 channel 实现一个最小 progress broadcaster，把 Agent run 的进度事件发布给多个订阅者。",
+                "能解释 “谁发送，谁关闭 channel” 在 broadcaster 中为什么必须有明确所有权。",
+                "能处理慢消费者、订阅取消和 broadcaster 关闭，避免 goroutine 泄漏。"
+              ],
+              "contentPath": "lessons/channel-progress-broadcaster.md",
+              "exerciseTemplatePath": null,
+              "evaluation": {
+                "competencies": [
+                  {
+                    "competencyId": "lesson-requirements",
+                    "title": "完成当前 Lesson 的全部必修要求"
+                  }
+                ],
+                "requiredEvidence": [
+                  "notes",
+                  "explicit-exercise-evidence"
+                ],
+                "scoringBasis": [
+                  "准确",
+                  "完整",
+                  "可验证"
+                ]
+              }
+            },
+            {
+              "lessonId": "race-detector",
+              "lifecycle": "active",
+              "day": 26,
+              "title": "race detector",
+              "objective": "本文件只服务当天学习。今天只完成今天的目标，不提前展开后续天数，避免主题互相干扰。",
+              "goals": [
+                "能主动制造一个小 data race，并读懂 go test -race 的 read/write stack。",
+                "能比较 mutex、channel owner、局部结果合并三种修复方式。",
+                "能把 race detector 纳入 Go 并发练习的日常验证，而不是上线前偶尔跑一次。"
+              ],
+              "contentPath": "lessons/race-detector.md",
+              "exerciseTemplatePath": null,
+              "evaluation": {
+                "competencies": [
+                  {
+                    "competencyId": "lesson-requirements",
+                    "title": "完成当前 Lesson 的全部必修要求"
+                  }
+                ],
+                "requiredEvidence": [
+                  "notes",
+                  "explicit-exercise-evidence"
+                ],
+                "scoringBasis": [
+                  "准确",
+                  "完整",
+                  "可验证"
+                ]
+              }
+            },
+            {
+              "lessonId": "observability",
+              "lifecycle": "active",
+              "day": 27,
+              "title": "observability",
+              "objective": "本文件只服务当天学习。今天只完成今天的目标，不提前展开后续天数，避免主题互相干扰。",
+              "goals": [
+                "能给 Agent run / Trip planning 的关键路径加入结构化日志。",
+                "能区分 logs、metrics、trace 分别回答什么问题。",
+                "能为 progress broadcaster 和 tool call 设计最小可观测字段，并避免记录敏感信息。"
+              ],
+              "contentPath": "lessons/observability.md",
+              "exerciseTemplatePath": null,
+              "evaluation": {
+                "competencies": [
+                  {
+                    "competencyId": "lesson-requirements",
+                    "title": "完成当前 Lesson 的全部必修要求"
+                  }
+                ],
+                "requiredEvidence": [
+                  "notes",
+                  "explicit-exercise-evidence"
+                ],
+                "scoringBasis": [
+                  "准确",
+                  "完整",
+                  "可验证"
+                ]
+              }
+            },
+            {
+              "lessonId": "graceful-shutdown",
+              "lifecycle": "active",
+              "day": 28,
+              "title": "graceful shutdown",
+              "objective": "本文件只服务当天学习。今天只完成今天的目标，不提前展开后续天数，避免主题互相干扰。",
+              "goals": [
+                "能用 root context 管住 HTTP/gRPC/Agent 后台 goroutine 的生命周期。",
+                "能解释 Shutdown、Close、GracefulStop、Stop 的差异。",
+                "能写测试证明 shutdown 时不再接收新工作，并等待已有工作收敛或超时。"
+              ],
+              "contentPath": "lessons/graceful-shutdown.md",
+              "exerciseTemplatePath": null,
+              "evaluation": {
+                "competencies": [
+                  {
+                    "competencyId": "lesson-requirements",
+                    "title": "完成当前 Lesson 的全部必修要求"
+                  }
+                ],
+                "requiredEvidence": [
+                  "notes",
+                  "explicit-exercise-evidence"
+                ],
+                "scoringBasis": [
+                  "准确",
+                  "完整",
+                  "可验证"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "stageId": "agent-slice-and-review",
+          "title": "Agent 切片与复盘",
+          "description": "阅读开源模式，构造最小 Agent 切片并完成集成、加固和复盘。",
+          "lessons": [
+            {
+              "lessonId": "open-source-reading-pass",
+              "lifecycle": "active",
+              "day": 29,
+              "title": "open-source reading pass",
+              "objective": "本文件只服务当天学习。今天只完成今天的目标，不提前展开后续天数，避免主题互相干扰。",
+              "goals": [
+                "能用四遍阅读法读一个真实 Go 开源项目，而不是随机点文件。",
+                "能从开源项目中提取一个 100-300 行可复刻小模式。",
+                "能把阅读重点放在 Go 工业实践：目录结构、接口边界、context、错误、并发、测试、可观测性。"
+              ],
+              "contentPath": "lessons/open-source-reading-pass.md",
+              "exerciseTemplatePath": null,
+              "evaluation": {
+                "competencies": [
+                  {
+                    "competencyId": "lesson-requirements",
+                    "title": "完成当前 Lesson 的全部必修要求"
+                  }
+                ],
+                "requiredEvidence": [
+                  "notes",
+                  "explicit-exercise-evidence"
+                ],
+                "scoringBasis": [
+                  "准确",
+                  "完整",
+                  "可验证"
+                ]
+              }
+            },
+            {
+              "lessonId": "minimal-tool-interface",
+              "lifecycle": "active",
+              "day": 30,
+              "title": "minimal Tool interface",
+              "objective": "本文件只服务当天学习。今天只完成今天的目标，不提前展开后续天数，避免主题互相干扰。",
+              "goals": [
+                "能定义一个最小 Go Tool interface，并让 Agent loop 通过接口调用工具。",
+                "能实现 calculator tool 和 trip lookup tool，覆盖参数解析、context cancel、业务错误。",
+                "能解释 Name()、Description() 为什么也是 Agent tool 的业务 contract。"
+              ],
+              "contentPath": "lessons/minimal-tool-interface.md",
+              "exerciseTemplatePath": null,
+              "evaluation": {
+                "competencies": [
+                  {
+                    "competencyId": "lesson-requirements",
+                    "title": "完成当前 Lesson 的全部必修要求"
+                  }
+                ],
+                "requiredEvidence": [
+                  "notes",
+                  "explicit-exercise-evidence"
+                ],
+                "scoringBasis": [
+                  "准确",
+                  "完整",
+                  "可验证"
+                ]
+              }
+            },
+            {
+              "lessonId": "provider-abstraction",
+              "lifecycle": "active",
+              "day": 31,
+              "title": "provider abstraction",
+              "objective": "把真实 LLM provider 隔离到可替换接口后面，让 Agent loop 可以在没有网络、没有 API key、没有真实模型波动的情况下被测试。今天的重点不是“接入某个模型 SDK”，而是学会在 Go 里把外部 provider 变成小接口和边界适配器。",
+              "goals": [
+                "把真实 LLM provider 隔离到可替换接口后面，让 Agent loop 可以在没有网络、没有 API key、没有真实模型波动的情况下被测试。今天的重点不是“接入某个模型 SDK”，而是学会在 Go 里把外部 provider 变成小接口和边界适配器。"
+              ],
+              "contentPath": "lessons/provider-abstraction.md",
+              "exerciseTemplatePath": null,
+              "evaluation": {
+                "competencies": [
+                  {
+                    "competencyId": "lesson-requirements",
+                    "title": "完成当前 Lesson 的全部必修要求"
+                  }
+                ],
+                "requiredEvidence": [
+                  "notes",
+                  "explicit-exercise-evidence"
+                ],
+                "scoringBasis": [
+                  "准确",
+                  "完整",
+                  "可验证"
+                ]
+              }
+            },
+            {
+              "lessonId": "sqlc-backed-memory",
+              "lifecycle": "active",
+              "day": 32,
+              "title": "sqlc-backed memory",
+              "objective": "把 Agent memory 从内存 map 推进到可查询、可恢复、可验证的数据层。今天的重点是用 migration + sqlc + repository wrapper 持久化 agentruns 和 agentsteps，并用事务保证 run 状态和 step 写入一致。",
+              "goals": [
+                "把 Agent memory 从内存 map 推进到可查询、可恢复、可验证的数据层。今天的重点是用 migration + sqlc + repository wrapper 持久化 agentruns 和 agentsteps，并用事务保证 run 状态和 step 写入一致。"
+              ],
+              "contentPath": "lessons/sqlc-backed-memory.md",
+              "exerciseTemplatePath": null,
+              "evaluation": {
+                "competencies": [
+                  {
+                    "competencyId": "lesson-requirements",
+                    "title": "完成当前 Lesson 的全部必修要求"
+                  }
+                ],
+                "requiredEvidence": [
+                  "notes",
+                  "explicit-exercise-evidence"
+                ],
+                "scoringBasis": [
+                  "准确",
+                  "完整",
+                  "可验证"
+                ]
+              }
+            },
+            {
+              "lessonId": "streaming-progress",
+              "lifecycle": "active",
+              "day": 33,
+              "title": "streaming progress",
+              "objective": "把 Agent 执行过程以稳定 progress event 暴露给客户端，让调用方能看到 started、toolcalled、observation、final、error 等阶段。今天的重点是流式协议、channel 所有权、取消和慢消费者隔离。",
+              "goals": [
+                "把 Agent 执行过程以稳定 progress event 暴露给客户端，让调用方能看到 started、toolcalled、observation、final、error 等阶段。今天的重点是流式协议、channel 所有权、取消和慢消费者隔离。"
+              ],
+              "contentPath": "lessons/streaming-progress.md",
+              "exerciseTemplatePath": null,
+              "evaluation": {
+                "competencies": [
+                  {
+                    "competencyId": "lesson-requirements",
+                    "title": "完成当前 Lesson 的全部必修要求"
+                  }
+                ],
+                "requiredEvidence": [
+                  "notes",
+                  "explicit-exercise-evidence"
+                ],
+                "scoringBasis": [
+                  "准确",
+                  "完整",
+                  "可验证"
+                ]
+              }
+            },
+            {
+              "lessonId": "integration-slice",
+              "lifecycle": "active",
+              "day": 34,
+              "title": "integration slice",
+              "objective": "把 HTTP/gRPC 入口、service、memory、tool、model、progress 串成一条可测链路：start run -> fake model -> tool -> memory -> progress -> final answer。今天的重点是验证边界连接，不是增加产品能力。",
+              "goals": [
+                "把 HTTP/gRPC 入口、service、memory、tool、model、progress 串成一条可测链路：start run -> fake model -> tool -> memory -> progress -> final answer。今天的重点是验证边界连接，不是增加产品能力。"
+              ],
+              "contentPath": "lessons/integration-slice.md",
+              "exerciseTemplatePath": null,
+              "evaluation": {
+                "competencies": [
+                  {
+                    "competencyId": "lesson-requirements",
+                    "title": "完成当前 Lesson 的全部必修要求"
+                  }
+                ],
+                "requiredEvidence": [
+                  "notes",
+                  "explicit-exercise-evidence"
+                ],
+                "scoringBasis": [
+                  "准确",
+                  "完整",
+                  "可验证"
+                ]
+              }
+            },
+            {
+              "lessonId": "hardening",
+              "lifecycle": "active",
+              "day": 35,
+              "title": "hardening",
+              "objective": "把 capstone 从 happy path 推到可维护状态。今天集中练习错误、取消、race、shutdown、日志字段和验证命令，让最终切片可以被解释、排障和安全关闭。",
+              "goals": [
+                "把 capstone 从 happy path 推到可维护状态。今天集中练习错误、取消、race、shutdown、日志字段和验证命令，让最终切片可以被解释、排障和安全关闭。"
+              ],
+              "contentPath": "lessons/hardening.md",
+              "exerciseTemplatePath": null,
+              "evaluation": {
+                "competencies": [
+                  {
+                    "competencyId": "lesson-requirements",
+                    "title": "完成当前 Lesson 的全部必修要求"
+                  }
+                ],
+                "requiredEvidence": [
+                  "notes",
+                  "explicit-exercise-evidence"
+                ],
+                "scoringBasis": [
+                  "准确",
+                  "完整",
+                  "可验证"
+                ]
+              }
+            },
+            {
+              "lessonId": "final-review",
+              "lifecycle": "active",
+              "day": 36,
+              "title": "final review",
+              "objective": "今天不是继续加功能，而是证明自己能解释这条链路：HTTP/gRPC -> service -> sqlc repository -> transaction -> Agent tool loop -> streaming progress -> tests -> structured logs -> race check -> graceful shutdown。",
+              "goals": [
+                "今天不是继续加功能，而是证明自己能解释这条链路：HTTP/gRPC -> service -> sqlc repository -> transaction -> Agent tool loop -> streaming progress -> tests -> structured logs -> race check -> graceful shutdown。"
+              ],
+              "contentPath": "lessons/final-review.md",
+              "exerciseTemplatePath": null,
+              "evaluation": {
+                "competencies": [
+                  {
+                    "competencyId": "lesson-requirements",
+                    "title": "完成当前 Lesson 的全部必修要求"
+                  }
+                ],
+                "requiredEvidence": [
+                  "notes",
+                  "explicit-exercise-evidence"
+                ],
+                "scoringBasis": [
+                  "准确",
+                  "完整",
+                  "可验证"
+                ]
+              }
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}

@@ -12,10 +12,13 @@ import remarkGfm from "remark-gfm"
 import remarkParse from "remark-parse"
 import { unified } from "unified"
 
-import { parseCourseData } from "../../src/lib/course-data.ts"
-import type { CourseData } from "../../src/types/course.ts"
+import {
+  parseLegacyCourseData,
+  type LegacyCourseData,
+} from "./legacy-course-data.ts"
 import {
   compileCourseContract,
+  contentRevisionForPublicLesson,
   parsePublicCatalog,
   parsePublicCourse,
   parsePublicProgress,
@@ -34,6 +37,7 @@ import {
 export interface CourseProjectionInput {
   sourceCourse: unknown
   authoringFiles: AuthoringFiles
+  publicLessonFiles?: Record<string, string>
   snapshot?: unknown
 }
 
@@ -213,13 +217,27 @@ function sourceCourseMatchesCatalog(
 function publicCourseFromSource(
   source: SourceCourse,
   courseRevision: string,
-  compiledLessons: ReturnType<typeof compileCourseContract>["lessons"]
+  compiledLessons: ReturnType<typeof compileCourseContract>["lessons"],
+  publicLessonFiles: Record<string, string>
 ): PublicCourse {
   if (source.lifecycle === "draft") {
     throw new Error("Draft Course 不得生成 Public Course")
   }
   const revisions = new Map(
-    compiledLessons.map((lesson) => [lesson.lessonId, lesson.contentRevision])
+    compiledLessons.map((lesson) => {
+      const sourceLesson = flattenSourceLessons(source).find(
+        ({ lesson: candidate }) => candidate.lessonId === lesson.lessonId
+      )?.lesson
+      if (!sourceLesson) throw new Error(`Compiled Lesson 不属于 Course: ${lesson.lessonId}`)
+      const content = publicLessonFiles[sourceLesson.contentPath]
+      if (typeof content !== "string") {
+        throw new Error(`Public Lesson projection 缺失: ${lesson.lessonId}`)
+      }
+      return [
+        lesson.lessonId,
+        contentRevisionForPublicLesson(content, sourceLesson.contentPath),
+      ]
+    })
   )
   return parsePublicCourse({
     schemaVersion: 1,
@@ -293,7 +311,9 @@ function addLegacyProjection(
   if (legacy.courseId !== "go-backend") {
     throw new Error("根级 Legacy Projection 永久只属于 go-backend")
   }
-  const courseData = parseCourseData(legacy.courseData) as CourseData
+  const courseData = parseLegacyCourseData(
+    legacy.courseData
+  ) as LegacyCourseData
   const canonical = publicLessonByCourse.get(legacy.courseId)
   if (!canonical) throw new Error("Legacy Projection 引用了未知 Public Course")
   const byHref = new Map(legacy.lessons.map((entry) => [entry.legacyHref, entry]))
@@ -493,15 +513,24 @@ export async function buildMultiCoursePublicArtifacts(
       throw new Error(`Course 缺少 Release Progress Snapshot: ${source.courseId}`)
     }
     const snapshot = parseReleaseProgressSnapshot(courseInput.snapshot)
+    const sourceLessons = flattenSourceLessons(source)
+    const projectedByPath = Object.fromEntries(
+      sourceLessons.map(({ lesson }) => [
+        lesson.contentPath,
+        courseInput.publicLessonFiles?.[lesson.contentPath] ??
+          courseInput.authoringFiles[lesson.contentPath],
+      ])
+    )
     const publicCourse = publicCourseFromSource(
       source,
       compiled.courseRevision,
-      compiled.lessons
+      compiled.lessons,
+      projectedByPath
     )
     const lessonFiles = Object.fromEntries(
-      flattenSourceLessons(source).map(({ lesson }) => [
+      sourceLessons.map(({ lesson }) => [
         `/courses/${source.courseId}/sources/lessons/${lesson.lessonId}.md`,
-        courseInput.authoringFiles[lesson.contentPath],
+        projectedByPath[lesson.contentPath],
       ])
     )
     validatePublicReleaseBundle({
@@ -515,9 +544,9 @@ export async function buildMultiCoursePublicArtifacts(
     publicLessonByCourse.set(
       source.courseId,
       new Map(
-        flattenSourceLessons(source).map(({ lesson }) => [
+        sourceLessons.map(({ lesson }) => [
           lesson.lessonId,
-          courseInput.authoringFiles[lesson.contentPath],
+          projectedByPath[lesson.contentPath],
         ])
       )
     )

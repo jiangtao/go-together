@@ -994,6 +994,33 @@ describe("multi-course domain contracts", () => {
       })
       expect(serialized).not.toContain("ANSWER_SECRET")
 
+      const evaluationFile = path.join(lessonDirectory, "evaluation.md")
+      const evaluationSource = await readFile(evaluationFile, "utf8")
+      await writeFile(evaluationFile, `${evaluationSource}\n`)
+      const rebound = await exportReleaseSnapshotFromWorkspace({
+        courseFile,
+        learningRecordsDirectory: recordsDirectory,
+        outputFile: output,
+      })
+      expect(rebound.lessons).toEqual(first.lessons)
+      expect(rebound.privateInputDigest).not.toBe(first.privateInputDigest)
+      await writeFile(evaluationFile, evaluationSource)
+
+      for (const invalidByte of [0x80, 0x81]) {
+        await writeFile(
+          evaluationFile,
+          Buffer.concat([Buffer.from([invalidByte]), Buffer.from(evaluationSource)])
+        )
+        await expect(
+          exportReleaseSnapshotFromWorkspace({
+            courseFile,
+            learningRecordsDirectory: recordsDirectory,
+            outputFile: output,
+          })
+        ).rejects.toThrow("UTF-8")
+      }
+      await writeFile(evaluationFile, evaluationSource)
+
       await writeFile(
         path.join(lessonDirectory, "notes.md"),
         "CHANGED_PRIVATE_ANSWER\n"

@@ -1,4 +1,3 @@
-import base64
 import json
 import os
 import subprocess
@@ -242,6 +241,19 @@ class ExplicitIdentityTest(EvaluationCoreFixture):
             self.resolved()
         self.assertFalse((self.workspace / "learning-records").exists())
 
+    def test_rejects_course_inputs_reached_through_an_ancestor_symlink(self):
+        with tempfile.TemporaryDirectory() as outside_directory:
+            outside_courses = Path(outside_directory) / "courses"
+            courses = self.workspace / "courses"
+            courses.rename(outside_courses)
+            courses.symlink_to(outside_courses, target_is_directory=True)
+            try:
+                with self.assertRaisesRegex(EvaluationError, "symlink"):
+                    self.resolved()
+            finally:
+                courses.unlink()
+                outside_courses.rename(courses)
+
 
 class PreparationTest(EvaluationCoreFixture):
     def test_prepares_notes_exclusively_and_only_initializes_exercise_when_explicit(self):
@@ -445,7 +457,7 @@ class StateMachineTest(EvaluationCoreFixture):
             with self.subTest(candidate=candidate), self.assertRaises(EvaluationError):
                 current_progress(candidate, resolved)
 
-    def test_imports_only_an_unstarted_legacy_markdown_record_and_preserves_bytes(self):
+    def test_rejects_legacy_markdown_without_rewriting_it(self):
         resolved = self.resolved()
         resolved.evaluation.parent.mkdir(parents=True)
         legacy = (
@@ -456,22 +468,12 @@ class StateMachineTest(EvaluationCoreFixture):
         )
         resolved.evaluation.write_text(legacy, encoding="utf-8")
 
-        record = load_evaluation(resolved.evaluation, resolved)
-        self.assertEqual(
-            base64.b64decode(record["legacySourceBase64"]),
-            legacy.encode("utf-8"),
-        )
-        self.assertEqual(current_progress(record, resolved), ("未开始", None))
         before = resolved.evaluation.read_bytes()
-        with self.assertRaisesRegex(EvaluationError, "迁移"):
+        with self.assertRaisesRegex(EvaluationError, "evaluation-record"):
+            load_evaluation(resolved.evaluation, resolved)
+        with self.assertRaisesRegex(EvaluationError, "legacy"):
             start_cycle(resolved)
         self.assertEqual(resolved.evaluation.read_bytes(), before)
-
-        resolved.evaluation.write_text(
-            legacy.replace("状态：未开始", "状态：通过"), encoding="utf-8"
-        )
-        with self.assertRaisesRegex(EvaluationError, "迁移"):
-            start_cycle(resolved)
 
     def test_rejects_multiple_structured_record_blocks(self):
         resolved = self.resolved()

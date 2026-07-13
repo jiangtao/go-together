@@ -1,4 +1,4 @@
-import { randomUUID } from "node:crypto"
+import { createHash, randomUUID } from "node:crypto"
 import {
   lstat,
   readFile,
@@ -18,10 +18,11 @@ import {
   parseSourceCourse,
   type AuthoringFiles,
   type EvaluationRecord,
+  type PrivateEvaluationInput,
   type ReleaseProgressSnapshot,
   type SourceCourse,
 } from "./lib/course-contract.ts"
-import { parseEvaluationMarkdown } from "./lib/evaluation-markdown.ts"
+import { parseEvaluationMarkdownDocument } from "./lib/evaluation-markdown.ts"
 import { COURSE_STATUSES } from "../src/types/course.ts"
 
 interface ExportOptions {
@@ -53,12 +54,24 @@ async function assertPhysicalDirectory(directory: string, context: string): Prom
   }
 }
 
-async function readRegularFile(file: string, context: string): Promise<string> {
+async function readRegularBytes(file: string, context: string): Promise<Buffer> {
   const metadata = await lstat(file)
   if (metadata.isSymbolicLink() || !metadata.isFile()) {
     throw new Error(`${context} 必须是非 symlink 普通文件`)
   }
-  return readFile(file, "utf8")
+  return readFile(file)
+}
+
+function decodeUtf8(bytes: Buffer, context: string): string {
+  try {
+    return new TextDecoder("utf-8", { fatal: true }).decode(bytes)
+  } catch {
+    throw new Error(`${context} 必须是合法 UTF-8`)
+  }
+}
+
+async function readRegularFile(file: string, context: string): Promise<string> {
+  return decodeUtf8(await readRegularBytes(file, context), context)
 }
 
 async function readCourseFile(
@@ -114,7 +127,10 @@ function allLessonIds(course: SourceCourse): string[] {
 async function loadEvaluations(
   recordsDirectory: string,
   course: SourceCourse
-): Promise<EvaluationRecord[]> {
+): Promise<{
+  evaluations: EvaluationRecord[]
+  privateInputs: PrivateEvaluationInput[]
+}> {
   await assertPhysicalDirectory(recordsDirectory, "Learning Record Course 目录")
   if (path.basename(recordsDirectory) !== course.courseId) {
     throw new Error("Learning Record Course 目录必须与 courseId 一致")
@@ -122,7 +138,9 @@ async function loadEvaluations(
   const lessonIds = allLessonIds(course)
   const known = new Set(lessonIds)
   const lessonsDirectory = path.join(recordsDirectory, "lessons")
-  if (!(await pathExists(lessonsDirectory))) return []
+  if (!(await pathExists(lessonsDirectory))) {
+    return { evaluations: [], privateInputs: [] }
+  }
   const lessonsMetadata = await lstat(lessonsDirectory)
   if (lessonsMetadata.isSymbolicLink() || !lessonsMetadata.isDirectory()) {
     throw new Error("Learning Record lessons 必须是非 symlink 目录")
@@ -138,6 +156,7 @@ async function loadEvaluations(
   }
 
   const evaluations: EvaluationRecord[] = []
+  const privateInputs: PrivateEvaluationInput[] = []
   for (const lessonId of lessonIds) {
     const lessonDirectory = path.join(lessonsDirectory, lessonId)
     if (!(await pathExists(lessonDirectory))) continue
@@ -147,21 +166,28 @@ async function loadEvaluations(
     }
     const evaluationFile = path.join(lessonDirectory, "evaluation.md")
     if (!(await pathExists(evaluationFile))) continue
-    const source = await readRegularFile(
+    const bytes = await readRegularBytes(
       evaluationFile,
       `Evaluation ${lessonId}`
     )
-    const evaluation = parseEvaluationMarkdown(source)
-    if (evaluation === null) continue
+    const sourceDigest = `sha256:${createHash("sha256").update(bytes).digest("hex")}`
+    const source = decodeUtf8(bytes, `Evaluation ${lessonId}`)
+    const document = parseEvaluationMarkdownDocument(source)
     if (
-      evaluation.courseId !== course.courseId ||
-      evaluation.lessonId !== lessonId
+      document.courseId !== course.courseId ||
+      document.lessonId !== lessonId
     ) {
       throw new Error(`Evaluation ${lessonId} 稳定 identity 不一致`)
     }
-    evaluations.push(evaluation)
+    privateInputs.push({
+      lessonId,
+      sourceDigest,
+    })
+    if (document.evaluation !== null) {
+      evaluations.push(document.evaluation)
+    }
   }
-  return evaluations
+  return { evaluations, privateInputs }
 }
 
 async function writeSnapshotAtomically(
@@ -265,11 +291,15 @@ export async function exportReleaseSnapshotFromWorkspace(
   }
   const files = await loadAuthoringFiles(courseDirectory, course)
   const compiled = compileCourseContract(course, files)
-  const evaluations = await loadEvaluations(recordsDirectory, course)
+  const { evaluations, privateInputs } = await loadEvaluations(
+    recordsDirectory,
+    course
+  )
   const snapshot = exportReleaseProgressSnapshot(
     compiled,
     evaluations,
-    files
+    files,
+    privateInputs
   )
   await writeSnapshotAtomically(outputFile, snapshot)
   return snapshot

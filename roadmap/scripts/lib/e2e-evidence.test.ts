@@ -85,7 +85,15 @@ async function createCandidateFixture(): Promise<{
     ["roadmap/src/App.tsx", "export const App = () => null\n"],
     ["roadmap/scripts/example.ts", "export const build = true\n"],
     ["roadmap/tests/example.test.ts", "export const tested = true\n"],
-    ["roadmap/content/progress.public.json", "[]\n"],
+    ["courses/catalog.json", '{"schemaVersion":1}\n'],
+    ["courses/go-backend/course.json", '{"courseId":"go-backend"}\n'],
+    ["courses/go-backend/compatibility.json", '{"schemaVersion":1}\n'],
+    ["courses/go-backend/evaluation/policy.md", "# Policy\n"],
+    [
+      "courses/go-backend/evaluation/command-profile.json",
+      '{"schemaVersion":1}\n',
+    ],
+    ["release-progress/go-backend.json", '{"courseId":"go-backend"}\n'],
     [
       ".agents/skills/evaluate-course-lesson/SKILL.md",
       "# Generic evaluation\n",
@@ -103,8 +111,8 @@ async function createCandidateFixture(): Promise<{
   for (let day = 0; day <= 36; day += 1) {
     const number = String(day).padStart(2, "0")
     files.set(
-      `docs/go-learning/daily-lessons/day-${number}-lesson.md`,
-      `# Day ${day}\n`
+      `courses/go-backend/lessons/lesson-${number}.md`,
+      `# Lesson ${day}\n`
     )
   }
   await Promise.all(

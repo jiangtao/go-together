@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest"
 
-import { parseCourseData } from "@/lib/course-data"
+import { parseLegacyCourseData } from "./legacy-course-data.ts"
 
 function validCourse() {
   const stageRanges = [
@@ -46,24 +46,24 @@ function validCourse() {
   }
 }
 
-describe("course schema v3", () => {
-  it("接受完整且最小的公开课程 DTO", () => {
-    expect(parseCourseData(validCourse()).lessons).toHaveLength(37)
+describe("legacy public course schema v3", () => {
+  it("接受完整且最小的永久兼容 DTO", () => {
+    expect(parseLegacyCourseData(validCourse()).lessons).toHaveLength(37)
   })
 
   it("拒绝旧 schema、额外字段与非课程 sources URL", () => {
     expect(() =>
-      parseCourseData({ ...validCourse(), schemaVersion: 2 })
+      parseLegacyCourseData({ ...validCourse(), schemaVersion: 2 })
     ).toThrow("schemaVersion")
-
     const withPrivateField = validCourse()
     Object.assign(withPrivateField.lessons[0], {
       evaluationPath: "private/evaluation.md",
     })
-    expect(() => parseCourseData(withPrivateField)).toThrow("非白名单字段")
-
+    expect(() => parseLegacyCourseData(withPrivateField)).toThrow("非白名单字段")
     const withUnsafeHref = validCourse()
     withUnsafeHref.lessons[0].lessonHref = "/sources/other/day-00.md"
-    expect(() => parseCourseData(withUnsafeHref)).toThrow("安全同源课程地址")
+    expect(() => parseLegacyCourseData(withUnsafeHref)).toThrow(
+      "安全同源课程地址"
+    )
   })
 })

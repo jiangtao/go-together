@@ -4,8 +4,8 @@ import path from "node:path"
 import { init, parse } from "es-module-lexer"
 import postcss from "postcss"
 
-import { parseCourseData } from "../../src/lib/course-data.ts"
 import { validatePublicCourseProgressPair } from "../../src/lib/public-course-contract.ts"
+import { parseLegacyCourseData } from "./legacy-course-data.ts"
 import {
   parsePublicCatalog,
   parsePublicCourse,
@@ -420,7 +420,7 @@ export async function auditPublicDirectory(
   } catch {
     throw new Error("course.json 不是合法 JSON")
   }
-  const course = parseCourseData(courseJson)
+  const course = parseLegacyCourseData(courseJson)
   const expectedLegacyLessons = new Set(
     course.lessons.map((lesson) => lesson.lessonHref.replace(/^\//, ""))
   )

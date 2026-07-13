@@ -5,7 +5,7 @@ import re
 import stat
 import sys
 from pathlib import Path
-from typing import Optional, Union
+from typing import Union
 
 
 CORE_SCRIPTS = (
@@ -18,61 +18,67 @@ from evaluation_core import EvaluationError, resolve_lesson  # noqa: E402
 
 
 DAY_PATTERN = re.compile(r"^day(?:[0-9]|[12][0-9]|3[0-6])$")
-DEFAULT_ADAPTER = (
-    Path(__file__).resolve().parents[1]
-    / "references/go-backend-legacy-adapter.json"
-)
 
 
 class ResolutionError(ValueError):
     pass
 
 
-def _read_adapter(path: Path) -> dict:
+def _read_go_course(workspace: Path) -> dict:
+    course_file = workspace / "courses/go-backend/course.json"
     try:
-        metadata = path.lstat()
+        metadata = course_file.lstat()
     except FileNotFoundError as error:
-        raise ResolutionError(f"Go Course mapping is missing: {path}") from error
+        raise ResolutionError("canonical Go Course is missing") from error
     if stat.S_ISLNK(metadata.st_mode) or not stat.S_ISREG(metadata.st_mode):
-        raise ResolutionError("Go Course mapping must be a regular non-symlink file")
+        raise ResolutionError("canonical Go Course must be a regular non-symlink file")
     try:
-        value = json.loads(path.read_text(encoding="utf-8"))
+        value = json.loads(course_file.read_text(encoding="utf-8"))
     except json.JSONDecodeError as error:
-        raise ResolutionError("Go Course mapping is invalid JSON") from error
-    if not isinstance(value, dict) or value.get("courseId") != "go-backend":
-        raise ResolutionError("Go Course mapping identity is invalid")
-    if value.get("schemaVersion") != 1 or not isinstance(value.get("lessons"), list):
-        raise ResolutionError("Go Course mapping schema is invalid")
+        raise ResolutionError("canonical Go Course is invalid JSON") from error
+    if (
+        not isinstance(value, dict)
+        or value.get("schemaVersion") != 1
+        or value.get("courseId") != "go-backend"
+        or not isinstance(value.get("tracks"), list)
+    ):
+        raise ResolutionError("canonical Go Course identity or schema is invalid")
     return value
+
+
+def _lesson_for_day(course: dict, number: int) -> str:
+    matches = []
+    for track in course["tracks"]:
+        if not isinstance(track, dict) or not isinstance(track.get("stages"), list):
+            raise ResolutionError("canonical Go Course track is invalid")
+        for stage in track["stages"]:
+            if not isinstance(stage, dict) or not isinstance(stage.get("lessons"), list):
+                raise ResolutionError("canonical Go Course stage is invalid")
+            for lesson in stage["lessons"]:
+                if isinstance(lesson, dict) and lesson.get("day") == number:
+                    matches.append(lesson.get("lessonId"))
+    if (
+        len(matches) != 1
+        or not isinstance(matches[0], str)
+        or not re.fullmatch(r"[a-z0-9]+(?:-[a-z0-9]+)*", matches[0])
+    ):
+        raise ResolutionError(f"expected one explicit Go Day mapping for day{number}")
+    return matches[0]
 
 
 def resolve_day(
     workspace: Union[str, Path],
     day: str,
     *,
-    adapter_path: Optional[Union[str, Path]] = None,
     require_notes: bool = True,
 ) -> dict:
     if not DAY_PATTERN.fullmatch(day):
         raise ResolutionError("day must be explicit and canonical: day0 through day36")
+    workspace_path = Path(workspace).resolve()
     number = int(day[3:])
-    adapter = Path(adapter_path) if adapter_path is not None else DEFAULT_ADAPTER
-    mapping = _read_adapter(adapter)
-    matches = [
-        item
-        for item in mapping["lessons"]
-        if isinstance(item, dict) and item.get("day") == number
-    ]
-    if len(matches) != 1 or not isinstance(matches[0].get("lessonId"), str):
-        raise ResolutionError(f"expected one explicit Go Day mapping for {day}")
-    lesson_id = matches[0]["lessonId"]
+    lesson_id = _lesson_for_day(_read_go_course(workspace_path), number)
     try:
-        resolved = resolve_lesson(
-            workspace,
-            "go-backend",
-            lesson_id,
-            adapter_path=adapter,
-        )
+        resolved = resolve_lesson(workspace_path, "go-backend", lesson_id)
     except EvaluationError as error:
         raise ResolutionError(str(error)) from error
     if require_notes:
@@ -98,7 +104,6 @@ def resolve_day(
     return {
         "courseId": "go-backend",
         "lessonId": lesson_id,
-        "adapter": adapter.resolve(),
         "day": f"day{number}",
         "number": number,
         "course": resolved.content,
@@ -113,18 +118,16 @@ def resolve_day(
 
 def main() -> int:
     parser = argparse.ArgumentParser(
-        description="Route one explicit Go Day to go-backend and the shared Evaluation Core."
+        description="Route one explicit Go Day to the canonical go-backend Course."
     )
     parser.add_argument("day", help="Canonical day argument: day0 through day36")
     parser.add_argument("--workspace", default=".", help="Repository root")
-    parser.add_argument("--adapter", help=argparse.SUPPRESS)
     parser.add_argument("--allow-missing-notes", action="store_true")
     args = parser.parse_args()
     try:
         result = resolve_day(
             Path(args.workspace),
             args.day,
-            adapter_path=args.adapter,
             require_notes=not args.allow_missing_notes,
         )
     except ResolutionError as error:

@@ -1,8 +1,8 @@
-import json
 import tempfile
 import unittest
 from pathlib import Path
 
+from go_day_test_fixture import write_course_fixture
 from prepare_go_day import PreparationError, parse_day, prepare_notes
 
 
@@ -30,90 +30,26 @@ class ParseDayTest(unittest.TestCase):
 class PrepareRouterTest(unittest.TestCase):
     def setUp(self):
         self.temp_dir = tempfile.TemporaryDirectory()
-        self.workspace = Path(self.temp_dir.name)
-        (self.workspace / "docs").mkdir()
-        (self.workspace / "policy").mkdir()
-        (self.workspace / "docs/intro.md").write_text("# Intro\n", encoding="utf-8")
-        (self.workspace / "policy/evaluation.md").write_text("# Policy\n", encoding="utf-8")
-        (self.workspace / "policy/profile.json").write_text(
-            '{"schemaVersion":1,"profileId":"go-local","environment":{},"commands":[]}\n',
-            encoding="utf-8",
-        )
-        self.adapter = self.workspace / "adapter.json"
-        self.adapter.write_text(
-            json.dumps(
-                {
-                    "schemaVersion": 1,
-                    "courseId": "go-backend",
-                    "lifecycle": "published",
-                    "evaluationPolicyPath": "policy/evaluation.md",
-                    "commandProfilePath": "policy/profile.json",
-                    "defaultObjective": "Learn this lesson.",
-                    "defaultGoals": ["Explain it."],
-                    "defaultEvaluation": {
-                        "competencies": [
-                            {
-                                "competencyId": "lesson-requirements",
-                                "title": "Complete requirements",
-                            }
-                        ],
-                        "requiredEvidence": ["notes"],
-                        "scoringBasis": ["accurate"],
-                    },
-                    "exercisePathMode": "record-root",
-                    "lessons": [
-                        {
-                            "lessonId": "intro",
-                            "lifecycle": "active",
-                            "day": 0,
-                            "title": "Intro",
-                            "contentPath": "docs/intro.md",
-                            "exerciseTemplatePath": None,
-                            "recordPath": "exercise/day0",
-                            "evaluationFileName": "notes-eval.md",
-                        }
-                    ],
-                }
-            )
-            + "\n",
-            encoding="utf-8",
-        )
+        self.workspace = Path(self.temp_dir.name).resolve()
+        write_course_fixture(self.workspace)
 
     def tearDown(self):
         self.temp_dir.cleanup()
 
     def test_uses_same_core_for_dry_run_exclusive_create_and_force(self):
-        preview = prepare_notes(
-            self.workspace,
-            "开始 Day 0",
-            dry_run=True,
-            adapter_path=self.adapter,
-        )
+        preview = prepare_notes(self.workspace, "开始 Day 0", dry_run=True)
         self.assertEqual(preview.status, "preview")
         self.assertIn("go-backend / intro", preview.content)
         self.assertFalse(preview.notes.exists())
 
-        created = prepare_notes(
-            self.workspace,
-            "开始 Day 0",
-            adapter_path=self.adapter,
-        )
+        created = prepare_notes(self.workspace, "开始 Day 0")
         self.assertEqual(created.status, "created")
         self.assertTrue(created.notes.is_file())
-        self.assertFalse((created.notes.parent / "notes-eval.md").exists())
+        self.assertFalse((created.notes.parent / "evaluation.md").exists())
         with self.assertRaisesRegex(PreparationError, "already exists"):
-            prepare_notes(
-                self.workspace,
-                "开始 Day 0",
-                adapter_path=self.adapter,
-            )
+            prepare_notes(self.workspace, "开始 Day 0")
 
-        replaced = prepare_notes(
-            self.workspace,
-            "重建 Day 0",
-            force=True,
-            adapter_path=self.adapter,
-        )
+        replaced = prepare_notes(self.workspace, "重建 Day 0", force=True)
         self.assertEqual(replaced.status, "replaced")
 
 

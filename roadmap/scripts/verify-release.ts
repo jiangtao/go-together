@@ -1,5 +1,5 @@
 import { execFile, spawn } from "node:child_process"
-import { lstat, readFile, readdir, rm } from "node:fs/promises"
+import { lstat, readFile, rm } from "node:fs/promises"
 import { createServer } from "node:net"
 import path from "node:path"
 import { promisify } from "node:util"
@@ -7,6 +7,8 @@ import { fileURLToPath } from "node:url"
 
 import { inspectPortListener } from "./lib/course-migration.ts"
 import { createCandidateFingerprint } from "./lib/e2e-evidence.ts"
+import { assertCanonicalInputTree } from "./lib/canonical-input-tree.ts"
+import { parseSourceCatalog } from "./lib/course-contract.ts"
 import {
   RELEASE_STEPS,
   auditReleaseReceipt,
@@ -50,6 +52,7 @@ const protectedRoots = [
   "docs/learning-records",
   "exercise",
   "learning-records",
+  "release-progress",
   "roadmap/content",
   "roadmap/src/data/course.json",
 ]
@@ -155,7 +158,7 @@ async function assertCandidatePreflight(
       ".agents/skills/evaluate-course-lesson",
       ".agents/skills/evaluate-go-day",
       "courses",
-      "docs/go-learning/daily-lessons",
+      "release-progress",
       "roadmap",
     ],
     repositoryRoot,
@@ -243,71 +246,23 @@ async function inspectReleasePort() {
   })
 }
 
-async function listJsonFiles(directory: string): Promise<string[]> {
-  try {
-    const metadata = await lstat(directory)
-    if (metadata.isSymbolicLink() || !metadata.isDirectory()) {
-      throw new Error(`Release Snapshot 根必须是普通目录：${directory}`)
-    }
-  } catch (error) {
-    if ((error as NodeJS.ErrnoException).code === "ENOENT") return []
-    throw error
-  }
-  const entries = await readdir(directory, { withFileTypes: true })
-  const nested = await Promise.all(
-    entries.map(async (entry) => {
-      const candidate = path.join(directory, entry.name)
-      if (entry.isSymbolicLink()) {
-        throw new Error(`Release Snapshot 扫描拒绝符号链接：${candidate}`)
-      }
-      if (entry.isDirectory()) return listJsonFiles(candidate)
-      return entry.isFile() && entry.name.endsWith(".json") ? [candidate] : []
-    })
-  )
-  return nested.flat()
-}
-
 async function releaseSnapshotFiles(): Promise<
   Array<{ name: string; file: string }>
 > {
-  const legacy = path.join(roadmapDirectory, "content/progress.public.json")
-  const snapshots: Array<{ name: string; file: string }> = []
+  let catalogValue: unknown
   try {
-    const metadata = await lstat(legacy)
-    if (metadata.isSymbolicLink() || !metadata.isFile()) {
-      throw new Error("legacy Release Snapshot 必须是普通文件")
-    }
-    snapshots.push({ name: "roadmap/content/progress.public.json", file: legacy })
-  } catch (error) {
-    if ((error as NodeJS.ErrnoException).code !== "ENOENT") throw error
+    catalogValue = JSON.parse(
+      await readFile(path.join(repositoryRoot, "courses/catalog.json"), "utf8")
+    )
+  } catch {
+    throw new Error("候选 Course Catalog 不是合法 JSON")
   }
-
-  const courseFiles = await listJsonFiles(path.join(repositoryRoot, "courses"))
-  for (const file of courseFiles) {
-    let value: unknown
-    try {
-      value = JSON.parse(await readFile(file, "utf8"))
-    } catch {
-      continue
-    }
-    if (
-      typeof value === "object" &&
-      value !== null &&
-      "privateInputDigest" in value &&
-      "courseId" in value &&
-      "courseRevision" in value &&
-      "lessons" in value
-    ) {
-      snapshots.push({
-        name: path.relative(repositoryRoot, file).split(path.sep).join("/"),
-        file,
-      })
-    }
-  }
-  if (snapshots.length === 0) {
-    throw new Error("候选缺少 Release Progress Snapshot")
-  }
-  return snapshots.sort((left, right) => left.name.localeCompare(right.name))
+  const catalog = parseSourceCatalog(catalogValue)
+  const tree = await assertCanonicalInputTree(repositoryRoot, catalog)
+  return tree.releaseSnapshots.map(({ file }) => ({
+    name: path.relative(repositoryRoot, file).split(path.sep).join("/"),
+    file,
+  }))
 }
 
 async function receiptOptions(

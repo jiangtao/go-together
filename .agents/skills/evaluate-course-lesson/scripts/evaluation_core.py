@@ -135,6 +135,26 @@ def _is_within(parent: Path, candidate: Path) -> bool:
         return False
 
 
+def _require_non_symlink_chain(
+    workspace: Path, candidate: Path, context: str
+) -> None:
+    workspace_root = workspace.resolve()
+    logical_candidate = candidate.absolute()
+    if not _is_within(workspace_root, logical_candidate):
+        raise EvaluationError(f"{context} escapes workspace")
+    current = workspace_root
+    for part in logical_candidate.relative_to(workspace_root).parts:
+        current = current / part
+        try:
+            metadata = current.lstat()
+        except FileNotFoundError as error:
+            raise EvaluationError(f"{context} is missing: {current}") from error
+        if stat.S_ISLNK(metadata.st_mode):
+            raise EvaluationError(f"{context} ancestor must not be a symlink: {current}")
+    if not _is_within(workspace_root, logical_candidate.resolve()):
+        raise EvaluationError(f"{context} real path escapes workspace")
+
+
 def _safe_relative(value: object, context: str) -> Path:
     if not isinstance(value, str) or not value or "\\" in value:
         raise EvaluationError(f"{context} must be a safe relative POSIX path")
@@ -148,9 +168,16 @@ def _resolve_owned_file(
     workspace: Path, owner: Path, relative: object, context: str
 ) -> Path:
     candidate = owner / _safe_relative(relative, context)
+    _require_non_symlink_chain(workspace, owner, f"{context} owner")
+    _require_non_symlink_chain(workspace, candidate, context)
+    resolved_workspace = workspace.resolve()
     resolved_owner = owner.resolve()
     resolved = candidate.resolve()
-    if not _is_within(resolved_owner, resolved):
+    if (
+        not _is_within(resolved_workspace, resolved_owner)
+        or not _is_within(resolved_workspace, resolved)
+        or not _is_within(resolved_owner, resolved)
+    ):
         raise EvaluationError(f"{context} escapes its owner")
     _read_regular(candidate, context)
     return candidate
@@ -252,6 +279,9 @@ def _find_manifest_lesson(course: dict, lesson_id: str) -> dict:
 
 
 def _resolve_canonical(workspace: Path, course_id: str, lesson_id: str) -> ResolvedLesson:
+    _require_non_symlink_chain(
+        workspace, workspace / "courses/catalog.json", "Course Catalog"
+    )
     catalog = _exact(
         _read_json(workspace / "courses/catalog.json", "Course Catalog"),
         ("schemaVersion", "defaultCourseId", "courses"),
@@ -282,6 +312,9 @@ def _resolve_canonical(workspace: Path, course_id: str, lesson_id: str) -> Resol
     if catalog_course["manifestPath"] != expected_manifest:
         raise EvaluationError("Catalog manifestPath cannot replace Course identity")
     course_root = workspace / "courses" / course_id
+    _require_non_symlink_chain(
+        workspace, course_root / "course.json", "Source Course"
+    )
     course = _exact(
         _read_json(course_root / "course.json", "Source Course"),
         (
@@ -381,144 +414,17 @@ def _resolve_canonical(workspace: Path, course_id: str, lesson_id: str) -> Resol
     )
 
 
-def _resolve_adapter(
-    workspace: Path, course_id: str, lesson_id: str, adapter_path: Path
-) -> ResolvedLesson:
-    adapter_resolved = adapter_path.resolve()
-    if not _is_within(workspace, adapter_resolved):
-        raise EvaluationError("legacy adapter must remain inside the workspace")
-    adapter = _exact(
-        _read_json(adapter_path, "legacy Course adapter"),
-        (
-            "schemaVersion",
-            "courseId",
-            "lifecycle",
-            "evaluationPolicyPath",
-            "commandProfilePath",
-            "defaultObjective",
-            "defaultGoals",
-            "defaultEvaluation",
-            "exercisePathMode",
-            "lessons",
-        ),
-        "legacy Course adapter",
-    )
-    if adapter["schemaVersion"] != 1 or adapter["courseId"] != course_id:
-        raise EvaluationError("legacy adapter identity or schema is invalid")
-    if not isinstance(adapter["lessons"], list):
-        raise EvaluationError("legacy adapter lessons must be an array")
-    matches = [
-        item
-        for item in adapter["lessons"]
-        if isinstance(item, dict) and item.get("lessonId") == lesson_id
-    ]
-    if len(matches) != 1:
-        raise EvaluationError(f"unknown Lesson for explicit identity: {lesson_id}")
-    lesson = _exact(
-        matches[0],
-        (
-            "lessonId",
-            "lifecycle",
-            "day",
-            "title",
-            "contentPath",
-            "exerciseTemplatePath",
-            "recordPath",
-            "evaluationFileName",
-        ),
-        "legacy adapter Lesson",
-    )
-    policy = _resolve_owned_file(
-        workspace,
-        workspace,
-        adapter["evaluationPolicyPath"],
-        "Course Evaluation Policy",
-    )
-    profile = _resolve_owned_file(
-        workspace, workspace, adapter["commandProfilePath"], "Command Profile"
-    )
-    content = _resolve_owned_file(
-        workspace, workspace, lesson["contentPath"], "Lesson content"
-    )
-    if lesson["exerciseTemplatePath"] is not None:
-        template_relative = _safe_relative(
-            lesson["exerciseTemplatePath"], "legacy Exercise Template"
-        )
-        template_parts = template_relative.parts
-        template_markers = [
-            index
-            for index in range(len(template_parts) - 1)
-            if template_parts[index] == "exercise-templates"
-            and template_parts[index + 1] == lesson_id
-        ]
-        if len(template_markers) != 1 or template_markers[0] + 2 >= len(template_parts):
-            raise EvaluationError(
-                "legacy Exercise Template path must match its stable identity"
-            )
-    template = (
-        None
-        if lesson["exerciseTemplatePath"] is None
-        else _resolve_owned_file(
-            workspace, workspace, lesson["exerciseTemplatePath"], "Exercise Template"
-        )
-    )
-    record_root = workspace / _safe_relative(lesson["recordPath"], "recordPath")
-    if not _is_within(workspace, record_root.resolve()):
-        raise EvaluationError("recordPath escapes workspace")
-    evaluation_file_name = lesson["evaluationFileName"]
-    if evaluation_file_name not in ("evaluation.md", "notes-eval.md"):
-        raise EvaluationError("legacy evaluationFileName is not allowed")
-    if not isinstance(adapter["defaultObjective"], str) or not adapter[
-        "defaultObjective"
-    ].strip():
-        raise EvaluationError("legacy adapter defaultObjective is invalid")
-    if not isinstance(adapter["defaultGoals"], list) or not all(
-        isinstance(goal, str) and goal.strip() for goal in adapter["defaultGoals"]
-    ):
-        raise EvaluationError("legacy adapter defaultGoals are invalid")
-    evaluation, competencies = _parse_evaluation_contract(
-        adapter["defaultEvaluation"]
-    )
-    if adapter["exercisePathMode"] != "record-root":
-        raise EvaluationError("legacy adapter exercisePathMode is invalid")
-    return ResolvedLesson(
-        workspace=workspace,
-        course_id=course_id,
-        lesson_id=lesson_id,
-        day=lesson["day"],
-        title=str(lesson["title"]),
-        objective=adapter["defaultObjective"].strip(),
-        goals=tuple(str(goal).strip() for goal in adapter["defaultGoals"]),
-        course_lifecycle=str(adapter["lifecycle"]),
-        lifecycle=str(lesson["lifecycle"]),
-        content=content,
-        evaluation_policy=policy,
-        command_profile=profile,
-        exercise_template=template,
-        record_root=record_root,
-        notes=record_root / "notes.md",
-        evaluation=record_root / str(evaluation_file_name),
-        exercise=record_root,
-        evaluation_revision=_evaluation_revision(evaluation, policy, profile, template),
-        competencies=competencies,
-    )
-
-
 def resolve_lesson(
     workspace: Union[str, Path],
     course_id: str,
     lesson_id: str,
-    *,
-    adapter_path: Optional[Union[str, Path]] = None,
 ) -> ResolvedLesson:
     workspace_path = Path(workspace).resolve()
     if not workspace_path.is_dir():
         raise EvaluationError(f"workspace does not exist: {workspace_path}")
     course = _require_id(course_id, "courseId")
     lesson = _require_id(lesson_id, "lessonId")
-    if adapter_path is None:
-        return _resolve_canonical(workspace_path, course, lesson)
-    return _resolve_adapter(workspace_path, course, lesson, Path(adapter_path))
+    return _resolve_canonical(workspace_path, course, lesson)
 
 
 def _ensure_safe_directory(workspace: Path, directory: Path) -> None:
@@ -901,20 +807,7 @@ def load_evaluation(
     source = _read_regular(path, "Evaluation Record")
     matches = list(EVALUATION_BLOCK.finditer(source))
     if not matches:
-        if resolved is None:
-            raise EvaluationError("Evaluation Record lacks the evaluation-record block")
-        statuses = re.findall(
-            r"^- 状态：(未开始|定向回炉|重新学习|通过)\s*$",
-            source,
-            re.MULTILINE,
-        )
-        if statuses != ["未开始"]:
-            raise EvaluationError("非空 legacy Evaluation 必须由迁移事务转换")
-        record = _new_record(resolved)
-        record["legacySourceBase64"] = base64.b64encode(
-            source.encode("utf-8")
-        ).decode("ascii")
-        return record
+        raise EvaluationError("Evaluation Record lacks the evaluation-record block")
     if len(matches) != 1:
         raise EvaluationError("Evaluation Record must contain exactly one structured block")
     try:
@@ -977,11 +870,12 @@ def _save_record(resolved: ResolvedLesson, record: dict) -> None:
 
 
 def _load_for_resolved(resolved: ResolvedLesson) -> dict:
+    source = _read_regular(resolved.evaluation, "Evaluation Record")
+    if not EVALUATION_BLOCK.search(source):
+        raise EvaluationError("legacy Evaluation 必须由显式迁移事务转换后才能写入")
     record = load_evaluation(resolved.evaluation, resolved)
     if record["courseId"] != resolved.course_id or record["lessonId"] != resolved.lesson_id:
         raise EvaluationError("Evaluation Record stable identity mismatch")
-    if record["legacySourceBase64"] is not None:
-        raise EvaluationError("legacy Evaluation 必须由显式迁移事务转换后才能写入")
     _assert_resolved_competencies(record, resolved)
     return record
 
@@ -1686,7 +1580,6 @@ def main() -> int:
     parser.add_argument("course_id")
     parser.add_argument("lesson_id")
     parser.add_argument("--workspace", default=".")
-    parser.add_argument("--adapter")
     parser.add_argument("--force-notes", action="store_true")
     parser.add_argument("--initialize-exercise", action="store_true")
     parser.add_argument("--force-exercise", action="store_true")
@@ -1699,12 +1592,7 @@ def main() -> int:
     parser.add_argument("--argv-json")
     args = parser.parse_args()
     try:
-        resolved = resolve_lesson(
-            args.workspace,
-            args.course_id,
-            args.lesson_id,
-            adapter_path=args.adapter,
-        )
+        resolved = resolve_lesson(args.workspace, args.course_id, args.lesson_id)
         output = _resolved_json(resolved)
         if args.action in ("start", "outcome", "run-command"):
             preflight_reason = scan_sensitive_inputs(resolved)

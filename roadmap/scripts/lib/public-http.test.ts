@@ -7,6 +7,7 @@ import { afterEach, describe, expect, it } from "vitest"
 import { createServer, type ViteDevServer } from "vite"
 
 import { buildPublicArtifacts } from "./public-course.ts"
+import { createPublicCourseFixture } from "./public-course.test-fixture.ts"
 import { strictPublicFilesPlugin } from "./strict-public-files.ts"
 
 const temporaryDirectories: string[] = []
@@ -15,33 +16,12 @@ const servers: ViteDevServer[] = []
 async function buildFixture() {
   const root = await mkdtemp(path.join(os.tmpdir(), "public-http-"))
   temporaryDirectories.push(root)
-  const lessonsDirectory = path.join(root, "input/lessons")
-  const progressFile = path.join(root, "input/progress.public.json")
   const outputDirectory = path.join(root, "public")
   const webRoot = path.join(root, "web")
-  await mkdir(lessonsDirectory, { recursive: true })
+  await createPublicCourseFixture(root)
   await mkdir(webRoot)
   await writeFile(path.join(webRoot, "index.html"), '<div id="root"></div>')
-  await writeFile(
-    progressFile,
-    JSON.stringify(
-      Array.from({ length: 37 }, (_, day) => ({
-        day,
-        status: "未开始",
-        referenceScore: null,
-      }))
-    )
-  )
-  await Promise.all(
-    Array.from({ length: 37 }, (_, day) => {
-      const padded = String(day).padStart(2, "0")
-      return writeFile(
-        path.join(lessonsDirectory, `day-${padded}-lesson-${padded}.md`),
-        `# Day ${padded}：Lesson ${day}\n\n### 学习目标\n\n- Goal ${day}\n`
-      )
-    })
-  )
-  await buildPublicArtifacts({ lessonsDirectory, progressFile, outputDirectory })
+  await buildPublicArtifacts({ repositoryRoot: root, outputDirectory })
   const server = await createServer({
     configFile: false,
     root: webRoot,

@@ -2,18 +2,8 @@ name: roadmap-quality
 
 on:
   pull_request:
-    paths:
-      - "roadmap/**"
-      - "docs/go-learning/daily-lessons/day-*.md"
-      - ".github/workflows/roadmap-*.yml"
-      - ".vercelignore"
   push:
     branches: [main]
-    paths:
-      - "roadmap/**"
-      - "docs/go-learning/daily-lessons/day-*.md"
-      - ".github/workflows/roadmap-*.yml"
-      - ".vercelignore"
 
 permissions:
   contents: read

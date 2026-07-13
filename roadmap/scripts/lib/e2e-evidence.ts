@@ -94,11 +94,13 @@ const ROADMAP_ROOT_FILES = new Set([
   "vite.config.ts",
   "vitest.config.ts",
 ])
-const ROADMAP_FINGERPRINT_DIRECTORIES = ["content", "scripts", "src", "tests"]
+const ROADMAP_FINGERPRINT_DIRECTORIES = ["scripts", "src", "tests"]
 const EVALUATION_SKILL_DIRECTORIES = [
   ".agents/skills/evaluate-course-lesson",
   ".agents/skills/evaluate-go-day",
 ]
+const COURSE_SOURCE_DIRECTORY = "courses"
+const RELEASE_PROGRESS_DIRECTORY = "release-progress"
 const PRIVATE_LEGACY_COURSE = "roadmap/src/data/course.json"
 
 interface PngStats {
@@ -223,7 +225,13 @@ async function optionalRegularFile(
 }
 
 async function collectCandidateFiles(repositoryRoot: string): Promise<string[]> {
-  const rootFiles = await optionalRegularFile(repositoryRoot, ".vercelignore")
+  const rootFiles = (
+    await Promise.all(
+      [".gitignore", ".vercelignore"].map((file) =>
+        optionalRegularFile(repositoryRoot, file)
+      )
+    )
+  ).flat()
   const roadmapRootFiles = (
     await Promise.all(
       [...ROADMAP_ROOT_FILES].map((file) =>
@@ -260,31 +268,31 @@ async function collectCandidateFiles(repositoryRoot: string): Promise<string[]> 
       listRegularFiles(repositoryRoot, directory)
     )
   )
-  const lessons = (
-    await listRegularFiles(repositoryRoot, "docs/go-learning/daily-lessons")
-  ).filter((file) => /\/day-\d{2}-.+\.md$/.test(file))
-  const lessonDays = lessons.map((file) => Number(file.match(/\/day-(\d{2})-/)?.[1]))
-  const expectedDays = Array.from({ length: 37 }, (_, day) => day)
-  if (
-    lessonDays.length !== expectedDays.length ||
-    [...lessonDays].sort((left, right) => left - right).some(
-      (day, index) => day !== expectedDays[index]
-    )
-  ) {
-    throw new Error("候选指纹必须包含且只能映射 Day 0–36 的 37 篇教程输入")
-  }
+  const courseSources = (
+    await listRegularFiles(repositoryRoot, COURSE_SOURCE_DIRECTORY)
+  ).filter((file) => !file.includes("/resources/internal/"))
+  const releaseSnapshots = await listRegularFiles(
+    repositoryRoot,
+    RELEASE_PROGRESS_DIRECTORY
+  )
   const files = [
     ...rootFiles,
     ...roadmapRootFiles,
     ...roadmapTrees.flat(),
     ...workflows,
-    ...lessons,
+    ...courseSources,
+    ...releaseSnapshots,
     ...evaluationSkills.flat(),
   ]
     .filter((file) => file !== PRIVATE_LEGACY_COURSE)
     .sort()
-  if (!files.includes("roadmap/package.json") || workflows.length === 0) {
-    throw new Error("候选指纹缺少 roadmap 配置或工作流")
+  if (
+    !files.includes("roadmap/package.json") ||
+    !files.includes("courses/catalog.json") ||
+    releaseSnapshots.length === 0 ||
+    workflows.length === 0
+  ) {
+    throw new Error("候选指纹缺少 roadmap、Course Catalog、Snapshot 或工作流")
   }
   return files
 }
