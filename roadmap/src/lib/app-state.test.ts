@@ -3,6 +3,7 @@ import { describe, expect, it } from "vitest"
 import {
   escapeOneLayer,
   shouldToggleZen,
+  surfaceBelongsToCourse,
   toggleZen,
   type AppViewState,
   type Surface,
@@ -14,18 +15,47 @@ const resource = {
   label: "课程 Markdown",
   href: "/sources/lessons/day-01-course.md",
 } as CourseResource
+const goIdentity = { courseId: "go-backend", lessonId: "interfaces" }
 
 describe("应用层 Zen 与 surface 状态", () => {
+  it("Day 与 Reader surface 绑定完整稳定学习身份", () => {
+    expect(
+      surfaceBelongsToCourse(
+        {
+          kind: "day",
+          identity: { courseId: "go-backend", lessonId: "interfaces" },
+          trigger,
+        },
+        "go-backend"
+      )
+    ).toBe(true)
+    expect(
+      surfaceBelongsToCourse(
+        {
+          kind: "reader",
+          identity: { courseId: "python-core", lessonId: "decorators" },
+          resource,
+          origin: "canvas",
+          trigger,
+        },
+        "go-backend"
+      )
+    ).toBe(false)
+    expect(surfaceBelongsToCourse({ kind: "canvas" }, "go-backend")).toBe(
+      true
+    )
+  })
+
   it("Zen 与 Day/Reader surface 保持正交", () => {
     const day: AppViewState = {
       zen: true,
-      surface: { kind: "day", day: 3, trigger },
+      surface: { kind: "day", identity: goIdentity, trigger },
     }
     const reader: AppViewState = {
       zen: true,
       surface: {
         kind: "reader",
-        day: 3,
+        identity: goIdentity,
         resource,
         origin: "day",
         trigger,
@@ -45,7 +75,7 @@ describe("应用层 Zen 与 surface 状态", () => {
       zen: true,
       surface: {
         kind: "reader",
-        day: 8,
+        identity: goIdentity,
         resource,
         origin: "day",
         trigger,
@@ -57,7 +87,7 @@ describe("应用层 Zen 与 surface 状态", () => {
 
     expect(day).toEqual({
       zen: true,
-      surface: { kind: "day", day: 8, trigger },
+      surface: { kind: "day", identity: goIdentity, trigger },
     })
     expect(canvas).toEqual({ zen: true, surface: { kind: "canvas" } })
     expect(normal).toEqual({ zen: false, surface: { kind: "canvas" } })
@@ -69,7 +99,7 @@ describe("应用层 Zen 与 surface 状态", () => {
         zen: true,
         surface: {
           kind: "reader",
-          day: 2,
+          identity: goIdentity,
           resource,
           origin: "canvas",
           trigger,
@@ -95,7 +125,11 @@ describe("Shift+Z 冲突过滤", () => {
   it("只在 canvas 接受无冲突的 Shift+Z", () => {
     expect(shouldToggleZen(valid, canvas)).toBe(true)
     expect(
-      shouldToggleZen(valid, { kind: "day", day: 1, trigger })
+      shouldToggleZen(valid, {
+        kind: "day",
+        identity: goIdentity,
+        trigger,
+      })
     ).toBe(false)
   })
 

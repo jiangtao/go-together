@@ -32,6 +32,8 @@ import {
 import { DaySearch } from "@/components/roadmap/day-search"
 import {
   buildRoadmapLayout,
+  roadmapLessonNodeId,
+  roadmapStageNodeId,
   type RoadmapEdge,
   type RoadmapNode,
 } from "@/components/roadmap/layout"
@@ -64,12 +66,17 @@ import { useMobile } from "@/hooks/use-mobile"
 import {
   getNextZoom,
   getZoomControls,
+  createRoadmapViewportKey,
   ROADMAP_MAX_ZOOM,
   ROADMAP_MIN_ZOOM,
   shouldAutomaticallyFit,
 } from "@/lib/roadmap-viewport"
 import { cn } from "@/lib/utils"
-import type { CourseLesson, CourseStage } from "@/types/course"
+import type {
+  RoadmapLesson,
+  RoadmapStage,
+  RoadmapTrack,
+} from "@/types/course"
 
 import "@xyflow/react/dist/style.css"
 
@@ -87,15 +94,21 @@ export interface RoadmapCanvasHandle {
 }
 
 interface RoadmapCanvasProps {
-  stages: CourseStage[]
-  lessons: CourseLesson[]
-  selectedDay: number | null
-  recommendedDay: number | null
+  courseId: string
+  courseRevision: string
+  courseTitle: string
+  courseDescription: string
+  tracks: RoadmapTrack[]
+  stages: RoadmapStage[]
+  lessons: RoadmapLesson[]
+  selectedLessonId: string | null
+  recommendedLessonId: string | null
+  viewportCache: Map<string, Viewport>
   zen: boolean
   surfaceIsCanvas: boolean
   onToggleZen: () => void
-  onSelectDay: (day: number, trigger: HTMLElement) => void
-  onOpenCourse: (lesson: CourseLesson, trigger: HTMLElement) => void
+  onSelectLesson: (lesson: RoadmapLesson, trigger: HTMLElement) => void
+  onOpenCourse: (lesson: RoadmapLesson, trigger: HTMLElement) => void
 }
 
 export const RoadmapCanvas = forwardRef<
@@ -103,14 +116,20 @@ export const RoadmapCanvas = forwardRef<
   RoadmapCanvasProps
 >(function RoadmapCanvas(
   {
+    courseId,
+    courseRevision,
+    courseTitle,
+    courseDescription,
+    tracks,
     stages,
     lessons,
-    selectedDay,
-    recommendedDay,
+    selectedLessonId,
+    recommendedLessonId,
+    viewportCache,
     zen,
     surfaceIsCanvas,
     onToggleZen,
-    onSelectDay,
+    onSelectLesson,
     onOpenCourse,
   },
   ref
@@ -119,29 +138,48 @@ export const RoadmapCanvas = forwardRef<
   const flowInstance = useRef<
     ReactFlowInstance<RoadmapNode, RoadmapEdge> | undefined
   >(undefined)
-  const initialFitComplete = useRef(false)
+  const appliedViewportKey = useRef<string | null>(null)
   const interactionRevision = useRef(0)
   const restoreFrame = useRef<number | null>(null)
   const zenEntryRef = useRef<HTMLButtonElement>(null)
   const zenExitRef = useRef<HTMLButtonElement>(null)
   const [viewportZoom, setViewportZoom] = useState(1)
+  const [flowReady, setFlowReady] = useState(0)
+  const viewportKey = createRoadmapViewportKey(
+    courseId,
+    courseRevision,
+    isMobile
+  )
   const layout = useMemo(
     () =>
       buildRoadmapLayout({
+        courseTitle,
+        courseDescription,
+        tracks,
         stages,
         lessons,
         isMobile,
-        selectedDay,
-        recommendedDay,
+        selectedLessonId,
+        recommendedLessonId,
         onOpenCourse,
       }),
-    [isMobile, lessons, onOpenCourse, recommendedDay, selectedDay, stages]
+    [
+      courseDescription,
+      courseTitle,
+      isMobile,
+      lessons,
+      onOpenCourse,
+      recommendedLessonId,
+      selectedLessonId,
+      stages,
+      tracks,
+    ]
   )
   const { x: focusX, y: focusY, zoom: focusZoom } = layout.focus
   const selectedStage =
-    selectedDay === null
+    selectedLessonId === null
       ? null
-      : stages.find((stage) => stage.lessonDays.includes(selectedDay))
+      : stages.find((stage) => stage.lessonIds.includes(selectedLessonId))
 
   const cancelPendingRestore = useCallback(() => {
     if (restoreFrame.current !== null) {
@@ -180,6 +218,26 @@ export const RoadmapCanvas = forwardRef<
 
   useEffect(() => cancelPendingRestore, [cancelPendingRestore])
 
+  useEffect(() => {
+    const instance = flowInstance.current
+    if (!instance || appliedViewportKey.current === viewportKey) return
+    cancelPendingRestore()
+    const expectedRevision = interactionRevision.current
+    restoreFrame.current = window.requestAnimationFrame(() => {
+      restoreFrame.current = window.requestAnimationFrame(() => {
+        restoreFrame.current = null
+        if (interactionRevision.current !== expectedRevision) return
+        appliedViewportKey.current = viewportKey
+        const stored = viewportCache.get(viewportKey)
+        if (stored) {
+          void instance.setViewport(stored, { duration: 0 })
+        } else if (shouldAutomaticallyFit("initial-layout", false)) {
+          void instance.fitView({ padding: 0.08, maxZoom: 1, duration: 0 })
+        }
+      })
+    })
+  }, [cancelPendingRestore, flowReady, viewportCache, viewportKey])
+
   const focusRecommended = useCallback(() => {
     void flowInstance.current?.setCenter(focusX, focusY, {
       zoom: focusZoom,
@@ -193,7 +251,7 @@ export const RoadmapCanvas = forwardRef<
         `.react-flow__node[data-id="${node.id}"]`
       )
       if (trigger) {
-        onSelectDay(node.data.lesson.day, trigger)
+        onSelectLesson(node.data.lesson, trigger)
       }
     }
   }
@@ -228,18 +286,21 @@ export const RoadmapCanvas = forwardRef<
   }, [])
 
   const handleSearchSelect = useCallback(
-    (lesson: CourseLesson) => {
+    (lesson: RoadmapLesson) => {
       const trigger = document.querySelector<HTMLElement>(
         '[data-testid="day-search-trigger"]'
       )
       if (trigger) {
-        onSelectDay(lesson.day, trigger)
+        onSelectLesson(lesson, trigger)
       }
       window.requestAnimationFrame(() =>
-        focusNodes([lesson.id], { maxZoom: 1.08, padding: 0.8 })
+        focusNodes([roadmapLessonNodeId(lesson.lessonId)], {
+          maxZoom: 1.08,
+          padding: 0.8,
+        })
       )
     },
-    [focusNodes, onSelectDay]
+    [focusNodes, onSelectLesson]
   )
 
   const handleCanvasKeyDown = (event: KeyboardEvent<HTMLDivElement>) => {
@@ -265,12 +326,13 @@ export const RoadmapCanvas = forwardRef<
 
     event.preventDefault()
     if (nodeElement) {
-      onSelectDay(node.data.lesson.day, nodeElement)
+      onSelectLesson(node.data.lesson, nodeElement)
     }
   }
 
   const recommendationLabel =
-    recommendedDay === null ? "最终 Day" : `Day ${recommendedDay}`
+    lessons.find((lesson) => lesson.lessonId === recommendedLessonId)?.label ??
+    "最后课次"
   const zoomControls = getZoomControls(viewportZoom)
 
   return (
@@ -296,9 +358,13 @@ export const RoadmapCanvas = forwardRef<
               className="roadmap-location"
               data-testid="roadmap-location"
             >
-              {selectedDay === null
+              {selectedLessonId === null
                 ? "全图概览"
-                : `阶段 ${selectedStage?.order ?? 1}/${stages.length} · Day ${selectedDay}`}
+                : `阶段 ${selectedStage?.order ?? 1}/${stages.length} · ${
+                    lessons.find(
+                      (lesson) => lesson.lessonId === selectedLessonId
+                    )?.label ?? "当前课次"
+                  }`}
             </Badge>
           </div>
 
@@ -309,7 +375,10 @@ export const RoadmapCanvas = forwardRef<
           >
             <Select
               onValueChange={(stageId) =>
-                focusNodes([stageId], { maxZoom: 0.9, padding: 0.12 })
+                focusNodes([roadmapStageNodeId(stageId)], {
+                  maxZoom: 0.9,
+                  padding: 0.12,
+                })
               }
             >
               <SelectTrigger
@@ -331,7 +400,7 @@ export const RoadmapCanvas = forwardRef<
 
             <DaySearch
               lessons={lessons}
-              selectedDay={selectedDay}
+              selectedLessonId={selectedLessonId}
               onSelect={handleSearchSelect}
             />
             <RoadmapLegend />
@@ -394,7 +463,7 @@ export const RoadmapCanvas = forwardRef<
         <div
           className="roadmap-canvas"
           data-testid="roadmap-canvas"
-          aria-label="Go 学习路线图画布"
+          aria-label={`${courseTitle}学习路线图画布`}
           onKeyDownCapture={handleCanvasKeyDown}
         >
           <ReactFlow<RoadmapNode, RoadmapEdge>
@@ -405,29 +474,19 @@ export const RoadmapCanvas = forwardRef<
             onInit={(instance) => {
               flowInstance.current = instance
               setViewportZoom(instance.getZoom())
-              if (
-                shouldAutomaticallyFit(
-                  "initial-layout",
-                  initialFitComplete.current
-                )
-              ) {
-                initialFitComplete.current = true
-                window.requestAnimationFrame(() => {
-                  void instance.fitView({
-                    padding: 0.08,
-                    maxZoom: 1,
-                    duration: 0,
-                  })
-                })
-              }
+              setFlowReady((value) => value + 1)
             }}
             onMoveStart={(event) => {
               if (event) {
                 interactionRevision.current += 1
+                appliedViewportKey.current = viewportKey
                 cancelPendingRestore()
               }
             }}
             onMove={(_event, viewport) => setViewportZoom(viewport.zoom)}
+            onMoveEnd={(_event, viewport) => {
+              viewportCache.set(viewportKey, viewport)
+            }}
             minZoom={ROADMAP_MIN_ZOOM}
             maxZoom={ROADMAP_MAX_ZOOM}
             nodesDraggable={false}

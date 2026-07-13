@@ -4,15 +4,19 @@ import {
   parsePublicProgress,
   validatePublicCatalogCoursePair,
   validatePublicCourseProgressPair,
+  type PublicCatalog,
+  type PublicCatalogCourse,
   type PublicCourse,
   type PublicProgress,
 } from "@/lib/public-course-contract"
-import type { CourseData } from "@/types/course"
+import type { RoadmapCourseData } from "@/types/course"
 
 export interface CanonicalCourseLoadResult {
   courseId: string
   courseRevision: string
-  courseData: CourseData
+  catalog: PublicCatalog
+  catalogCourse: PublicCatalogCourse
+  courseData: RoadmapCourseData
 }
 
 async function fetchJson(
@@ -29,66 +33,92 @@ async function fetchJson(
   return response.json() as Promise<unknown>
 }
 
-function requestedCourseId(pathname: string): string {
-  if (pathname === "/") return "go-backend"
+export interface ResolvedCoursePath {
+  courseId: string
+  canonicalPath: string
+  shouldNormalize: boolean
+}
+
+export function resolveCoursePath(pathname: string): ResolvedCoursePath {
+  if (pathname === "/") {
+    return {
+      courseId: "go-backend",
+      canonicalPath: "/",
+      shouldNormalize: false,
+    }
+  }
   const match = pathname.match(/^\/courses\/([a-z0-9]+(?:-[a-z0-9]+)*)\/?$/)
   if (!match) throw new Error("当前课程 URL 无效")
-  return match[1]
+  const canonicalPath = `/courses/${match[1]}`
+  return {
+    courseId: match[1],
+    canonicalPath,
+    shouldNormalize: pathname !== canonicalPath,
+  }
 }
 
 function projectCurrentRoadmap(
   course: PublicCourse,
   progress: PublicProgress
-): CourseData {
-  const stages = course.tracks.flatMap((track) => track.stages)
-  const canonicalLessons = stages.flatMap((stage) =>
-    stage.lessons.map((lesson) => ({ stageId: stage.stageId, lesson }))
-  )
-  if (
-    stages.length !== 6 ||
-    canonicalLessons.length !== 37 ||
-    canonicalLessons.some(({ lesson }, index) => lesson.day !== index)
-  ) {
-    throw new Error("当前 Roadmap adapter 要求 Go Day 0-36；通用体验由后续票切换")
-  }
+): RoadmapCourseData {
   const progressById = new Map(
     progress.lessons.map((lesson) => [lesson.lessonId, lesson])
   )
-  const projectedStageIds = new Map(
-    stages.map((stage, index) => [stage.stageId, `stage-${index + 1}`])
+  let lessonOrder = 0
+  let stageOrder = 0
+  const tracks = course.tracks.map((track, trackIndex) => ({
+    id: track.trackId,
+    order: trackIndex + 1,
+    title: track.title,
+    description: track.description,
+    stageIds: track.stages.map((stage) => stage.stageId),
+  }))
+  const stages = course.tracks.flatMap((track) =>
+    track.stages.map((stage) => ({
+      id: stage.stageId,
+      trackId: track.trackId,
+      order: (stageOrder += 1),
+      title: stage.title,
+      description: stage.description,
+      lessonIds: stage.lessons.map((lesson) => lesson.lessonId),
+    }))
+  )
+  const lessons = course.tracks.flatMap((track) =>
+    track.stages.flatMap((stage) =>
+      stage.lessons.map((lesson) => {
+        lessonOrder += 1
+        const state = progressById.get(lesson.lessonId)
+        if (!state) {
+          throw new Error(`Progress 缺少 Lesson：${lesson.lessonId}`)
+        }
+        return {
+          courseId: course.courseId,
+          lessonId: lesson.lessonId,
+          lifecycle: lesson.lifecycle,
+          day: lesson.day,
+          label: lesson.day === null ? `课次 ${lessonOrder}` : `Day ${lesson.day}`,
+          title: lesson.title,
+          objective: lesson.objective,
+          goals: lesson.goals,
+          trackId: track.trackId,
+          stageId: stage.stageId,
+          status: state.status,
+          referenceScore: state.referenceScore,
+          lessonHref: lesson.lessonHref,
+        }
+      })
+    )
   )
   return {
-    schemaVersion: 3,
+    courseId: course.courseId,
     title: course.title,
-    dayRange: { start: 0, end: 36 },
-    stages: stages.map((stage, index) => {
-      const lessonDays = stage.lessons.map((lesson) => lesson.day!)
-      return {
-        id: projectedStageIds.get(stage.stageId)!,
-        order: index + 1,
-        title: stage.title,
-        description: stage.description,
-        startDay: Math.min(...lessonDays),
-        endDay: Math.max(...lessonDays),
-        lessonDays,
-      }
-    }),
-    lessons: canonicalLessons.map(({ stageId, lesson }) => {
-      const state = progressById.get(lesson.lessonId)!
-      return {
-        id: `day-${String(lesson.day).padStart(2, "0")}`,
-        day: lesson.day!,
-        dayLabel: `Day ${lesson.day}`,
-        title: lesson.title,
-        englishTitle: null,
-        objective: lesson.objective,
-        goals: lesson.goals,
-        stageId: projectedStageIds.get(stageId)!,
-        status: state.status,
-        referenceScore: state.referenceScore,
-        lessonHref: lesson.lessonHref,
-      }
-    }),
+    description: course.description,
+    language: course.language,
+    lifecycle: course.lifecycle,
+    replacementCourseId: course.replacementCourseId,
+    tracks,
+    stages,
+    lessons,
   }
 }
 
@@ -97,7 +127,7 @@ export async function loadCanonicalCourse(
   options: { fetcher?: typeof fetch; signal?: AbortSignal } = {}
 ): Promise<CanonicalCourseLoadResult> {
   const fetcher = options.fetcher ?? fetch
-  const courseId = requestedCourseId(pathname)
+  const courseId = resolveCoursePath(pathname).courseId
   const catalog = parsePublicCatalog(
     await fetchJson(fetcher, "/courses/catalog.json", options.signal)
   )
@@ -116,6 +146,8 @@ export async function loadCanonicalCourse(
   return {
     courseId,
     courseRevision: course.courseRevision,
+    catalog,
+    catalogCourse,
     courseData: projectCurrentRoadmap(course, progress),
   }
 }

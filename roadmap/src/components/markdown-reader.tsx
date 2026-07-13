@@ -25,12 +25,12 @@ import {
   normalizeImageLink,
   normalizeSourceUrl,
 } from "@/lib/markdown"
-import type { CourseLesson, CourseResource } from "@/types/course"
+import type { CourseResource, RoadmapLesson } from "@/types/course"
 
 interface MarkdownReaderProps {
   open: boolean
   onOpenChange: (open: boolean) => void
-  lesson: CourseLesson | null
+  lesson: RoadmapLesson | null
   resource: CourseResource | null
   origin: "canvas" | "day"
   onReturnToDay: () => void
@@ -126,7 +126,7 @@ export function MarkdownReader({
     return () => window.cancelAnimationFrame(frame)
   }, [open, origin])
 
-  const title = lesson ? `${lesson.dayLabel} · ${lesson.title}` : "课程阅读"
+  const title = lesson ? `${lesson.label} · ${lesson.title}` : "课程阅读"
 
   return (
     <Drawer
@@ -154,11 +154,11 @@ export function MarkdownReader({
                 size="sm"
                 className="markdown-reader-back"
                 data-testid="markdown-reader-back"
-                aria-label={`返回 ${lesson.dayLabel} 详情`}
+                aria-label={`返回 ${lesson.label} 详情`}
                 onClick={onReturnToDay}
               >
                 <ArrowLeftIcon data-icon="inline-start" />
-                返回 {lesson.dayLabel}
+                返回 {lesson.label}
               </Button>
             ) : null}
             <div className="markdown-reader-mark" aria-hidden="true">

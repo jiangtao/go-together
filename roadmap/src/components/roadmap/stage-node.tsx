@@ -10,10 +10,11 @@ import {
   CardTitle,
 } from "@/components/ui/card"
 import { Progress } from "@/components/ui/progress"
-import type { CourseStage } from "@/types/course"
+import type { RoadmapLesson, RoadmapStage } from "@/types/course"
 
 export interface StageNodeData extends Record<string, unknown> {
-  stage: CourseStage
+  stage: RoadmapStage
+  lessons: RoadmapLesson[]
   completed: number
   total: number
   percentage: number
@@ -23,6 +24,13 @@ export type StageFlowNode = Node<StageNodeData, "stage">
 
 export function StageNode({ data }: NodeProps<StageFlowNode>) {
   const { stage } = data
+  const dayValues = data.lessons
+    .map((lesson) => lesson.day)
+    .filter((day): day is number => day !== null)
+  const rangeLabel =
+    dayValues.length === data.lessons.length
+      ? `Day ${Math.min(...dayValues)}–${Math.max(...dayValues)}`
+      : `${data.lessons.length} 个课次`
   return (
     <>
       <Handle
@@ -38,9 +46,7 @@ export function StageNode({ data }: NodeProps<StageFlowNode>) {
           </CardTitle>
           <CardDescription>{stage.description}</CardDescription>
           <CardAction>
-            <Badge variant="outline">
-              Day {stage.startDay}–{stage.endDay}
-            </Badge>
+            <Badge variant="outline">{rangeLabel}</Badge>
           </CardAction>
         </CardHeader>
         <CardContent className="stage-node-progress">

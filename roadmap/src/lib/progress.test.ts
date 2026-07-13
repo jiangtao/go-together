@@ -1,6 +1,10 @@
 import { describe, expect, it } from "vitest"
 
-import { summarizeProgress, summarizeStageProgress } from "@/lib/progress"
+import {
+  summarizeProgress,
+  summarizeRoadmapProgress,
+  summarizeStageProgress,
+} from "@/lib/progress"
 import type { CourseStage, CourseStatus } from "@/types/course"
 
 function lesson(day: number, status: CourseStatus) {
@@ -8,6 +12,21 @@ function lesson(day: number, status: CourseStatus) {
 }
 
 describe("学习进度统计", () => {
+  it("按 Curriculum 顺序推荐 Lesson，并排除 Retired Lesson", () => {
+    expect(
+      summarizeRoadmapProgress([
+        { lessonId: "done", lifecycle: "active", status: "通过" },
+        { lessonId: "retired", lifecycle: "retired", status: "未开始" },
+        { lessonId: "next", lifecycle: "active", status: "重新学习" },
+      ])
+    ).toMatchObject({
+      total: 2,
+      completed: 1,
+      percentage: 50,
+      recommendedLessonId: "next",
+    })
+  })
+
   it("按四种状态计数并以通过数计算总进度", () => {
     const summary = summarizeProgress([
       lesson(0, "通过"),

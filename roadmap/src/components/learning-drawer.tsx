@@ -12,15 +12,15 @@ import {
   DrawerTitle,
 } from "@/components/ui/drawer"
 import { useMobile } from "@/hooks/use-mobile"
-import type { CourseLesson, CourseStage } from "@/types/course"
+import type { RoadmapLesson, RoadmapStage } from "@/types/course"
 
 interface LearningDrawerProps {
   open: boolean
   onOpenChange: (open: boolean) => void
-  lesson: CourseLesson
-  stage: CourseStage
+  lesson: RoadmapLesson
+  stage: RoadmapStage
   initialFocus: "close" | "resource"
-  onOpenCourse: (lesson: CourseLesson, trigger: HTMLElement) => void
+  onOpenCourse: (lesson: RoadmapLesson, trigger: HTMLElement) => void
 }
 
 export function LearningDrawer({
@@ -66,10 +66,10 @@ export function LearningDrawer({
           <div className="flex items-start justify-between gap-3">
             <div className="min-w-0">
               <DrawerTitle>
-                {lesson.dayLabel} · {lesson.title}
+                {lesson.label} · {lesson.title}
               </DrawerTitle>
               <DrawerDescription>
-                仅显示这一天的状态、评测证据与学习资源
+                仅显示本课次的状态、评测证据与学习资源
               </DrawerDescription>
             </div>
             <DrawerClose asChild>

@@ -1,6 +1,9 @@
 import { describe, expect, it, vi } from "vitest"
 
-import { loadCanonicalCourse } from "@/lib/canonical-course"
+import {
+  loadCanonicalCourse,
+  resolveCoursePath,
+} from "@/lib/canonical-course"
 
 const REVISION = `sha256:${"1".repeat(64)}`
 const CONTENT_REVISION = `sha256:${"2".repeat(64)}`
@@ -113,6 +116,28 @@ function fetcher(fixture = canonicalFixture()) {
 }
 
 describe("canonical Course runtime loader", () => {
+  it("resolves only the root alias and exact canonical Course paths", () => {
+    expect(resolveCoursePath("/")).toEqual({
+      courseId: "go-backend",
+      canonicalPath: "/",
+      shouldNormalize: false,
+    })
+    expect(resolveCoursePath("/courses/python-core")).toEqual({
+      courseId: "python-core",
+      canonicalPath: "/courses/python-core",
+      shouldNormalize: false,
+    })
+    expect(resolveCoursePath("/courses/python-core/")).toEqual({
+      courseId: "python-core",
+      canonicalPath: "/courses/python-core",
+      shouldNormalize: true,
+    })
+    expect(() => resolveCoursePath("/courses/Python")).toThrow("URL 无效")
+    expect(() => resolveCoursePath("/courses/python-core/extra")).toThrow(
+      "URL 无效"
+    )
+  })
+
   it("loads root and canonical Go routes from Catalog/Course/Progress only", async () => {
     const mockFetch = fetcher()
     const root = await loadCanonicalCourse("/", { fetcher: mockFetch })
@@ -138,6 +163,105 @@ describe("canonical Course runtime loader", () => {
         "/courses/go-backend/progress.json",
       ])
     )
+  })
+
+  it("projects a structurally different Course without Day labels", async () => {
+    const course = {
+      schemaVersion: 1,
+      courseId: "python-core",
+      courseRevision: REVISION,
+      title: "Python Core",
+      description: "Python language foundations",
+      language: { id: "python", label: "Python" },
+      lifecycle: "published",
+      replacementCourseId: null,
+      tracks: [
+        {
+          trackId: "language-model",
+          title: "Language model",
+          description: "Understand Python semantics",
+          stages: [
+            {
+              stageId: "functions",
+              title: "Functions",
+              description: "Functions and decorators",
+              lessons: [
+                {
+                  lessonId: "decorators",
+                  lifecycle: "active",
+                  day: null,
+                  title: "Decorators",
+                  objective: "Explain decorator composition",
+                  goals: ["Compose two decorators"],
+                  contentRevision: CONTENT_REVISION,
+                  lessonHref:
+                    "/courses/python-core/sources/lessons/decorators.md",
+                },
+              ],
+            },
+          ],
+        },
+      ],
+    }
+    const progress = {
+      schemaVersion: 1,
+      courseId: "python-core",
+      courseRevision: REVISION,
+      lessons: [
+        {
+          lessonId: "decorators",
+          status: "未开始",
+          referenceScore: null,
+        },
+      ],
+    }
+    const catalog = {
+      schemaVersion: 1,
+      defaultCourseId: "go-backend",
+      courses: [
+        canonicalFixture().catalog.courses[0],
+        {
+          courseId: "python-core",
+          courseRevision: REVISION,
+          title: course.title,
+          description: course.description,
+          language: course.language,
+          lifecycle: "published",
+          replacementCourseId: null,
+          pageHref: "/courses/python-core",
+          courseHref: "/courses/python-core/course.json",
+          progressHref: "/courses/python-core/progress.json",
+        },
+      ],
+    }
+    const byPath = new Map<string, unknown>([
+      ["/courses/catalog.json", catalog],
+      ["/courses/python-core/course.json", course],
+      ["/courses/python-core/progress.json", progress],
+    ])
+    const result = await loadCanonicalCourse("/courses/python-core", {
+      fetcher: vi.fn<typeof fetch>(async (input) => {
+        const value = byPath.get(String(input))
+        return value === undefined
+          ? new Response("missing", { status: 404 })
+          : Response.json(value)
+      }),
+    })
+
+    expect(result.courseData).toMatchObject({
+      courseId: "python-core",
+      title: "Python Core",
+      tracks: [{ id: "language-model" }],
+      stages: [{ id: "functions" }],
+      lessons: [
+        {
+          courseId: "python-core",
+          lessonId: "decorators",
+          day: null,
+          label: "课次 1",
+        },
+      ],
+    })
   })
 
   it("fails closed on revision drift, unknown routes, and extra fields", async () => {

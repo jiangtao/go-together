@@ -251,6 +251,13 @@
     letter-spacing: -0.025em;
   }
 
+  .page-header h1:focus-visible,
+  .course-load-copy:focus-visible {
+    border-radius: calc(var(--radius) * 0.65);
+    outline: 3px solid color-mix(in oklch, var(--ring) 48%, transparent);
+    outline-offset: 3px;
+  }
+
   .page-header p {
     margin-top: 0.25rem;
     color: var(--muted-foreground);
@@ -278,6 +285,81 @@
     flex: none;
     align-items: center;
     gap: 0.5rem;
+  }
+
+  .header-actions [data-slot="button"],
+  .header-actions [role="combobox"],
+  .roadmap-toolbar button,
+  .roadmap-toolbar [role="combobox"],
+  .learning-drawer button,
+  .learning-drawer [role="button"],
+  .markdown-reader button {
+    min-width: 2.75rem;
+    min-height: 2.75rem;
+  }
+
+  .active-course-static,
+  .course-select-trigger {
+    min-width: 0;
+    min-height: 2.75rem;
+  }
+
+  .active-course-static {
+    display: inline-flex;
+    max-width: 18rem;
+    align-items: center;
+    gap: 0.375rem;
+    padding-inline: 0.625rem;
+    color: var(--muted-foreground);
+    font-size: 0.8125rem;
+  }
+
+  .active-course-static svg {
+    size: 1rem;
+    flex: none;
+    color: var(--foreground);
+  }
+
+  .active-course-static strong {
+    overflow: hidden;
+    color: var(--foreground);
+    font-weight: 620;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+
+  .course-select-trigger {
+    max-width: min(22rem, 34vw);
+    padding-inline: 0.75rem;
+  }
+
+  .course-select-trigger [data-slot="select-value"] {
+    min-width: 0;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+
+  .retired-course-notice {
+    display: flex;
+    min-width: 0;
+    flex: none;
+    align-items: center;
+    gap: 0.625rem;
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    padding: 0.5rem 0.75rem;
+    color: var(--muted-foreground);
+    font-size: 0.8125rem;
+  }
+
+  .retired-course-notice > svg {
+    size: 1rem;
+    flex: none;
+    color: var(--foreground);
+  }
+
+  .retired-course-notice button {
+    margin-left: auto;
   }
 
   .repository-actions {
@@ -1279,8 +1361,37 @@
 
   .header-actions {
     width: 100%;
-    justify-content: flex-end;
-    padding-left: 3.25rem;
+    flex-wrap: wrap;
+    justify-content: flex-start;
+    padding-left: 0;
+  }
+
+  .course-select-trigger {
+    max-width: 9rem;
+  }
+
+  .active-course-static {
+    max-width: 7rem;
+    padding-left: 0;
+  }
+
+  .active-course-static strong {
+    display: none;
+  }
+
+  .repository-actions {
+    margin-left: auto;
+  }
+
+  .retired-course-notice {
+    align-items: flex-start;
+    flex-wrap: wrap;
+  }
+
+  .retired-course-notice button {
+    width: 100%;
+    min-height: 2.75rem;
+    margin-left: 0;
   }
 
   .repository-action-label {

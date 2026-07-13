@@ -16,6 +16,7 @@ test.beforeEach(async ({ page }) => {
 function watchRuntime(page: Page) {
   const consoleErrors: string[] = []
   const pageErrors: string[] = []
+  const networkErrors: string[] = []
   let popupCount = 0
 
   page.on("console", (message) => {
@@ -24,6 +25,17 @@ function watchRuntime(page: Page) {
     }
   })
   page.on("pageerror", (error) => pageErrors.push(error.message))
+  page.on("requestfailed", (request) => {
+    const error = request.failure()?.errorText ?? "unknown"
+    if (error !== "net::ERR_ABORTED") {
+      networkErrors.push(`${request.method()} ${request.url()} ${error}`)
+    }
+  })
+  page.on("response", (response) => {
+    if (response.status() >= 400) {
+      networkErrors.push(`${response.status()} ${response.url()}`)
+    }
+  })
   page.on("popup", () => {
     popupCount += 1
   })
@@ -31,6 +43,7 @@ function watchRuntime(page: Page) {
   return () => {
     expect(consoleErrors).toEqual([])
     expect(pageErrors).toEqual([])
+    expect(networkErrors).toEqual([])
     expect(popupCount).toBe(0)
   }
 }
@@ -243,7 +256,9 @@ test("从普通 Day 节点进入 Zen 后两种快捷退出都聚焦入口", asyn
   await page.goto("/")
 
   const workspace = page.getByTestId("canvas-workspace")
-  const dayNode = page.locator('.react-flow__node-lesson[data-id="day-00"]')
+  const dayNode = page.locator(
+    '.react-flow__node-lesson[data-id="lesson:why-go-after-node"]'
+  )
   const enter = page.getByTestId("roadmap-zen-enter")
 
   for (const exitKey of ["Shift+Z", "Escape"]) {
@@ -279,7 +294,9 @@ test("Zen 内 Day/Reader 逐层退出并恢复准确焦点", async ({
   )
   const zenTransform = await flowViewport.getAttribute("style")
 
-  const dayNode = page.locator('.react-flow__node-lesson[data-id="day-00"]')
+  const dayNode = page.locator(
+    '.react-flow__node-lesson[data-id="lesson:why-go-after-node"]'
+  )
   await dayNode.locator('[data-slot="card-header"]').click()
   const drawer = page.getByTestId("learning-drawer")
   await expect(drawer).toBeVisible()
