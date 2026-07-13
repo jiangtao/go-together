@@ -1,4 +1,4 @@
-name: roadmap-deployment-smoke
+name: roadmap-deployment-status
 
 on:
   deployment_status:
@@ -7,7 +7,7 @@ permissions:
   contents: read
 
 jobs:
-  smoke:
+  record:
     if: >-
       github.event.deployment_status.state == 'success' &&
       github.event.deployment_status.environment_url != '' &&
@@ -18,18 +18,8 @@ jobs:
        github.event.deployment.environment == 'preview' ||
        github.event.deployment.environment == 'production')
     runs-on: ubuntu-latest
-    defaults:
-      run:
-        working-directory: roadmap
     env:
       DEPLOYMENT_URL: ${{ github.event.deployment_status.environment_url }}
     steps:
-      - uses: actions/checkout@v4
-      - uses: actions/setup-node@v4
-        with:
-          node-version: 24.x
-          cache: npm
-          cache-dependency-path: roadmap/package-lock.json
-      - run: npm ci
-      - run: npx playwright install --with-deps chromium
-      - run: npm run smoke:deployment -- "$DEPLOYMENT_URL"
+      - name: Record trusted Vercel deployment
+        run: echo "Trusted Vercel deployment ready at $DEPLOYMENT_URL"

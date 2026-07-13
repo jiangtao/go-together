@@ -1,6 +1,6 @@
-# Go 36 天学习路线图
+# lesson-together · Go 36 天参考路线图
 
-这是一个 React + TypeScript + Vite 应用，以 React Flow 展示 Day 0–36 的完整学习路线。首屏自动适配全图，支持平移、缩放、Day-only Drawer、应用内 Markdown Reader、Zen 全屏聚焦以及完整的键盘焦点恢复。
+这是 `lesson-together` 学习框架的当前参考课程界面。应用使用 React + TypeScript + Vite，以 React Flow 展示 Day 0–36 的完整学习路线；首屏自动适配全图，支持平移、缩放、Day-only Drawer、应用内 Markdown Reader、Zen 全屏聚焦以及完整的键盘焦点恢复。仓库及应用运行标识仍为 `go-together`。
 
 ## 公开数据边界
 
@@ -39,9 +39,10 @@ npm run dev
 | `npm run package:prebuilt` | 将已审计 dist 确定性打包为 `.vercel/output` |
 | `npm run audit:prebuilt` | 核对 Build Output API v3 精确文件集、内容哈希与 source deployment 关闭状态 |
 | `npm run build` | 执行安全生成、审计、类型检查、Vite 构建、dist 审计和 prebuilt 打包审计 |
-| `npm run build:release` | 增加 lint 和全部 Vitest 的完整发布门禁 |
-| `npm run test:e2e` | 在四个视口运行 Playwright |
-| `npm run smoke:deployment -- <URL>` | 检查线上 HTTP、DOM、Reader、Zen、安全头与缓存 |
+| `npm run build:hosting` | GitHub 托管专用：安全生成、审计、Vite 构建和 prebuilt 打包，不运行测试 |
+| `npm run build:release` | 本地增加 lint、类型检查和全部 Vitest 的完整发布门禁 |
+| `npm run test:e2e` | 仅供本地/人工验证，在四个视口运行 Playwright |
+| `npm run smoke:deployment -- <URL>` | 仅供本地/人工检查线上 HTTP、DOM、Reader、Zen、安全头与缓存 |
 
 进度文件必须恰好包含 Day 0–36，每条对象只允许：
 
@@ -57,4 +58,4 @@ npm run dev
 
 This Vite app publishes a structurally sanitized public projection of the Day 0–36 lessons plus the redacted `day`, `status`, and `referenceScore` fields from `content/progress.public.json`. It never reads `exercise` during development, build, CI, or Vercel deployment, and it never ships rubrics, notes, evaluation prose, answers, repository-governance paths, local paths, or source maps.
 
-Use Node 24.x and npm 11.x, then run `npm ci && npm run dev`. Run `npm run build:release` for the full deterministic generation, audit, lint, typecheck, unit-test, production-build, dist audit, and audited Build Output API v3 package. Only `.vercel/output` may be deployed with `vercel deploy --prebuilt`; source deployment and Git Integration stay disabled. See [DEPLOYMENT.md](./DEPLOYMENT.md) for release operations.
+Use Node 24.x and npm 11.x, then run `npm ci && npm run dev`. GitHub quality checks run only `npm ci` and `npm run lint`; browser E2E stays local. Manual GitHub delivery runs lint plus `npm run build:hosting`, then deploys only the audited `.vercel/output` with `vercel deploy --prebuilt`. Source deployment and Git Integration stay disabled. Run `npm run build:release` and `npm run test:e2e` locally for the full verification gate. See [DEPLOYMENT.md](./DEPLOYMENT.md) for release operations.

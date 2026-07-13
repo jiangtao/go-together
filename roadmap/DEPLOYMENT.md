@@ -20,11 +20,11 @@ Day 0–36 教程 → public projection + progress.public.json
 
 | 事件 | 工作流 | 行为 |
 | --- | --- | --- |
-| PR 或 main 的 Roadmap/教程变更 | `roadmap-quality` | Node 24、`npm ci`、release build、prebuilt 审计、四视口 Playwright |
-| 受信身份产生的 Preview/Production deployment status | `roadmap-deployment-smoke` | 只对本项目 Vercel HTTPS 主机做 HTTP、DOM、Reader、Zen 与安全头检查 |
-| 人工兜底 | `roadmap-vercel-manual` | 明确选择 Preview/Production，在 GitHub Runner 本地构建并只执行 prebuilt 部署与 smoke |
+| PR 或 main 的 Roadmap/教程变更 | `roadmap-quality` | Node 24、`npm ci`、`npm run lint`；不运行构建、单测或浏览器 E2E |
+| 受信身份产生的 Preview/Production deployment status | `roadmap-deployment-status` | 仅记录匹配受信创建者与环境的 Ready 事件，不访问部署 URL |
+| 人工托管 | `roadmap-vercel-manual` | 明确选择 Preview/Production，执行 lint 和无测试的安全 prebuilt 构建后部署 |
 
-普通质量工作流不部署。Git Integration 和所有 source deployment 保持关闭；不得把 PR/main push 直接配置为 Vercel source build。`roadmap-deployment-smoke` 只验证已有部署，不创建重复部署。
+普通质量工作流不部署。GitHub Actions 不运行 Vitest、Playwright、浏览器 smoke、截图或视觉证据。Git Integration 和所有 source deployment 保持关闭；不得把 PR/main push 直接配置为 Vercel source build。deployment status 工作流只记录受信状态，不创建部署或执行线上验证。
 
 ## 唯一可部署制品
 
@@ -43,7 +43,7 @@ Day 0–36 教程 → public projection + progress.public.json
 - Project Name：`go-together-roadmap`
 - Framework：Vite（项目元数据）；实际部署格式为 Build Output API v3
 - Git Integration：Disabled
-- Node.js：24.x（GitHub Runner 本地 release build）
+- Node.js：24.x（GitHub Runner 本地 hosting build）
 
 人工工作流只读取以下 GitHub Secrets：
 
@@ -51,9 +51,20 @@ Day 0–36 教程 → public projection + progress.public.json
 - `VERCEL_ORG_ID`
 - `VERCEL_PROJECT_ID`
 
-工作流在临时 Runner 中用 org/project ID 写入忽略的 `.vercel/project.json`，随后再次审计并执行 `vercel deploy --prebuilt`；它不拉取构建设置、不上传源码，也不触发云端构建。Secrets 只配置在 GitHub/Vercel 设置中，不写入仓库或日志。
+工作流在完成 `audit:prebuilt` 后，用 org/project ID 写入忽略的 `.vercel/project.json`，再执行 `vercel deploy --prebuilt`；它不拉取构建设置、不上传源码，也不触发云端构建。Secrets 只配置在 GitHub/Vercel 设置中，不写入仓库或日志。
 
-Deployment status smoke 另需仓库变量 `ROADMAP_DEPLOYMENT_CREATOR`，用于精确匹配受信事件创建者；未配置时 workflow 不运行。Smoke 仅接受 `go-together-roadmap.vercel.app` 及该项目的动态 `go-together-roadmap-*.vercel.app` 主机，不接受任意 custom host。
+Deployment status 记录另需仓库变量 `ROADMAP_DEPLOYMENT_CREATOR`，用于精确匹配受信事件创建者；未配置时 workflow 不运行。该工作流不请求 `environment_url`，仅将匹配的 Ready URL 写入 Actions 日志。
+
+人工 Preview/Production 托管工作流固定执行：
+
+```bash
+npm ci
+npm run lint
+npm run build:hosting
+vercel deploy --prebuilt
+```
+
+`build:hosting` 只包含公开课程生成、确定性检查、generated/dist 审计、Vite 构建、Build Output API v3 打包及精确 prebuilt 审计；不运行 typecheck、Vitest、Playwright 或其他浏览器步骤。
 
 ## 本地门禁与可归因证据
 
@@ -76,9 +87,11 @@ npm run test:e2e
 
 `evidence-manifest.json` 必须登记且只登记八个规定视觉状态。每条包含 CSS 视口、DPR、PNG 像素尺寸、文件大小、SHA-256、run ID、候选 HEAD 与由相关产品/配置/脚本/测试/工作流及 37 篇教程内容生成的确定性指纹。生成器拒绝缺图、多图、历史文件、空白图、错误 CSS×DPR、非法 HEAD 或缺失教程输入，也可在无 `.git` 的隔离副本中使用显式 HEAD。
 
-## Preview、Production 与 Smoke
+## Preview、Production 与本地 Smoke
 
-只有独立只读 QA 接受本地候选后，才可运行人工工作流。工作流捕获 `vercel deploy --prebuilt` 返回的实际 URL，并在同一受信流程中执行：
+只有独立只读 QA 接受本地候选后，才可运行人工工作流。工作流捕获 `vercel deploy --prebuilt` 返回的实际 URL 后停止；GitHub Actions 不执行 HTTP 或浏览器 smoke。
+
+需要线上复核时，由开发者或只读 QA 在本地明确运行：
 
 ```bash
 npm run smoke:deployment -- <VERCEL_PREVIEW_URL>
@@ -101,4 +114,4 @@ Preview smoke 未通过时不得 promote。Production 只从已经通过同等 s
 
 ## English operational summary
 
-The only deployable artifact is the audited Vercel Build Output API v3 directory at `.vercel/output`. CI builds it locally from the checked-out, sanitized inputs, verifies an exact manifest against the audited `dist`, and deploys only with `vercel deploy --prebuilt`. Source deployment, cloud builds, and Git Integration are disabled. Deployment smoke accepts only this project's Vercel HTTPS hosts, pins validated public DNS answers for both Node and Chromium, rejects redirects, and validates the public data boundary plus core UI behavior.
+The only deployable artifact is the audited Vercel Build Output API v3 directory at `.vercel/output`. GitHub quality CI runs only `npm ci` and lint. The manual hosting workflow runs lint plus the non-test `build:hosting` chain, verifies the exact prebuilt manifest against audited `dist`, and deploys only with `vercel deploy --prebuilt`. GitHub Actions never runs Vitest, Playwright, browser smoke, screenshots, or visual evidence. Full tests and deployment smoke remain explicit local/QA commands. Source deployment, cloud builds, and Git Integration are disabled.

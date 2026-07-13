@@ -5,14 +5,14 @@ on:
     paths:
       - "roadmap/**"
       - "docs/go-learning/daily-lessons/day-*.md"
-      - ".github/workflows/roadmap-quality.yml"
+      - ".github/workflows/roadmap-*.yml"
       - ".vercelignore"
   push:
     branches: [main]
     paths:
       - "roadmap/**"
       - "docs/go-learning/daily-lessons/day-*.md"
-      - ".github/workflows/roadmap-quality.yml"
+      - ".github/workflows/roadmap-*.yml"
       - ".vercelignore"
 
 permissions:
@@ -23,7 +23,7 @@ concurrency:
   cancel-in-progress: true
 
 jobs:
-  release-and-e2e:
+  lint:
     runs-on: ubuntu-latest
     defaults:
       run:
@@ -36,12 +36,4 @@ jobs:
           cache: npm
           cache-dependency-path: roadmap/package-lock.json
       - run: npm ci
-      - run: npm run build:release
-      - run: npx playwright install --with-deps chromium
-      - name: Run four-viewport E2E with attributable evidence
-        env:
-          E2E_CANDIDATE_HEAD: ${{ github.sha }}
-          E2E_EVIDENCE_DIR: ${{ runner.temp }}/roadmap-evidence-${{ github.run_id }}-${{ github.run_attempt }}
-          E2E_RUN_ID: github-${{ github.run_id }}-${{ github.run_attempt }}
-          PLAYWRIGHT_ARTIFACT_DIR: ${{ runner.temp }}/roadmap-playwright-${{ github.run_id }}-${{ github.run_attempt }}
-        run: npm run test:e2e
+      - run: npm run lint

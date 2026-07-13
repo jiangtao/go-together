@@ -33,8 +33,8 @@ jobs:
           cache: npm
           cache-dependency-path: roadmap/package-lock.json
       - run: npm ci
-      - run: npm run build:release
-      - run: npm run audit:prebuilt
+      - run: npm run lint
+      - run: npm run build:hosting
       - name: Write ephemeral Vercel project metadata
         run: >-
           node -e "const fs=require('node:fs');fs.mkdirSync('.vercel',{recursive:true});fs.writeFileSync('.vercel/project.json',JSON.stringify({orgId:process.env.VERCEL_ORG_ID,projectId:process.env.VERCEL_PROJECT_ID}))"
@@ -47,5 +47,3 @@ jobs:
             url=$(npx vercel@50.27.1 deploy --prebuilt --yes --token="$VERCEL_TOKEN")
           fi
           echo "url=$url" >> "$GITHUB_OUTPUT"
-      - run: npx playwright install --with-deps chromium
-      - run: npm run smoke:deployment -- "${{ steps.deploy.outputs.url }}"
