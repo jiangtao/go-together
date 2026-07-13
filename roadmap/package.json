@@ -9,6 +9,7 @@
     "npm": "11.x"
   },
   "scripts": {
+    "migrate:course": "node --import tsx scripts/course-migration.ts",
     "generate:public": "node --import tsx scripts/generate-public.ts",
     "check:determinism": "node --import tsx scripts/check-public-determinism.ts",
     "audit:generated": "node --import tsx scripts/audit-public.ts generated",
