@@ -13,8 +13,16 @@ _Avoid_: Track, Language, 课程主题
 _Avoid_: 课程内容仓库, Language 列表, 最近访问记录
 
 **Language（语言）**:
-Metadata that describes the programming language taught by a Course. Language classifies a Course but does not identify it; one Language may have multiple Courses.
-_Avoid_: Course, Track, 课程身份
+描述 Course 主语言的元数据。Language 用于分类但不标识 Course；一个 Language 可对应多个 Course，而每个 Course 恰有一个 Primary Language。
+_Avoid_: Course, Track, 课程身份, 多个同等主语言
+
+**Primary Language（主语言）**:
+一个 Course 唯一的主要编程语言，用于表达该 Course 的教学焦点与语言分类。辅助语言、运行时、框架和工具只能作为辅助技术元数据，不能形成第二个主语言或 Course 身份。
+_Avoid_: Course ID, 多主语言, 辅助工具即主语言
+
+**Supporting Technology（辅助技术）**:
+Course 教学中使用但不构成其主语言的语言、运行时、框架、库或工具；它补充教学语境，不改变 Course 的语言分类或稳定身份。
+_Avoid_: Primary Language, 第二 Course, 第二主语言
 
 **Default Course（默认课程）**:
 The Course selected when no Course has been explicitly chosen. The current Go Course is the Default Course; default is a selection role, not a different kind of Course.
@@ -37,8 +45,8 @@ Track 内按学习深度组织 Lesson 的课程阶段；调整阶段顺序不改
 _Avoid_: Day, Lesson, 全局阶段
 
 **Lesson（课次）**:
-Stage 内最小的可学习、练习和评测单元；其稳定身份来自所属 Course 与自身 Lesson 身份，而不是 Day 或文件路径。
-_Avoid_: Day, Markdown 文件, 全局课次
+Stage 内最小的可学习、练习和评测单元；每个 Lesson 只属于一个 Course，其稳定身份来自所属 Course 与自身 Lesson 身份。相似内容出现在另一 Course 时仍是独立 Lesson，不共享学习记录。
+_Avoid_: Day, Markdown 文件, 全局课次, 跨 Course 共享 Lesson 身份
 
 **Course Lifecycle（课程生命周期）**:
 Course 的发布可用性阶段，与 Lesson 的学习状态相互独立；生命周期变化不改变 Course 身份或历史学习记录的归属。
@@ -59,6 +67,10 @@ _Avoid_: Content Revision, Evaluation Cycle, Progress 状态
 **Replacement Course（替代课程）**:
 Retired Course 明示推荐的后继 Course；它保持独立身份，且不会自动接管原 Course 的 URL 或学习记录。
 _Avoid_: URL 重定向, Course 重命名, 自动进度迁移
+
+**Recommended Prerequisite Course（建议先修课程）**:
+一个 Course 可将另一 Course 声明为可选的学习准备建议；该关系不阻断访问、不改变 Course 身份，也不转移、继承或合并 Progress 与 Learning Record。
+_Avoid_: 强制先修门槛, Replacement Course, 跨 Course Progress 依赖
 
 **Retired Lesson（退役课次）**:
 已退出当前 Curriculum 但仍保留身份、内容与历史 Learning Record 的 Lesson；它不再参与当前学习顺序或进度统计。
@@ -127,6 +139,10 @@ _Avoid_: 第二真相源, 永久旧存储, 内部双写
 **Canonical Course URL（规范课程 URL）**:
 The permanent public namespace of a Course is `/courses/{courseId}`. `/`, `/course.json`, and `/sources/lessons/**` are permanent compatibility aliases for the Default Course, which is currently the Go Course.
 _Avoid_: 将根路径作为所有课程的规范身份, 将兼容别名用于非默认课程
+
+**Course Cadence（课程节奏）**:
+一个 Course 将有序 Lesson 安排为学习节奏的方式；每个 Course 自行定义节奏并可以使用或省略 Day，但必须保持明确的 Lesson 顺序。当前 Go Course 保留既有 Day 0–36 语义，其他 Course 无须套用固定天数。
+_Avoid_: 全局 30–40 天模板, 无序 Lesson 集合, 用节奏标签充当学习身份
 
 **Day（日次）**:
 A Course-local sequence label for learning cadence. A Course may omit Day; when present, it is unique only within that Course and may change without changing Lesson identity.

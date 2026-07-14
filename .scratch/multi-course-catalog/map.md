@@ -27,6 +27,7 @@ Status: resolved
 - [定义 Roadmap 多课程导航与状态模型](issues/05-define-roadmap-multicourse-experience.md) — URL 唯一决定 Active Course，Course/Progress 按修订配对加载；所有面板以稳定学习身份隔离，视口按 Course 缓存，现有 Go 根入口与 Day/Reader/Zen 体验保持兼容。
 - [冻结多课程生成、审计与发布门禁](issues/07-freeze-multicourse-delivery-gates.md) — Catalog 驱动全 Course 原子确定性生成和三层 allowlist 审计；公开仓库以脱敏发布进度快照桥接私有 Evaluation，GitHub 只部署受审 prebuilt，并在 staged Production smoke 后 promote。
 - [冻结 Go 全量迁移、回滚与验收顺序](issues/08-freeze-go-migration-and-acceptance.md) — 37 个 Go Lesson 以语义 ID 和显式 legacy 映射事务迁移；私有记录、发布快照、Skill、Roadmap 与兼容制品按影子构建、单次切换、独立验收和 staged Production 顺序闭环。
+- [固定每个 Course 的唯一主语言](../../docs/adr/0001-one-primary-language-per-course.md) — `language` 是唯一 Primary Language；辅助技术不形成第二主语言或 Course 身份，Course 间先修只作建议，Lesson 不跨 Course 共享身份或学习记录。
 
 ## Current frontier
 
