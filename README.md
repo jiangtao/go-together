@@ -10,11 +10,11 @@
 
 ## 组成
 
-- `docs/go-learning/daily-lessons/`：Day 0–36 课程源 Markdown。
-- `exercise/dayN/`：学习者本地笔记与评测结果，不进入公开站点。
+- `courses/<courseId>/`：规范课程源；当前默认课程 `go-backend` 保留 Day 0–36 的展示节奏。
+- `learning-records/<courseId>/lessons/<lessonId>/`：学习者本地笔记、评测与练习，不进入 Git 或公开站点。
+- `release-progress/<courseId>.json`：由评测记录派生的脱敏公开进度快照，不接受手工回写。
 - `roadmap/`：React 路线图，展示每日课程、状态、Markdown Reader 和 Zen 画布。
-- `roadmap/content/progress.public.json`：只保存可公开的 Day、状态和参考分数。
-- 安全生成链：课程源和脱敏进度经过公开投影、审计、Vite 构建及 Build Output API v3 打包后发布。
+- 安全生成链：Catalog、Course Source 与脱敏进度快照经过公开投影、审计、Vite 构建及 Build Output API v3 打包后发布。
 
 ## 快速入口
 
