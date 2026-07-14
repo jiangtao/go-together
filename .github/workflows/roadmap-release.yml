@@ -1,0 +1,338 @@
+name: roadmap-release
+
+on:
+  pull_request:
+  push:
+    branches: [main]
+  workflow_dispatch:
+    inputs:
+      candidate_sha:
+        description: 已通过审查的 40 位 Git commit SHA
+        required: true
+        type: string
+      target:
+        description: 部署目标
+        required: true
+        type: choice
+        options: [preview, production]
+
+permissions:
+  contents: read
+
+concurrency:
+  group: roadmap-release-${{ github.event.pull_request.number || inputs.candidate_sha || github.sha }}
+  cancel-in-progress: true
+
+jobs:
+  candidate:
+    runs-on: ubuntu-latest
+    outputs:
+      sha: ${{ steps.resolve.outputs.sha }}
+      target: ${{ steps.resolve.outputs.target }}
+    steps:
+      - id: resolve
+        env:
+          EVENT_NAME: ${{ github.event_name }}
+          PUSH_SHA: ${{ github.sha }}
+          PR_SHA: ${{ github.event.pull_request.head.sha }}
+          INPUT_SHA: ${{ inputs.candidate_sha }}
+          INPUT_TARGET: ${{ inputs.target }}
+        run: |
+          set -euo pipefail
+          if [ "$EVENT_NAME" = "workflow_dispatch" ]; then
+            case "$INPUT_SHA" in
+              [0-9a-f][0-9a-f][0-9a-f][0-9a-f][0-9a-f][0-9a-f][0-9a-f][0-9a-f][0-9a-f][0-9a-f][0-9a-f][0-9a-f][0-9a-f][0-9a-f][0-9a-f][0-9a-f][0-9a-f][0-9a-f][0-9a-f][0-9a-f][0-9a-f][0-9a-f][0-9a-f][0-9a-f][0-9a-f][0-9a-f][0-9a-f][0-9a-f][0-9a-f][0-9a-f][0-9a-f][0-9a-f][0-9a-f][0-9a-f][0-9a-f][0-9a-f][0-9a-f][0-9a-f][0-9a-f][0-9a-f]) ;;
+              *) echo "candidate_sha 必须为 40 位小写十六进制 SHA" >&2; exit 1 ;;
+            esac
+            sha="$INPUT_SHA"
+            target="$INPUT_TARGET"
+          elif [ "$EVENT_NAME" = "pull_request" ]; then
+            sha="$PR_SHA"
+            target="preview"
+          else
+            sha="$PUSH_SHA"
+            target="production"
+          fi
+          printf 'sha=%s\n' "$sha" >> "$GITHUB_OUTPUT"
+          printf 'target=%s\n' "$target" >> "$GITHUB_OUTPUT"
+
+  quality:
+    needs: candidate
+    runs-on: ubuntu-latest
+    outputs:
+      catalog_digest: ${{ steps.artifact.outputs.catalog_digest }}
+      prebuilt_digest: ${{ steps.artifact.outputs.prebuilt_digest }}
+    steps:
+      - uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5
+        with:
+          ref: ${{ needs.candidate.outputs.sha }}
+          fetch-depth: 0
+      - uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020
+        with:
+          node-version: 24.11.0
+          cache: npm
+          cache-dependency-path: roadmap/package-lock.json
+      - run: npm ci
+        working-directory: roadmap
+      - name: Require dispatched Production candidate to be reachable from main
+        if: github.event_name == 'workflow_dispatch' && needs.candidate.outputs.target == 'production'
+        run: |
+          set -euo pipefail
+          git fetch --no-tags origin main
+          git merge-base --is-ancestor "${{ needs.candidate.outputs.sha }}" origin/main
+      - run: npm run verify:release
+        working-directory: roadmap
+      - id: artifact
+        env:
+          CANDIDATE_SHA: ${{ needs.candidate.outputs.sha }}
+        working-directory: roadmap
+        run: |
+          set -euo pipefail
+          node -e 'const c=require("node:crypto");const f=require("node:fs");const h=p=>c.createHash("sha256").update(f.readFileSync(p)).digest("hex");const receipt=JSON.parse(f.readFileSync(".generated/release-receipt.json","utf8"));if(receipt.candidate.head!==process.env.CANDIDATE_SHA)throw new Error("Release Receipt candidate SHA 不匹配");const catalog=h(".generated/public/courses/catalog.json");const prebuilt=h(".generated/prebuilt-manifest.json");if(receipt.inputs.catalog.sha256!==catalog||receipt.artifacts.prebuiltManifest.sha256!==prebuilt)throw new Error("Release Receipt 制品摘要不匹配");f.appendFileSync(process.env.GITHUB_OUTPUT,`catalog_digest=${catalog}\nprebuilt_digest=${prebuilt}\n`);'
+      - uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
+        with:
+          name: roadmap-prebuilt-${{ needs.candidate.outputs.sha }}
+          if-no-files-found: error
+          retention-days: 7
+          path: |
+            roadmap/.vercel/output
+            roadmap/.generated/prebuilt-manifest.json
+            roadmap/.generated/release-receipt.json
+            roadmap/.generated/e2e-evidence/evidence-manifest.json
+            roadmap/.generated/public/courses/catalog.json
+            roadmap/package.json
+            roadmap/package-lock.json
+
+  deploy-preview:
+    if: github.event_name == 'workflow_dispatch' && needs.candidate.outputs.target == 'preview' || github.event_name == 'pull_request' && github.event.pull_request.head.repo.fork == false
+    needs: [candidate, quality]
+    runs-on: ubuntu-latest
+    environment:
+      name: roadmap-preview
+      url: ${{ steps.deploy.outputs.url }}
+    outputs:
+      url: ${{ steps.deploy.outputs.url }}
+    steps:
+      - uses: actions/download-artifact@d3f86a106a0bac45b974a628896c90dbdf5c8093
+        with:
+          name: roadmap-prebuilt-${{ needs.candidate.outputs.sha }}
+      - uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020
+        with:
+          node-version: 24.11.0
+      - run: npm ci --ignore-scripts
+        working-directory: roadmap
+      - name: Verify downloaded audited artifact
+        env:
+          CANDIDATE_SHA: ${{ needs.candidate.outputs.sha }}
+          CATALOG_DIGEST: ${{ needs.quality.outputs.catalog_digest }}
+          PREBUILT_DIGEST: ${{ needs.quality.outputs.prebuilt_digest }}
+        working-directory: roadmap
+        run: |
+          set -euo pipefail
+          node -e 'const c=require("node:crypto");const f=require("node:fs");const h=p=>c.createHash("sha256").update(f.readFileSync(p)).digest("hex");const r=JSON.parse(f.readFileSync(".generated/release-receipt.json","utf8"));if(r.candidate.head!==process.env.CANDIDATE_SHA||h(".generated/public/courses/catalog.json")!==process.env.CATALOG_DIGEST||h(".generated/prebuilt-manifest.json")!==process.env.PREBUILT_DIGEST)throw new Error("下载的审计制品或 Receipt 不匹配");'
+      - id: deploy
+        env:
+          VERCEL_TOKEN: ${{ secrets.VERCEL_TOKEN }}
+          VERCEL_ORG_ID: ${{ secrets.VERCEL_ORG_ID }}
+          VERCEL_PROJECT_ID: ${{ secrets.VERCEL_PROJECT_ID }}
+          CANDIDATE_SHA: ${{ needs.candidate.outputs.sha }}
+          CATALOG_DIGEST: ${{ needs.quality.outputs.catalog_digest }}
+          PREBUILT_DIGEST: ${{ needs.quality.outputs.prebuilt_digest }}
+        working-directory: roadmap
+        run: |
+          set -euo pipefail
+          test -n "$VERCEL_TOKEN" && test -n "$VERCEL_ORG_ID" && test -n "$VERCEL_PROJECT_ID"
+          node -e 'const f=require("node:fs");f.mkdirSync(".vercel",{recursive:true,mode:0o700});f.writeFileSync(".vercel/project.json",JSON.stringify({orgId:process.env.VERCEL_ORG_ID,projectId:process.env.VERCEL_PROJECT_ID}),{mode:0o600});'
+          url="$(./node_modules/.bin/vercel deploy --prebuilt --yes --token="$VERCEL_TOKEN" --meta candidateHead="$CANDIDATE_SHA" --meta catalogDigest="$CATALOG_DIGEST" --meta prebuiltDigest="$PREBUILT_DIGEST")"
+          ./node_modules/.bin/vercel inspect "$url" --wait --token="$VERCEL_TOKEN"
+          metadata="$(curl --fail --silent --show-error --get --data-urlencode "teamId=$VERCEL_ORG_ID" --header "Authorization: Bearer $VERCEL_TOKEN" "https://api.vercel.com/v13/deployments/${url#https://}")"
+          printf '%s' "$metadata" | node -e 'const f=require("node:fs");const d=JSON.parse(f.readFileSync(0,"utf8"));const expected={candidateHead:process.env.CANDIDATE_SHA,catalogDigest:process.env.CATALOG_DIGEST,prebuiltDigest:process.env.PREBUILT_DIGEST};for(const [key,value] of Object.entries(expected)){if(d.meta?.[key]!==value)throw new Error(`Vercel metadata 不匹配：${key}`)}'
+          printf 'url=%s\n' "$url" >> "$GITHUB_OUTPUT"
+
+  smoke-preview:
+    needs: [candidate, deploy-preview]
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+    steps:
+      - uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5
+        with:
+          ref: ${{ needs.candidate.outputs.sha }}
+      - uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020
+        with:
+          node-version: 24.11.0
+          cache: npm
+          cache-dependency-path: roadmap/package-lock.json
+      - run: npm ci
+        working-directory: roadmap
+      - run: npm run smoke:deployment -- "${{ needs.deploy-preview.outputs.url }}"
+        working-directory: roadmap
+
+  deploy-staged-production:
+    if: needs.candidate.outputs.target == 'production'
+    needs: [candidate, quality]
+    runs-on: ubuntu-latest
+    concurrency:
+      group: roadmap-production
+      cancel-in-progress: false
+    environment:
+      name: roadmap-production
+      url: ${{ steps.deploy.outputs.url }}
+    outputs:
+      url: ${{ steps.deploy.outputs.url }}
+    steps:
+      - uses: actions/download-artifact@d3f86a106a0bac45b974a628896c90dbdf5c8093
+        with:
+          name: roadmap-prebuilt-${{ needs.candidate.outputs.sha }}
+      - uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020
+        with:
+          node-version: 24.11.0
+      - run: npm ci --ignore-scripts
+        working-directory: roadmap
+      - name: Verify downloaded audited artifact
+        env:
+          CANDIDATE_SHA: ${{ needs.candidate.outputs.sha }}
+          CATALOG_DIGEST: ${{ needs.quality.outputs.catalog_digest }}
+          PREBUILT_DIGEST: ${{ needs.quality.outputs.prebuilt_digest }}
+        working-directory: roadmap
+        run: |
+          set -euo pipefail
+          node -e 'const c=require("node:crypto");const f=require("node:fs");const h=p=>c.createHash("sha256").update(f.readFileSync(p)).digest("hex");const r=JSON.parse(f.readFileSync(".generated/release-receipt.json","utf8"));if(r.candidate.head!==process.env.CANDIDATE_SHA||h(".generated/public/courses/catalog.json")!==process.env.CATALOG_DIGEST||h(".generated/prebuilt-manifest.json")!==process.env.PREBUILT_DIGEST)throw new Error("下载的审计制品或 Receipt 不匹配");'
+      - id: deploy
+        env:
+          VERCEL_TOKEN: ${{ secrets.VERCEL_TOKEN }}
+          VERCEL_ORG_ID: ${{ secrets.VERCEL_ORG_ID }}
+          VERCEL_PROJECT_ID: ${{ secrets.VERCEL_PROJECT_ID }}
+          CANDIDATE_SHA: ${{ needs.candidate.outputs.sha }}
+          CATALOG_DIGEST: ${{ needs.quality.outputs.catalog_digest }}
+          PREBUILT_DIGEST: ${{ needs.quality.outputs.prebuilt_digest }}
+        working-directory: roadmap
+        run: |
+          set -euo pipefail
+          test -n "$VERCEL_TOKEN" && test -n "$VERCEL_ORG_ID" && test -n "$VERCEL_PROJECT_ID"
+          node -e 'const f=require("node:fs");f.mkdirSync(".vercel",{recursive:true,mode:0o700});f.writeFileSync(".vercel/project.json",JSON.stringify({orgId:process.env.VERCEL_ORG_ID,projectId:process.env.VERCEL_PROJECT_ID}),{mode:0o600});'
+          url="$(./node_modules/.bin/vercel deploy --prebuilt --prod --skip-domain --yes --token="$VERCEL_TOKEN" --meta candidateHead="$CANDIDATE_SHA" --meta catalogDigest="$CATALOG_DIGEST" --meta prebuiltDigest="$PREBUILT_DIGEST")"
+          ./node_modules/.bin/vercel inspect "$url" --wait --token="$VERCEL_TOKEN"
+          metadata="$(curl --fail --silent --show-error --get --data-urlencode "teamId=$VERCEL_ORG_ID" --header "Authorization: Bearer $VERCEL_TOKEN" "https://api.vercel.com/v13/deployments/${url#https://}")"
+          printf '%s' "$metadata" | node -e 'const f=require("node:fs");const d=JSON.parse(f.readFileSync(0,"utf8"));const expected={candidateHead:process.env.CANDIDATE_SHA,catalogDigest:process.env.CATALOG_DIGEST,prebuiltDigest:process.env.PREBUILT_DIGEST};for(const [key,value] of Object.entries(expected)){if(d.meta?.[key]!==value)throw new Error(`Vercel metadata 不匹配：${key}`)}'
+          printf 'url=%s\n' "$url" >> "$GITHUB_OUTPUT"
+
+  smoke-staged-production:
+    needs: [candidate, deploy-staged-production]
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+    steps:
+      - uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5
+        with:
+          ref: ${{ needs.candidate.outputs.sha }}
+      - uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020
+        with:
+          node-version: 24.11.0
+          cache: npm
+          cache-dependency-path: roadmap/package-lock.json
+      - run: npm ci
+        working-directory: roadmap
+      - run: npm run smoke:deployment -- "${{ needs.deploy-staged-production.outputs.url }}"
+        working-directory: roadmap
+
+  promote-production:
+    needs: [candidate, deploy-staged-production, smoke-staged-production]
+    runs-on: ubuntu-latest
+    outputs:
+      previous_url: ${{ steps.capture-current-production.outputs.previous_url }}
+    concurrency:
+      group: roadmap-production
+      cancel-in-progress: false
+    environment:
+      name: roadmap-production
+      url: https://go-together-roadmap.vercel.app
+    steps:
+      - uses: actions/download-artifact@d3f86a106a0bac45b974a628896c90dbdf5c8093
+        with:
+          name: roadmap-prebuilt-${{ needs.candidate.outputs.sha }}
+      - uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020
+        with:
+          node-version: 24.11.0
+      - run: npm ci --ignore-scripts
+        working-directory: roadmap
+      - id: capture-current-production
+        env:
+          VERCEL_TOKEN: ${{ secrets.VERCEL_TOKEN }}
+        working-directory: roadmap
+        run: |
+          set -euo pipefail
+          test -n "$VERCEL_TOKEN"
+          previous_url="$(./node_modules/.bin/vercel inspect https://go-together-roadmap.vercel.app --format=json --token="$VERCEL_TOKEN" | node -e 'const f=require("node:fs");const deployment=JSON.parse(f.readFileSync(0,"utf8"));if(deployment.target!=="production"||typeof deployment.url!=="string"||!deployment.url.endsWith(".vercel.app"))throw new Error("当前生产别名没有解析为可回滚的 Production Deployment");process.stdout.write(`https://${deployment.url}`)')"
+          printf 'previous_url=%s\n' "$previous_url" >> "$GITHUB_OUTPUT"
+      - env:
+          VERCEL_TOKEN: ${{ secrets.VERCEL_TOKEN }}
+        working-directory: roadmap
+        run: |
+          set -euo pipefail
+          test -n "$VERCEL_TOKEN"
+          ./node_modules/.bin/vercel promote "${{ needs.deploy-staged-production.outputs.url }}" --yes --token="$VERCEL_TOKEN"
+
+  smoke-production:
+    needs: [candidate, promote-production]
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+    steps:
+      - uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5
+        with:
+          ref: ${{ needs.candidate.outputs.sha }}
+      - uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020
+        with:
+          node-version: 24.11.0
+          cache: npm
+          cache-dependency-path: roadmap/package-lock.json
+      - run: npm ci
+        working-directory: roadmap
+      - run: npm run smoke:deployment -- https://go-together-roadmap.vercel.app
+        working-directory: roadmap
+
+  rollback-production:
+    if: always() && needs.promote-production.result == 'success' && needs.smoke-production.result == 'failure'
+    needs: [candidate, promote-production, smoke-production]
+    runs-on: ubuntu-latest
+    concurrency:
+      group: roadmap-production
+      cancel-in-progress: false
+    environment: roadmap-production
+    steps:
+      - uses: actions/download-artifact@d3f86a106a0bac45b974a628896c90dbdf5c8093
+        with:
+          name: roadmap-prebuilt-${{ needs.candidate.outputs.sha }}
+      - uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020
+        with:
+          node-version: 24.11.0
+      - run: npm ci --ignore-scripts
+        working-directory: roadmap
+      - env:
+          VERCEL_TOKEN: ${{ secrets.VERCEL_TOKEN }}
+        working-directory: roadmap
+        run: |
+          set -euo pipefail
+          test -n "$VERCEL_TOKEN"
+          ./node_modules/.bin/vercel rollback "${{ needs.promote-production.outputs.previous_url }}" --yes --token="$VERCEL_TOKEN"
+
+  smoke-rollback-production:
+    if: always() && needs.rollback-production.result == 'success'
+    needs: [candidate, rollback-production]
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+    steps:
+      - uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5
+        with:
+          ref: ${{ needs.candidate.outputs.sha }}
+      - uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020
+        with:
+          node-version: 24.11.0
+          cache: npm
+          cache-dependency-path: roadmap/package-lock.json
+      - run: npm ci
+        working-directory: roadmap
+      - run: npm run smoke:deployment -- https://go-together-roadmap.vercel.app
+        working-directory: roadmap

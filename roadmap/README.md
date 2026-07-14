@@ -40,7 +40,7 @@ npm run dev
 | `npm run package:prebuilt` | 将已审计 dist 确定性打包为 `.vercel/output` |
 | `npm run audit:prebuilt` | 核对 Build Output API v3 精确文件集、内容哈希与 source deployment 关闭状态 |
 | `npm run build` | 执行安全生成、审计、类型检查、Vite 构建、dist 审计和 prebuilt 打包审计 |
-| `npm run build:hosting` | GitHub 托管专用：安全生成、审计、Vite 构建和 prebuilt 打包，不运行测试 |
+| `npm run build:hosting` | 本地诊断用的无测试 prebuilt 构建；不是可发布候选门禁，也不被 GitHub 工作流调用 |
 | `npm run build:release` | 执行唯一 `verify:release`，绑定工具链、测试、审计、浏览器证据与 Release Receipt |
 | `npm run test:e2e` | 仅供本地/人工验证，在四个视口运行 Playwright |
 | `npm run smoke:deployment -- <URL>` | 仅供本地/人工检查线上 HTTP、DOM、Reader、Zen、安全头与缓存 |
@@ -55,4 +55,4 @@ Release Snapshot 按 `(courseId, lessonId)` 携带四态与最小参考分数；
 
 This Vite app publishes Catalog-driven, structurally sanitized Course projections and exported Release Progress Snapshots. The default Go Course keeps permanent root and lesson aliases. Builds never read private Learning Records and never ship rubrics, notes, evaluation prose, answers, local paths, or source maps.
 
-Use Node 24.x and npm 11.x, then run `npm ci && npm run dev`. GitHub quality checks run only `npm ci` and `npm run lint`; browser E2E stays local. Manual GitHub delivery runs lint plus `npm run build:hosting`, then deploys only the audited `.vercel/output` with `vercel deploy --prebuilt`. Source deployment and Git Integration stay disabled. Run `npm run build:release` and `npm run test:e2e` locally for the full verification gate. See [DEPLOYMENT.md](./DEPLOYMENT.md) for release operations.
+Use Node 24.x and npm 11.x, then run `npm ci && npm run dev`. The single `roadmap-release` workflow runs the full `verify:release` gate for every PR, main push, and explicit dispatch. It publishes only the audited prebuilt artifact: same-repository PRs may use the Preview Environment; main uses staged Production, smoke, promote, and rollback-with-resmoke. Fork PRs never receive Secrets or deploy. Source deployment and Git Integration stay disabled. See [DEPLOYMENT.md](./DEPLOYMENT.md) for the exact release contract and external Environment setup.

@@ -80,7 +80,7 @@ async function createCandidateFixture(): Promise<{
   temporaryDirectories.push(repositoryRoot)
   const files = new Map<string, string>([
     [".vercelignore", "/*\n"],
-    [".github/workflows/roadmap-quality.yml", "name: quality\n"],
+    [".github/workflows/roadmap-release.yml", "name: release\n"],
     ["roadmap/package.json", "{\"name\":\"roadmap\"}\n"],
     ["roadmap/src/App.tsx", "export const App = () => null\n"],
     ["roadmap/scripts/example.ts", "export const build = true\n"],
@@ -260,7 +260,7 @@ describe("E2E 截图证据契约", () => {
     const workflow = await createCandidateFixture()
     const workflowFile = path.join(
       workflow.repositoryRoot,
-      ".github/workflows/roadmap-quality.yml"
+      ".github/workflows/roadmap-release.yml"
     )
     await rm(workflowFile)
     await symlink(
@@ -300,7 +300,7 @@ describe("E2E 截图证据契约", () => {
     )
     temporaryDirectories.push(externalWorkflows)
     await writeFile(
-      path.join(externalWorkflows, "roadmap-quality.yml"),
+      path.join(externalWorkflows, "roadmap-release.yml"),
       "name: escaped\n",
       "utf8"
     )
