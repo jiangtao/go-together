@@ -43,8 +43,6 @@ const PRIVATE_TRACKED_PATTERNS = [
   /(?:^|\/)\.env(?:\.|$)/i,
 ] as const
 
-const PROTECTED_LEGACY_COURSE = "roadmap/src/data/course.json"
-
 export function findPrivateTrackedPaths(paths: string[]): string[] {
   return [...new Set(paths)]
     .filter((candidate) =>
@@ -90,12 +88,7 @@ export function parseCandidateStatusPorcelainZ(
 export function findUnexpectedCandidateChanges(
   records: CandidateStatusRecord[]
 ): CandidateStatusRecord[] {
-  return records.filter(
-    (record) =>
-      record.path !== PROTECTED_LEGACY_COURSE ||
-      record.originalPath !== undefined ||
-      /[RC]/.test(record.status)
-  )
+  return records
 }
 
 const RELEASE_ENVIRONMENT_ALLOWLIST = [

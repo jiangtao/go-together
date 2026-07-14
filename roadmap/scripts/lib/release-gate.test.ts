@@ -138,7 +138,7 @@ describe("fail-closed release gate", () => {
     ])
   })
 
-  it("拒绝 tracked private/internal 路径并只忽略受保护旧 Course 数据", () => {
+  it("拒绝 tracked private/internal 路径和任何候选工作树改动", () => {
     expect(
       findPrivateTrackedPaths([
         "learning-records/0001.md",
@@ -166,6 +166,7 @@ describe("fail-closed release gate", () => {
     )
     expect(findUnexpectedCandidateChanges(records)).toEqual([
       { status: " M", path: "roadmap/src/App.tsx" },
+      { status: " M", path: "roadmap/src/data/course.json" },
       { status: "??", path: "courses/go-backend/course.json" },
       {
         status: "R ",

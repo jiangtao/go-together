@@ -54,7 +54,6 @@ const protectedRoots = [
   "learning-records",
   "release-progress",
   "roadmap/content",
-  "roadmap/src/data/course.json",
 ]
 
 function baseEnvironment(fixed: Record<string, string> = {}): NodeJS.ProcessEnv {

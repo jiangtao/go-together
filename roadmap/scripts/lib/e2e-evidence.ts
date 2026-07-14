@@ -101,7 +101,6 @@ const EVALUATION_SKILL_DIRECTORIES = [
 ]
 const COURSE_SOURCE_DIRECTORY = "courses"
 const RELEASE_PROGRESS_DIRECTORY = "release-progress"
-const PRIVATE_LEGACY_COURSE = "roadmap/src/data/course.json"
 
 interface PngStats {
   width: number
@@ -284,7 +283,6 @@ async function collectCandidateFiles(repositoryRoot: string): Promise<string[]> 
     ...releaseSnapshots,
     ...evaluationSkills.flat(),
   ]
-    .filter((file) => file !== PRIVATE_LEGACY_COURSE)
     .sort()
   if (
     !files.includes("roadmap/package.json") ||
