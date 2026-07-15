@@ -33,6 +33,13 @@
 
 准备阶段只排他创建 Notes，不创建 Evaluation、不执行命令、不代写答案。评测阶段重读当前 Lesson 的 Notes 与允许的工程证据，只更新对应 `learning-records/<courseId>/lessons/<lessonId>/evaluation.md`；不得反向改写课程源、Release Progress 或 Roadmap。缺少稳定身份、跨 Lesson、敏感内容或任意命令请求时，Skill 会停止并要求补齐安全边界。
 
+自然语言入口示例：
+
+- 维护者：请用 `$course-authoring` 创建 `courseId=python-backend` 的 Draft Course，提供标题、描述、语言、Track/Stage 和评测契约。
+- 维护者：请用 `$course-authoring` 向 `courseId=python-backend` 添加 `lessonId=http-routing`，提供 Day（或明确 `null`）、目标、Goals、正文和评测能力项。
+- 学习者：请用 `$evaluate-course-lesson`，显式提供 `courseId=go-backend`、`lessonId=why-go-after-node`，准备该 Lesson 的 Notes。
+- 学习者：请用 `$evaluate-course-lesson`，显式提供同一 `courseId=go-backend`、`lessonId=why-go-after-node`，开始或继续严格评测；进入“重新学习”后仍沿用这组身份重新开始。
+
 ## 快速入口
 
 - Production Roadmap：<https://go-together-roadmap.vercel.app>

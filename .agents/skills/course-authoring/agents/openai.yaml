@@ -1,0 +1,4 @@
+interface:
+  display_name: "Course Authoring"
+  short_description: "按稳定身份创建课程、添加 Lesson 并安全发布"
+  default_prompt: "使用 $course-authoring 处理显式 courseId 的课程维护请求。"
