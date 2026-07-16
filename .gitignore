@@ -33,3 +33,8 @@ go.work.sum
 .DS_Store
 
 origin.md
+
+# Local authoring and learner facts; never publish or track.
+/courses/*/resources/internal/
+/learning-records/*/lessons/
+/exercise/

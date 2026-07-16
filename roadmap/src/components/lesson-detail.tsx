@@ -18,12 +18,12 @@ import {
   CardTitle,
 } from "@/components/ui/card"
 import { Separator } from "@/components/ui/separator"
-import type { CourseLesson, CourseStage } from "@/types/course"
+import type { RoadmapLesson, RoadmapStage } from "@/types/course"
 
 interface LessonDetailProps {
-  lesson: CourseLesson
-  stage: CourseStage
-  onOpenCourse: (lesson: CourseLesson, trigger: HTMLElement) => void
+  lesson: RoadmapLesson
+  stage: RoadmapStage
+  onOpenCourse: (lesson: RoadmapLesson, trigger: HTMLElement) => void
 }
 
 export function LessonDetail({
@@ -35,22 +35,21 @@ export function LessonDetail({
     <Card className="lesson-detail" data-testid="lesson-detail">
       <CardHeader>
         <div className="mb-1 flex flex-wrap items-center gap-2">
-          <Badge variant="secondary">{lesson.dayLabel}</Badge>
+          <Badge variant="secondary">{lesson.label}</Badge>
         </div>
         <CardTitle data-testid="lesson-detail-title">{lesson.title}</CardTitle>
         <CardDescription>
           阶段 {stage.order} · {stage.title}
-          {lesson.englishTitle ? ` · ${lesson.englishTitle}` : ""}
         </CardDescription>
       </CardHeader>
       <CardContent className="lesson-detail-content">
-        <section aria-labelledby={`evaluation-heading-${lesson.day}`}>
+        <section aria-labelledby={`evaluation-heading-${lesson.lessonId}`}>
           <h2
-            id={`evaluation-heading-${lesson.day}`}
+            id={`evaluation-heading-${lesson.lessonId}`}
             className="detail-heading"
           >
             <ClipboardCheckIcon aria-hidden="true" />
-            当日评测
+            本课评测
           </h2>
           <div className="lesson-evaluation-summary">
             <div>
@@ -74,7 +73,7 @@ export function LessonDetail({
         <section aria-labelledby="objective-heading">
           <h2 id="objective-heading" className="detail-heading">
             <TargetIcon aria-hidden="true" />
-            当日目标
+            本课目标
           </h2>
           <p className="detail-copy" data-testid="lesson-objective">
             {lesson.objective}
@@ -92,7 +91,7 @@ export function LessonDetail({
             <BookOpenIcon aria-hidden="true" />
             <div className="min-w-0">
               <span>课程 Markdown</span>
-              <p>在应用内安全阅读当天教程</p>
+              <p>在应用内安全阅读本课教程</p>
             </div>
             <Button
               type="button"

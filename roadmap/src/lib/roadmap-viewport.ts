@@ -1,6 +1,14 @@
 export const ROADMAP_MIN_ZOOM = 0.18
 export const ROADMAP_MAX_ZOOM = 1.6
 
+export function createRoadmapViewportKey(
+  courseId: string,
+  courseRevision: string,
+  isMobile: boolean
+): string {
+  return `${courseId}:${courseRevision}:${isMobile ? "mobile" : "desktop"}`
+}
+
 export type ViewportLayoutEvent =
   | "initial-layout"
   | "zen-enter"

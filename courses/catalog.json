@@ -1,0 +1,17 @@
+{
+  "schemaVersion": 1,
+  "defaultCourseId": "go-backend",
+  "courses": [
+    {
+      "courseId": "go-backend",
+      "title": "Go 36 天学习路线图",
+      "language": {
+        "id": "go",
+        "label": "Go"
+      },
+      "lifecycle": "published",
+      "replacementCourseId": null,
+      "manifestPath": "courses/go-backend/course.json"
+    }
+  ]
+}

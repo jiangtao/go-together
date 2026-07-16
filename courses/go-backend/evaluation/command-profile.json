@@ -1,0 +1,38 @@
+{
+  "schemaVersion": 1,
+  "profileId": "go-local",
+  "environment": {
+    "GOENV": "off",
+    "GOPROXY": "off",
+    "GOSUMDB": "off"
+  },
+  "commands": [
+    {
+      "commandId": "go-test",
+      "argvTemplate": ["go", "test", "{package}"],
+      "variables": {"package": "workspace-path"},
+      "timeoutSeconds": 120
+    },
+    {
+      "commandId": "go-test-race",
+      "argvTemplate": ["go", "test", "-race", "{package}"],
+      "variables": {"package": "workspace-path"},
+      "timeoutSeconds": 180
+    },
+    {
+      "commandId": "go-vet",
+      "argvTemplate": ["go", "vet", "{package}"],
+      "variables": {"package": "workspace-path"},
+      "timeoutSeconds": 120
+    },
+    {
+      "commandId": "go-bench",
+      "argvTemplate": ["go", "test", "-bench={benchmark}", "{package}"],
+      "variables": {
+        "benchmark": "selector",
+        "package": "workspace-path"
+      },
+      "timeoutSeconds": 180
+    }
+  ]
+}

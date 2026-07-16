@@ -1,11 +1,16 @@
 import type { CourseResource } from "@/types/course"
 
+export interface LearningIdentity {
+  courseId: string
+  lessonId: string
+}
+
 export type Surface =
   | { kind: "canvas" }
-  | { kind: "day"; day: number; trigger: HTMLElement }
+  | { kind: "day"; identity: LearningIdentity; trigger: HTMLElement }
   | {
       kind: "reader"
-      day: number
+      identity: LearningIdentity
       resource: CourseResource
       origin: "canvas" | "day"
       trigger: HTMLElement
@@ -60,7 +65,7 @@ export function escapeOneLayer(state: AppViewState): AppViewState {
         state.surface.origin === "day"
           ? {
               kind: "day",
-              day: state.surface.day,
+              identity: state.surface.identity,
               trigger: state.surface.trigger,
             }
           : { kind: "canvas" },
@@ -74,6 +79,13 @@ export function escapeOneLayer(state: AppViewState): AppViewState {
   return state.zen
     ? { zen: false, surface: state.surface }
     : state
+}
+
+export function surfaceBelongsToCourse(
+  surface: Surface,
+  courseId: string
+): boolean {
+  return surface.kind === "canvas" || surface.identity.courseId === courseId
 }
 
 export function isEditableKeyboardTarget(target: EventTarget | null): boolean {

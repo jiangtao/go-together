@@ -8,6 +8,137 @@ import { mockGitHubRepositoryApi } from "./github-api"
 const DIAGNOSTIC_SCREENSHOT_DIRECTORY = path.resolve(
   process.env.PLAYWRIGHT_ARTIFACT_DIR ?? ".generated/playwright-artifacts"
 )
+const EVIDENCE_SCREENSHOT_DIRECTORY = path.resolve(
+  process.env.E2E_EVIDENCE_DIR ?? ".generated/e2e-evidence"
+)
+const MULTI_COURSE_REVISION = `sha256:${"4".repeat(64)}`
+const MULTI_CONTENT_REVISION = `sha256:${"5".repeat(64)}`
+
+function secondaryCourse(
+  courseId: "python-core" | "go-legacy",
+  lifecycle: "published" | "retired"
+) {
+  const language =
+    courseId === "python-core"
+      ? { id: "python", label: "Python" }
+      : { id: "go", label: "Go" }
+  const title = courseId === "python-core" ? "Python Core" : "Go Legacy"
+  const lessonIds = ["functions", "decorators", "data-model"]
+  return {
+    course: {
+      schemaVersion: 1,
+      courseId,
+      courseRevision: MULTI_COURSE_REVISION,
+      title,
+      description:
+        courseId === "python-core"
+          ? "Python 语言基础"
+          : "已退役的 Go 基础课程",
+      language,
+      lifecycle,
+      replacementCourseId: lifecycle === "retired" ? "go-backend" : null,
+      tracks: [
+        {
+          trackId: "language-model",
+          title: "语言模型",
+          description: "理解语言语义",
+          stages: [
+            {
+              stageId: "functions-and-objects",
+              title: "函数与对象",
+              description: "从函数进入对象模型",
+              lessons: lessonIds.map((lessonId, index) => ({
+                lessonId,
+                lifecycle: "active",
+                day: null,
+                title: ["函数", "装饰器", "数据模型"][index],
+                objective: `掌握${["函数", "装饰器", "数据模型"][index]}`,
+                goals: ["解释核心行为"],
+                contentRevision: MULTI_CONTENT_REVISION,
+                lessonHref: `/courses/${courseId}/sources/lessons/${lessonId}.md`,
+              })),
+            },
+          ],
+        },
+      ],
+    },
+    progress: {
+      schemaVersion: 1,
+      courseId,
+      courseRevision: MULTI_COURSE_REVISION,
+      lessons: lessonIds.map((lessonId) => ({
+        lessonId,
+        status: "未开始",
+        referenceScore: null,
+      })),
+    },
+    declaration: {
+      courseId,
+      courseRevision: MULTI_COURSE_REVISION,
+      title,
+      description:
+        courseId === "python-core"
+          ? "Python 语言基础"
+          : "已退役的 Go 基础课程",
+      language,
+      lifecycle,
+      replacementCourseId: lifecycle === "retired" ? "go-backend" : null,
+      pageHref: `/courses/${courseId}`,
+      courseHref: `/courses/${courseId}/course.json`,
+      progressHref: `/courses/${courseId}/progress.json`,
+    },
+  }
+}
+
+async function mockMultiCourseProjection(
+  page: Page,
+  options: { pythonDelayMs?: number } = {}
+) {
+  const python = secondaryCourse("python-core", "published")
+  const retired = secondaryCourse("go-legacy", "retired")
+  await page.route("**/courses/catalog.json", async (route) => {
+    const response = await route.fetch()
+    const catalog = (await response.json()) as {
+      schemaVersion: 1
+      defaultCourseId: string
+      courses: unknown[]
+    }
+    await route.fulfill({
+      json: {
+        ...catalog,
+        courses: [...catalog.courses, python.declaration, retired.declaration],
+      },
+    })
+  })
+  for (const fixture of [python, retired]) {
+    await page.route(
+      `**/courses/${fixture.course.courseId}/course.json`,
+      async (route) => {
+        if (
+          fixture.course.courseId === "python-core" &&
+          options.pythonDelayMs
+        ) {
+          await new Promise((resolve) =>
+            setTimeout(resolve, options.pythonDelayMs)
+          )
+        }
+        await route.fulfill({ json: fixture.course })
+      }
+    )
+    await page.route(
+      `**/courses/${fixture.course.courseId}/progress.json`,
+      (route) => route.fulfill({ json: fixture.progress })
+    )
+    await page.route(
+      `**/courses/${fixture.course.courseId}/sources/lessons/*.md`,
+      (route) =>
+        route.fulfill({
+          contentType: "text/markdown; charset=utf-8",
+          body: `# ${fixture.course.title}\n\n安全的同源课程正文。`,
+        })
+    )
+  }
+}
 
 test.beforeEach(async ({ page }) => {
   await mockGitHubRepositoryApi(page)
@@ -16,6 +147,7 @@ test.beforeEach(async ({ page }) => {
 function watchRuntimeErrors(page: Page) {
   const consoleErrors: string[] = []
   const pageErrors: string[] = []
+  const networkErrors: string[] = []
 
   page.on("console", (message) => {
     if (message.type() === "error") {
@@ -23,11 +155,31 @@ function watchRuntimeErrors(page: Page) {
     }
   })
   page.on("pageerror", (error) => pageErrors.push(error.message))
+  page.on("requestfailed", (request) => {
+    const error = request.failure()?.errorText ?? "unknown"
+    if (error !== "net::ERR_ABORTED") {
+      networkErrors.push(`${request.method()} ${request.url()} ${error}`)
+    }
+  })
+  page.on("response", (response) => {
+    if (response.status() >= 400) {
+      networkErrors.push(`${response.status()} ${response.url()}`)
+    }
+  })
 
   return () => {
     expect(pageErrors).toEqual([])
     expect(consoleErrors).toEqual([])
+    expect(networkErrors).toEqual([])
   }
+}
+
+async function captureEvidenceScreenshot(page: Page, state: string) {
+  await mkdir(EVIDENCE_SCREENSHOT_DIRECTORY, { recursive: true })
+  await page.screenshot({
+    path: path.join(EVIDENCE_SCREENSHOT_DIRECTORY, `${state}.png`),
+    fullPage: true,
+  })
 }
 
 async function waitForViewportToSettle(viewport: Locator) {
@@ -144,6 +296,24 @@ async function expectElementInsideViewport(locator: Locator, viewportHeight: num
   expect(box!.y + box!.height).toBeLessThanOrEqual(viewportHeight)
 }
 
+async function expectMinimumTouchTargets(locator: Locator) {
+  const undersized = await locator.evaluateAll((elements) =>
+    elements
+      .filter((element) => {
+        const rect = element.getBoundingClientRect()
+        return rect.width < 44 || rect.height < 44
+      })
+      .map(
+        (element) =>
+          element.getAttribute("aria-label") ??
+          element.getAttribute("data-testid") ??
+          element.textContent?.trim() ??
+          "unknown"
+      )
+  )
+  expect(undersized).toEqual([])
+}
+
 async function panNodeIntoCanvas(
   page: Page,
   node: Locator,
@@ -215,24 +385,25 @@ async function panNodeIntoCanvas(
   throw new Error("无法将后段课程节点平移到路线图画布内")
 }
 
-test("公开课程数据提供确定加载态", async ({ page }, testInfo) => {
-  test.skip(
-    testInfo.project.name !== "desktop-chromium",
-    "数据加载态回归使用 1440 桌面浏览器"
-  )
+test("公开课程数据提供确定加载态", async ({ page }) => {
   const expectNoRuntimeErrors = watchRuntimeErrors(page)
   let releaseResponse!: () => void
   const responseGate = new Promise<void>((resolve) => {
     releaseResponse = resolve
   })
 
-  await page.route("**/course.json", async (route) => {
+  await page.route("**/courses/catalog.json", async (route) => {
     await responseGate
     await route.continue()
   })
   await page.goto("/")
   await expect(page.getByTestId("course-load-screen")).toBeVisible()
   await expect(page.getByRole("status")).toContainText("正在加载学习路线")
+  expect(
+    await page.evaluate(
+      () => document.documentElement.scrollWidth > window.innerWidth + 1
+    )
+  ).toBe(false)
   await expect(page.locator(".react-flow__node")).toHaveCount(0)
   releaseResponse()
   await expect(page.locator(".react-flow__node")).toHaveCount(47)
@@ -240,11 +411,7 @@ test("公开课程数据提供确定加载态", async ({ page }, testInfo) => {
   expectNoRuntimeErrors()
 })
 
-test("公开课程数据错误后可重试", async ({ page }, testInfo) => {
-  test.skip(
-    testInfo.project.name !== "desktop-chromium",
-    "数据错误态回归使用 1440 桌面浏览器"
-  )
+test("公开课程数据错误后可重试", async ({ page }) => {
   const expectNoRuntimeErrors = watchRuntimeErrors(page)
   await page.addInitScript(() => {
     const originalFetch = window.fetch.bind(window)
@@ -261,7 +428,10 @@ test("公开课程数据错误后可重试", async ({ page }, testInfo) => {
           : input instanceof Request
             ? input.url
             : input.toString()
-      if (new URL(url, window.location.origin).pathname === "/course.json") {
+      if (
+        new URL(url, window.location.origin).pathname ===
+        "/courses/catalog.json"
+      ) {
         return new Response('{"error":"temporary"}', {
           status: 503,
           headers: { "Content-Type": "application/json" },
@@ -273,6 +443,12 @@ test("公开课程数据错误后可重试", async ({ page }, testInfo) => {
 
   await page.goto("/")
   await expect(page.getByRole("alert")).toContainText("HTTP 503")
+  await expect(page.getByTestId("course-load-error")).toBeFocused()
+  expect(
+    await page.evaluate(
+      () => document.documentElement.scrollWidth > window.innerWidth + 1
+    )
+  ).toBe(false)
   await page.evaluate(() => {
     const testWindow = window as Window & {
       __restoreCourseFetch?: () => void
@@ -284,18 +460,297 @@ test("公开课程数据错误后可重试", async ({ page }, testInfo) => {
   expectNoRuntimeErrors()
 })
 
+test("根路径与规范 Go 路径只消费同一组 canonical revision", async ({
+  page,
+}, testInfo) => {
+  test.skip(
+    testInfo.project.name !== "desktop-chromium",
+    "canonical 网络契约使用 1440 桌面浏览器"
+  )
+  const expectNoRuntimeErrors = watchRuntimeErrors(page)
+  const courseRequests: string[] = []
+  page.on("request", (request) => {
+    const pathname = new URL(request.url()).pathname
+    if (pathname.includes("course") || pathname.includes("sources/lessons")) {
+      courseRequests.push(pathname)
+    }
+  })
+
+  await page.goto("/")
+  const rootRevision = await page.locator(".app-shell").getAttribute(
+    "data-course-revision"
+  )
+  const canonicalRevision = await page.evaluate(async () => {
+    const response = await fetch("/courses/go-backend/course.json")
+    const value = (await response.json()) as { courseRevision: string }
+    return value.courseRevision
+  })
+  expect(rootRevision).toBe(canonicalRevision)
+
+  await page.goto("/courses/go-backend")
+  await expect(page.locator(".app-shell")).toHaveAttribute(
+    "data-course-revision",
+    canonicalRevision
+  )
+  expect(courseRequests).not.toContain("/course.json")
+  expect(courseRequests).toContain("/courses/catalog.json")
+  expect(courseRequests).toContain("/courses/go-backend/course.json")
+  expect(courseRequests).toContain("/courses/go-backend/progress.json")
+  expectNoRuntimeErrors()
+})
+
+test("Course Select 以 URL 切换任意结构课程并按 history 恢复 transform", async ({
+  page,
+}, testInfo) => {
+  test.skip(
+    testInfo.project.name !== "desktop-chromium",
+    "多课程 history 与 transform 隔离使用 1440 桌面浏览器"
+  )
+  const expectNoRuntimeErrors = watchRuntimeErrors(page)
+  await mockMultiCourseProjection(page)
+  await page.goto("/")
+
+  const courseSelect = page.getByTestId("course-select-trigger")
+  await expect(courseSelect).toBeVisible()
+  await courseSelect.click()
+  await page.getByRole("option", { name: "Python · Python Core" }).click()
+  await expect(page).toHaveURL(/\/courses\/python-core$/)
+  await expect(page.getByTestId("course-heading")).toHaveText("Python Core")
+  await expect(courseSelect).toBeFocused()
+  await expect(page.locator(".react-flow__node")).toHaveCount(6)
+  await expect(page.getByTestId("lesson-node-functions")).toContainText(
+    "课次 1"
+  )
+
+  const viewport = page.locator(".react-flow__viewport")
+  await page.locator(".react-flow__controls-zoomin").click()
+  await waitForViewportToSettle(viewport)
+  const pythonViewport = await viewport.getAttribute("style")
+
+  const firstLesson = page.locator(
+    '.react-flow__node-lesson[data-id="lesson:functions"]'
+  )
+  await firstLesson.focus()
+  await page.keyboard.press("Enter")
+  await expect(page.getByTestId("learning-drawer")).toBeVisible()
+  await expect(page.getByTestId("course-select-trigger")).toBeDisabled()
+  await expect(page.getByTestId("learning-drawer-close")).toBeFocused()
+  await page.getByTestId("learning-drawer-close").click()
+
+  await page.goBack()
+  await expect(page).toHaveURL(/\/$/)
+  await expect(page.getByTestId("course-heading")).toContainText("Go")
+  await expect(page.getByTestId("course-heading")).toBeFocused()
+  await page.goForward()
+  await expect(page).toHaveURL(/\/courses\/python-core$/)
+  await expect(page.getByTestId("course-heading")).toBeFocused()
+  await waitForViewportToSettle(viewport)
+  await expect(viewport).toHaveAttribute("style", pythonViewport ?? "")
+  expectNoRuntimeErrors()
+})
+
+test("候选证据固定 Course Select 展开与非默认 Course 全览", async ({
+  page,
+}, testInfo) => {
+  test.skip(
+    !["desktop-chromium", "mobile-390"].includes(testInfo.project.name),
+    "候选视觉证据固定使用 1440 桌面与 390 移动视口"
+  )
+  const expectNoRuntimeErrors = watchRuntimeErrors(page)
+  await mockMultiCourseProjection(page)
+  await page.goto("/")
+  await waitForViewportToSettle(page.locator(".react-flow__viewport"))
+
+  await page.getByTestId("course-select-trigger").click()
+  await expect(
+    page.getByRole("option", { name: "Python · Python Core" })
+  ).toBeVisible()
+  await captureEvidenceScreenshot(
+    page,
+    testInfo.project.name === "desktop-chromium"
+      ? "desktop-course-select"
+      : "mobile-course-select"
+  )
+
+  await page.getByRole("option", { name: "Python · Python Core" }).click()
+  await expect(page).toHaveURL(/\/courses\/python-core$/)
+  await expect(page.getByTestId("course-heading")).toHaveText("Python Core")
+  await waitForViewportToSettle(page.locator(".react-flow__viewport"))
+  await expectWholeRoadmapInsideCanvas(
+    page,
+    page.getByTestId("roadmap-canvas")
+  )
+  await captureEvidenceScreenshot(
+    page,
+    testInfo.project.name === "desktop-chromium"
+      ? "desktop-nondefault-normal"
+      : "mobile-nondefault-normal"
+  )
+  expectNoRuntimeErrors()
+})
+
+test("迟到 Course 请求不能覆盖 history 已选择的 Active Course", async ({
+  page,
+}, testInfo) => {
+  test.skip(
+    testInfo.project.name !== "desktop-chromium",
+    "请求 generation 与 abort 回归使用 1440 桌面浏览器"
+  )
+  const expectNoRuntimeErrors = watchRuntimeErrors(page)
+  await mockMultiCourseProjection(page, { pythonDelayMs: 700 })
+  await page.goto("/")
+  await page.getByTestId("course-select-trigger").click()
+  await page.getByRole("option", { name: "Python · Python Core" }).click()
+  await expect(page).toHaveURL(/\/courses\/python-core$/)
+  await expect(page.getByTestId("course-load-screen")).toBeVisible()
+  await page.evaluate(() => window.history.back())
+  await expect(page).toHaveURL(/\/$/)
+  await expect(page.getByTestId("course-heading")).toContainText("Go")
+  await page.waitForTimeout(850)
+  await expect(page.getByTestId("course-heading")).toContainText("Go")
+  await expect(page.locator(".react-flow__node")).toHaveCount(47)
+  expectNoRuntimeErrors()
+})
+
+test("Course 变化会关闭 Reader 并丢弃旧 Course 的迟到 Markdown", async ({
+  page,
+}, testInfo) => {
+  test.skip(
+    testInfo.project.name !== "desktop-chromium",
+    "Reader 异步隔离使用 1440 桌面浏览器"
+  )
+  const expectNoRuntimeErrors = watchRuntimeErrors(page)
+  await mockMultiCourseProjection(page)
+  await page.route("**/courses/go-backend/sources/lessons/why-go-after-node.md", async (route) => {
+    await new Promise((resolve) => setTimeout(resolve, 600))
+    await route.fulfill({
+      contentType: "text/markdown; charset=utf-8",
+      body: "# OLD COURSE READER",
+    })
+  })
+  await page.goto("/")
+  await page.getByTestId("lesson-node-course-0").click()
+  await expect(page.getByTestId("markdown-reader-loading")).toBeVisible()
+  await page.evaluate(() => {
+    window.history.pushState(null, "", "/courses/python-core")
+    window.dispatchEvent(new PopStateEvent("popstate"))
+  })
+  await expect(page.getByTestId("course-heading")).toHaveText("Python Core")
+  await expect(page.getByTestId("markdown-reader")).toHaveCount(0)
+  await page.waitForTimeout(700)
+  await expect(page.getByText("OLD COURSE READER")).toHaveCount(0)
+  expectNoRuntimeErrors()
+})
+
+test("面板 trigger 被销毁时焦点回退到当前 Course 标题", async ({
+  page,
+}, testInfo) => {
+  test.skip(
+    testInfo.project.name !== "desktop-chromium",
+    "焦点回退使用 1440 桌面浏览器"
+  )
+  const expectNoRuntimeErrors = watchRuntimeErrors(page)
+  await page.goto("/")
+  const trigger = page.locator(
+    '.react-flow__node-lesson[data-id="lesson:why-go-after-node"]'
+  )
+  await trigger.locator('[data-slot="card-header"]').click()
+  await expect(page.getByTestId("learning-drawer")).toBeVisible()
+  await trigger.evaluate((element) => element.remove())
+  await page.getByTestId("learning-drawer-close").click()
+  await expect(page.getByTestId("course-heading")).toBeFocused()
+  expectNoRuntimeErrors()
+})
+
+test("尾斜杠规范化、未知 Course 与 Retired Replacement 均失败透明", async ({
+  page,
+}, testInfo) => {
+  test.skip(
+    testInfo.project.name !== "desktop-chromium",
+    "路由错误与退役课程回归使用 1440 桌面浏览器"
+  )
+  const expectNoRuntimeErrors = watchRuntimeErrors(page)
+  await mockMultiCourseProjection(page)
+
+  await page.goto("/courses/go-backend/")
+  await expect(page).toHaveURL(/\/courses\/go-backend$/)
+  await expect(page.getByTestId("course-heading")).toBeFocused()
+
+  await page.goto("/courses/not-registered")
+  await expect(page.getByTestId("course-load-error")).toContainText(
+    "课程不存在"
+  )
+  await expect(page.getByTestId("course-load-error")).toBeFocused()
+  await expect(page.locator(".react-flow__node")).toHaveCount(0)
+
+  await page.goto("/courses/go-legacy")
+  await expect(page).toHaveURL(/\/courses\/go-legacy$/)
+  await expect(page.getByTestId("retired-course-notice")).toContainText(
+    "内容与历史进度继续保留"
+  )
+  await expect(page.getByTestId("retired-course-notice")).toContainText(
+    "Go 36 天学习路线图"
+  )
+  await page
+    .getByRole("button", { name: /查看替代课程/ })
+    .click()
+  await expect(page).toHaveURL(/\/courses\/go-backend$/)
+  expectNoRuntimeErrors()
+})
+
+test("非默认无 Day Course 在四视口保持全览、触控尺寸与 Reader 宽度", async ({
+  page,
+}, testInfo) => {
+  const expectNoRuntimeErrors = watchRuntimeErrors(page)
+  await mockMultiCourseProjection(page)
+  await page.goto("/courses/python-core")
+  await expect(page.locator(".react-flow__node")).toHaveCount(6)
+
+  const canvas = page.getByTestId("roadmap-canvas")
+  const viewport = page.locator(".react-flow__viewport")
+  await waitForViewportToSettle(viewport)
+  await expectWholeRoadmapInsideCanvas(page, canvas)
+  expect(
+    await page.evaluate(
+      () => document.documentElement.scrollWidth > window.innerWidth + 1
+    )
+  ).toBe(false)
+
+  const selectBox = await page.getByTestId("course-select-trigger").boundingBox()
+  expect(selectBox).not.toBeNull()
+  expect(selectBox!.height).toBeGreaterThanOrEqual(44)
+
+  await page.getByTestId("roadmap-legend-trigger").click()
+  await expect(page.getByTestId("roadmap-legend")).toContainText("当前推荐课次")
+  await expect(page.getByTestId("roadmap-legend")).not.toContainText(
+    "当前推荐 Day"
+  )
+  await page.keyboard.press("Escape")
+
+  await page.getByTestId("lesson-node-course-functions").click()
+  const reader = page.getByTestId("markdown-reader")
+  await expect(reader).toBeVisible()
+  const [readerBox, browserViewport] = await Promise.all([
+    reader.boundingBox(),
+    Promise.resolve(page.viewportSize()),
+  ])
+  expect(readerBox).not.toBeNull()
+  expect(browserViewport).not.toBeNull()
+  if (testInfo.project.name.startsWith("mobile")) {
+    expect(readerBox!.width).toBeGreaterThanOrEqual(browserViewport!.width * 0.99)
+  } else {
+    expect(readerBox!.width).toBeGreaterThan(browserViewport!.width * 0.68)
+    expect(readerBox!.width).toBeLessThan(browserViewport!.width * 0.72)
+  }
+  await expect(page.getByTestId("markdown-reader-close")).toBeFocused()
+  expectNoRuntimeErrors()
+})
+
 test("桌面与移动路线图可见、可交互且无布局碰撞", async ({
   page,
 }, testInfo) => {
-  const consoleErrors: string[] = []
-  const pageErrors: string[] = []
+  const expectNoRuntimeErrors = watchRuntimeErrors(page)
   let popupCount = 0
-  page.on("console", (message) => {
-    if (message.type() === "error") {
-      consoleErrors.push(message.text())
-    }
-  })
-  page.on("pageerror", (error) => pageErrors.push(error.message))
   page.on("popup", () => {
     popupCount += 1
   })
@@ -374,6 +829,28 @@ test("桌面与移动路线图可见、可交互且无布局碰撞", async ({
     () => document.documentElement.scrollWidth > window.innerWidth + 1
   )
   expect(pageHasHorizontalOverflow).toBe(false)
+
+  const clippedHeaderActions = await page
+    .locator(
+      ".header-actions [data-slot='button'], .header-actions [role='combobox']"
+    )
+    .evaluateAll((controls) =>
+      controls
+        .filter((control) => {
+          const rect = control.getBoundingClientRect()
+          return rect.left < 0 || rect.right > window.innerWidth
+        })
+        .map(
+          (control) =>
+            control.getAttribute("aria-label") ?? control.textContent?.trim()
+        )
+    )
+  expect(clippedHeaderActions).toEqual([])
+  await expectMinimumTouchTargets(
+    page.locator(
+      ".header-actions [data-slot='button'], .header-actions [role='combobox'], .roadmap-toolbar button, .roadmap-toolbar [role='combobox']"
+    )
+  )
 
   if (testInfo.project.name.startsWith("mobile")) {
     const hiddenToolbarControls = await page
@@ -520,6 +997,9 @@ test("桌面与移动路线图可见、可交互且无布局碰撞", async ({
   await expect(learningDrawer).not.toContainText("阶段进度")
   await expect(learningDrawer).not.toContainText("阶段完成")
   await expect(page.getByTestId("lesson-score")).toHaveText("—")
+  await expectMinimumTouchTargets(
+    learningDrawer.locator("button, [role='button']")
+  )
   await expect(learningDrawer).toContainText("发布前脱敏的进度摘要")
   await expect(learningDrawer).toContainText("页面只展示，不提供手工修改")
   await expect(learningDrawer).not.toContainText("notes.md")
@@ -539,7 +1019,7 @@ test("桌面与移动路线图可见、可交互且无布局碰撞", async ({
 
   await expect(page.getByTestId("lesson-node-course-30")).toHaveAttribute(
     "href",
-    "/sources/lessons/day-30-minimal-tool-interface.md"
+    "/courses/go-backend/sources/lessons/minimal-tool-interface.md"
   )
   await expect(page.getByTestId("lesson-resource-notes")).toHaveCount(0)
   await expect(page.getByTestId("lesson-resource-evaluation")).toHaveCount(0)
@@ -564,6 +1044,7 @@ test("桌面与移动路线图可见、可交互且无布局碰撞", async ({
   await expect(page.getByTestId("markdown-reader-back")).toHaveAccessibleName(
     "返回 Day 30 详情"
   )
+  await expectMinimumTouchTargets(markdownReader.locator("button"))
   await expect(page.getByTestId("markdown-reader-title")).toHaveText(
     "Day 30 · minimal Tool interface"
   )
@@ -611,7 +1092,9 @@ test("桌面与移动路线图可见、可交互且无布局碰撞", async ({
   await page.keyboard.press("Escape")
   await expect(page.getByTestId("learning-drawer")).toHaveCount(0)
   await expect(
-    page.locator('.react-flow__node-lesson[data-id="day-30"]')
+    page.locator(
+      '.react-flow__node-lesson[data-id="lesson:minimal-tool-interface"]'
+    )
   ).toBeFocused()
   await expect(page.getByTestId("roadmap-location")).toHaveText("全图概览")
 
@@ -664,8 +1147,7 @@ test("桌面与移动路线图可见、可交互且无布局碰撞", async ({
   })
   await page.getByRole("button", { name: "关闭学习抽屉" }).click()
 
-  expect(pageErrors).toEqual([])
-  expect(consoleErrors).toEqual([])
+  expectNoRuntimeErrors()
   expect(popupCount).toBe(0)
 })
 
@@ -682,7 +1164,9 @@ test("Day 节点与应用内课程阅读器支持键盘操作", async ({
   })
 
   await page.goto("/")
-  const dayZero = page.locator('.react-flow__node-lesson[data-id="day-00"]')
+  const dayZero = page.locator(
+    '.react-flow__node-lesson[data-id="lesson:why-go-after-node"]'
+  )
   await dayZero.focus()
   await page.keyboard.press("Enter")
   await expect(page.getByTestId("learning-drawer")).toBeVisible()
@@ -693,7 +1177,9 @@ test("Day 节点与应用内课程阅读器支持键盘操作", async ({
   await expect(page.getByTestId("learning-drawer")).toHaveCount(0)
   await expect(dayZero).toBeFocused()
 
-  const dayOne = page.locator('.react-flow__node-lesson[data-id="day-01"]')
+  const dayOne = page.locator(
+    '.react-flow__node-lesson[data-id="lesson:module-package-toolchain"]'
+  )
   await dayOne.focus()
   await page.keyboard.press("Space")
   await expect(page.getByTestId("learning-drawer")).toBeVisible()
@@ -703,7 +1189,7 @@ test("Day 节点与应用内课程阅读器支持键盘操作", async ({
   await page.getByRole("button", { name: "关闭学习抽屉" }).click()
 
   await page.route(
-    "**/sources/lessons/day-01-module-package-toolchain.md",
+    "**/courses/go-backend/sources/lessons/module-package-toolchain.md",
     async (route) => {
       await route.fulfill({
         contentType: "text/markdown; charset=utf-8",
@@ -779,7 +1265,7 @@ test("课程阅读器提供稳定加载态", async ({ page }, testInfo) => {
   })
 
   await page.route(
-    "**/sources/lessons/day-02-value-model-struct-zero-value.md",
+    "**/courses/go-backend/sources/lessons/value-model-struct-zero-value.md",
     async (route) => {
       await responseGate
       await route.fulfill({
@@ -807,7 +1293,7 @@ test("课程阅读器提供错误与重试状态", async ({ page }, testInfo) =>
   let requestCount = 0
 
   await page.route(
-    "**/sources/lessons/day-02-value-model-struct-zero-value.md",
+    "**/courses/go-backend/sources/lessons/value-model-struct-zero-value.md",
     async (route) => {
       requestCount += 1
       await route.fulfill({
@@ -831,7 +1317,7 @@ test("课程阅读器提供错误与重试状态", async ({ page }, testInfo) =>
           : input instanceof Request
             ? input.url
             : input.toString()
-      if (url.includes("day-02-value-model-struct-zero-value.md")) {
+      if (url.includes("/sources/lessons/value-model-struct-zero-value.md")) {
         return new Response("暂不可用", { status: 503 })
       }
       return originalFetch(input, init)
@@ -868,7 +1354,7 @@ test("课程阅读器提供错误与重试状态", async ({ page }, testInfo) =>
           : input instanceof Request
             ? input.url
             : input.toString()
-      if (url.includes("day-03-data-structures-i-array-slice-capacity-copy.md")) {
+      if (url.includes("/sources/lessons/data-structures-i-array-slice-capacity-copy.md")) {
         return new Promise<Response>((_resolve, reject) => {
           init?.signal?.addEventListener(
             "abort",

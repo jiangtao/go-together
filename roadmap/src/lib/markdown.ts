@@ -1,4 +1,6 @@
 const ENCODED_SEPARATOR_OR_NULL = /%(?:00|2f|5c)/i
+const SAFE_SOURCE_PATH =
+  /^\/(?:sources\/lessons\/[a-zA-Z0-9._%/-]+|courses\/[a-z0-9]+(?:-[a-z0-9]+)*\/sources\/(?:lessons|resources)\/[a-zA-Z0-9._%/-]+)$/
 
 export function normalizeSourceUrl(href: string, origin: string): string {
   const expectedOrigin = new URL(origin)
@@ -11,7 +13,7 @@ export function normalizeSourceUrl(href: string, origin: string): string {
     sourceUrl.password ||
     sourceUrl.search ||
     sourceUrl.hash ||
-    !sourceUrl.pathname.startsWith("/sources/lessons/") ||
+    !SAFE_SOURCE_PATH.test(sourceUrl.pathname) ||
     ENCODED_SEPARATOR_OR_NULL.test(sourceUrl.pathname)
   ) {
     throw new Error("拒绝加载不安全的课程资源地址")

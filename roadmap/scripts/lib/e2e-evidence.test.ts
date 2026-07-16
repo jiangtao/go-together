@@ -1,4 +1,4 @@
-import { mkdtemp, mkdir, rm, writeFile } from "node:fs/promises"
+import { mkdtemp, mkdir, readFile, rm, symlink, writeFile } from "node:fs/promises"
 import os from "node:os"
 import path from "node:path"
 import { deflateSync } from "node:zlib"
@@ -11,6 +11,7 @@ import {
   createE2eEvidenceManifest,
   REQUIRED_EVIDENCE,
   validateEvidenceFileNames,
+  writeE2eEvidenceManifestAtomically,
 } from "./e2e-evidence.ts"
 
 const CANDIDATE_HEAD = "eb283d72fa4eac26e9c39db3789d3dc2c630cb06"
@@ -79,18 +80,39 @@ async function createCandidateFixture(): Promise<{
   temporaryDirectories.push(repositoryRoot)
   const files = new Map<string, string>([
     [".vercelignore", "/*\n"],
-    [".github/workflows/roadmap-quality.yml", "name: quality\n"],
+    [".github/workflows/roadmap-release.yml", "name: release\n"],
     ["roadmap/package.json", "{\"name\":\"roadmap\"}\n"],
     ["roadmap/src/App.tsx", "export const App = () => null\n"],
     ["roadmap/scripts/example.ts", "export const build = true\n"],
     ["roadmap/tests/example.test.ts", "export const tested = true\n"],
-    ["roadmap/content/progress.public.json", "[]\n"],
+    ["courses/catalog.json", '{"schemaVersion":1}\n'],
+    ["courses/go-backend/course.json", '{"courseId":"go-backend"}\n'],
+    ["courses/go-backend/compatibility.json", '{"schemaVersion":1}\n'],
+    ["courses/go-backend/evaluation/policy.md", "# Policy\n"],
+    [
+      "courses/go-backend/evaluation/command-profile.json",
+      '{"schemaVersion":1}\n',
+    ],
+    ["release-progress/go-backend.json", '{"courseId":"go-backend"}\n'],
+    [
+      ".agents/skills/evaluate-course-lesson/SKILL.md",
+      "# Generic evaluation\n",
+    ],
+    [
+      ".agents/skills/evaluate-course-lesson/scripts/core.py",
+      "CORE = True\n",
+    ],
+    [".agents/skills/evaluate-go-day/SKILL.md", "# Go router\n"],
+    [
+      ".agents/skills/evaluate-go-day/scripts/router.py",
+      "ROUTER = True\n",
+    ],
   ])
   for (let day = 0; day <= 36; day += 1) {
     const number = String(day).padStart(2, "0")
     files.set(
-      `docs/go-learning/daily-lessons/day-${number}-lesson.md`,
-      `# Day ${day}\n`
+      `courses/go-backend/lessons/lesson-${number}.md`,
+      `# Lesson ${day}\n`
     )
   }
   await Promise.all(
@@ -117,24 +139,37 @@ async function createCandidateFixture(): Promise<{
 }
 
 describe("E2E 截图证据契约", () => {
-  it("固定为八个唯一视觉状态及明确 CSS×DPR", () => {
+  it("固定为十二个唯一视觉状态及明确 CSS×DPR", () => {
     const names = REQUIRED_EVIDENCE.map(({ state }) => `${state}.png`)
-    expect(names).toHaveLength(8)
-    expect(new Set(names).size).toBe(8)
-    expect(REQUIRED_EVIDENCE.filter(({ deviceScaleFactor }) => deviceScaleFactor === 1)).toHaveLength(4)
-    expect(REQUIRED_EVIDENCE.filter(({ deviceScaleFactor }) => deviceScaleFactor === 3)).toHaveLength(4)
+    expect(names).toEqual([
+      "desktop-normal.png",
+      "desktop-zen.png",
+      "desktop-zen-day.png",
+      "desktop-zen-reader.png",
+      "mobile-normal.png",
+      "mobile-zen.png",
+      "mobile-zen-day.png",
+      "mobile-zen-reader.png",
+      "desktop-course-select.png",
+      "desktop-nondefault-normal.png",
+      "mobile-course-select.png",
+      "mobile-nondefault-normal.png",
+    ])
+    expect(new Set(names).size).toBe(12)
+    expect(REQUIRED_EVIDENCE.filter(({ deviceScaleFactor }) => deviceScaleFactor === 1)).toHaveLength(6)
+    expect(REQUIRED_EVIDENCE.filter(({ deviceScaleFactor }) => deviceScaleFactor === 3)).toHaveLength(6)
     expect(() => validateEvidenceFileNames(names)).not.toThrow()
   })
 
   it("拒绝缺失、额外文件或历史截图", () => {
     const names = REQUIRED_EVIDENCE.map(({ state }) => `${state}.png`)
-    expect(() => validateEvidenceFileNames(names.slice(1))).toThrow("8 个规定状态")
+    expect(() => validateEvidenceFileNames(names.slice(1))).toThrow("12 个规定状态")
     expect(() =>
       validateEvidenceFileNames([...names, "historical.png"])
-    ).toThrow("8 个规定状态")
+    ).toThrow("12 个规定状态")
     expect(() =>
       validateEvidenceFileNames([...names, "notes.txt"])
-    ).toThrow("8 个规定状态")
+    ).toThrow("12 个规定状态")
   })
 
   it("在无 .git 副本中使用显式 HEAD 生成含内容指纹的清单", async () => {
@@ -146,11 +181,11 @@ describe("E2E 截图证据契约", () => {
       CANDIDATE_HEAD
     )
 
-    expect(manifest.schemaVersion).toBe(2)
+    expect(manifest.schemaVersion).toBe(3)
     expect(manifest.candidate.head).toBe(CANDIDATE_HEAD)
     expect(manifest.candidate.fingerprintFileCount).toBeGreaterThan(40)
     expect(manifest.candidate.workingTreeFingerprint).toMatch(/^[a-f0-9]{64}$/)
-    expect(manifest.images).toHaveLength(8)
+    expect(manifest.images).toHaveLength(12)
     expect(manifest.images.find(({ state }) => state === "mobile-normal")).toMatchObject({
       cssViewport: { width: 390, height: 844 },
       deviceScaleFactor: 3,
@@ -212,6 +247,75 @@ describe("E2E 截图证据契约", () => {
     expect(after.sha256).not.toBe(before.sha256)
   })
 
+  it("候选指纹拒绝 roadmap 根配置与 workflow symlink", async () => {
+    const rootConfig = await createCandidateFixture()
+    await symlink(
+      rootConfig.repositoryRoot,
+      path.join(rootConfig.repositoryRoot, "roadmap/vite.config.ts")
+    )
+    await expect(
+      createCandidateFingerprint(rootConfig.repositoryRoot)
+    ).rejects.toThrow("普通文件")
+
+    const workflow = await createCandidateFixture()
+    const workflowFile = path.join(
+      workflow.repositoryRoot,
+      ".github/workflows/roadmap-release.yml"
+    )
+    await rm(workflowFile)
+    await symlink(
+      path.join(workflow.repositoryRoot, "roadmap/package.json"),
+      workflowFile
+    )
+    await expect(
+      createCandidateFingerprint(workflow.repositoryRoot)
+    ).rejects.toThrow("普通文件")
+  })
+
+  it("候选指纹拒绝递归扫描根与 workflow 目录根逃逸", async () => {
+    const sourceRoot = await createCandidateFixture()
+    const externalSource = await mkdtemp(
+      path.join(os.tmpdir(), "roadmap-evidence-external-src-")
+    )
+    temporaryDirectories.push(externalSource)
+    await writeFile(
+      path.join(externalSource, "App.tsx"),
+      "export const escaped = true\n",
+      "utf8"
+    )
+    await rm(path.join(sourceRoot.repositoryRoot, "roadmap/src"), {
+      recursive: true,
+    })
+    await symlink(
+      externalSource,
+      path.join(sourceRoot.repositoryRoot, "roadmap/src")
+    )
+    await expect(
+      createCandidateFingerprint(sourceRoot.repositoryRoot)
+    ).rejects.toThrow("普通目录")
+
+    const workflowRoot = await createCandidateFixture()
+    const externalWorkflows = await mkdtemp(
+      path.join(os.tmpdir(), "roadmap-evidence-external-workflows-")
+    )
+    temporaryDirectories.push(externalWorkflows)
+    await writeFile(
+      path.join(externalWorkflows, "roadmap-release.yml"),
+      "name: escaped\n",
+      "utf8"
+    )
+    await rm(path.join(workflowRoot.repositoryRoot, ".github/workflows"), {
+      recursive: true,
+    })
+    await symlink(
+      externalWorkflows,
+      path.join(workflowRoot.repositoryRoot, ".github/workflows")
+    )
+    await expect(
+      createCandidateFingerprint(workflowRoot.repositoryRoot)
+    ).rejects.toThrow("普通目录")
+  })
+
   it("写出的清单会重新核对截图哈希", async () => {
     const fixture = await createCandidateFixture()
     const manifest = await createE2eEvidenceManifest(
@@ -225,6 +329,14 @@ describe("E2E 截图证据契约", () => {
       `${JSON.stringify(manifest, null, 2)}\n`,
       "utf8"
     )
+    await expect(
+      createE2eEvidenceManifest(
+        fixture.evidenceDirectory,
+        fixture.repositoryRoot,
+        "qa-hash",
+        CANDIDATE_HEAD
+      )
+    ).resolves.toEqual(manifest)
     await expect(
       auditE2eEvidenceManifest(
         manifest,
@@ -246,5 +358,38 @@ describe("E2E 截图证据契约", () => {
         CANDIDATE_HEAD
       )
     ).rejects.toThrow("清单与当前截图或候选内容不一致")
+  })
+
+  it("拒绝非普通旧清单且原子写入不跟随符号链接", async () => {
+    const linked = await createCandidateFixture()
+    const sentinel = path.join(linked.repositoryRoot, "sentinel.txt")
+    await writeFile(sentinel, "unchanged", "utf8")
+    await symlink(
+      sentinel,
+      path.join(linked.evidenceDirectory, "evidence-manifest.json")
+    )
+    await expect(
+      createE2eEvidenceManifest(
+        linked.evidenceDirectory,
+        linked.repositoryRoot,
+        "qa-linked",
+        CANDIDATE_HEAD
+      )
+    ).rejects.toThrow("普通文件")
+    await expect(
+      writeE2eEvidenceManifestAtomically(linked.evidenceDirectory, "changed")
+    ).rejects.toThrow("普通文件")
+    await expect(readFile(sentinel, "utf8")).resolves.toBe("unchanged")
+
+    const directory = await createCandidateFixture()
+    await mkdir(path.join(directory.evidenceDirectory, "evidence-manifest.json"))
+    await expect(
+      createE2eEvidenceManifest(
+        directory.evidenceDirectory,
+        directory.repositoryRoot,
+        "qa-directory",
+        CANDIDATE_HEAD
+      )
+    ).rejects.toThrow("普通文件")
   })
 })

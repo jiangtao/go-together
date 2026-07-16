@@ -54,7 +54,7 @@ export function RoadmapLegend() {
             <Badge variant="secondary" className="recommended-marker">
               推荐
             </Badge>
-            <span>当前推荐 Day</span>
+            <span>当前推荐课次</span>
           </div>
           <div>
             <span className="legend-line-sample" data-variant="within" />

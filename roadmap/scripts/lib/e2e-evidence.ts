@@ -1,6 +1,14 @@
 import { createHash } from "node:crypto"
 import { execFileSync } from "node:child_process"
-import { lstat, readFile, readdir } from "node:fs/promises"
+import {
+  lstat,
+  readFile,
+  realpath,
+  readdir,
+  rename,
+  rm,
+  writeFile,
+} from "node:fs/promises"
 import path from "node:path"
 import { inflateSync } from "node:zlib"
 
@@ -45,6 +53,26 @@ export const REQUIRED_EVIDENCE = [
     cssViewport: { width: 390, height: 844 },
     deviceScaleFactor: 3,
   },
+  {
+    state: "desktop-course-select",
+    cssViewport: { width: 1440, height: 900 },
+    deviceScaleFactor: 1,
+  },
+  {
+    state: "desktop-nondefault-normal",
+    cssViewport: { width: 1440, height: 900 },
+    deviceScaleFactor: 1,
+  },
+  {
+    state: "mobile-course-select",
+    cssViewport: { width: 390, height: 844 },
+    deviceScaleFactor: 3,
+  },
+  {
+    state: "mobile-nondefault-normal",
+    cssViewport: { width: 390, height: 844 },
+    deviceScaleFactor: 3,
+  },
 ] as const
 
 const ROADMAP_ROOT_FILES = new Set([
@@ -66,8 +94,13 @@ const ROADMAP_ROOT_FILES = new Set([
   "vite.config.ts",
   "vitest.config.ts",
 ])
-const ROADMAP_FINGERPRINT_DIRECTORIES = ["content", "scripts", "src", "tests"]
-const PRIVATE_LEGACY_COURSE = "roadmap/src/data/course.json"
+const ROADMAP_FINGERPRINT_DIRECTORIES = ["scripts", "src", "tests"]
+const EVALUATION_SKILL_DIRECTORIES = [
+  ".agents/skills/evaluate-course-lesson",
+  ".agents/skills/evaluate-go-day",
+]
+const COURSE_SOURCE_DIRECTORY = "courses"
+const RELEASE_PROGRESS_DIRECTORY = "release-progress"
 
 interface PngStats {
   width: number
@@ -81,7 +114,7 @@ export interface CandidateFingerprint {
 }
 
 export interface E2eEvidenceManifest {
-  schemaVersion: 2
+  schemaVersion: 3
   runId: string
   candidate: {
     head: string
@@ -104,11 +137,49 @@ function toPosix(relativePath: string): string {
   return relativePath.split(path.sep).join("/")
 }
 
+function isWithinDirectory(parent: string, candidate: string): boolean {
+  const relative = path.relative(parent, candidate)
+  return (
+    relative === "" ||
+    (!path.isAbsolute(relative) && relative !== ".." && !relative.startsWith(`..${path.sep}`))
+  )
+}
+
+async function repositoryRealRoot(repositoryRoot: string): Promise<string> {
+  const metadata = await lstat(repositoryRoot)
+  if (metadata.isSymbolicLink() || !metadata.isDirectory()) {
+    throw new Error("候选指纹要求 repositoryRoot 为普通目录")
+  }
+  return realpath(repositoryRoot)
+}
+
+async function assertContainedDirectory(
+  repositoryRoot: string,
+  relativeDirectory: string
+): Promise<string> {
+  const absoluteDirectory = path.join(repositoryRoot, relativeDirectory)
+  const metadata = await lstat(absoluteDirectory)
+  if (metadata.isSymbolicLink() || !metadata.isDirectory()) {
+    throw new Error(`候选指纹要求普通目录：${relativeDirectory}`)
+  }
+  const [realRoot, realDirectory] = await Promise.all([
+    repositoryRealRoot(repositoryRoot),
+    realpath(absoluteDirectory),
+  ])
+  if (!isWithinDirectory(realRoot, realDirectory)) {
+    throw new Error(`候选指纹目录越界：${relativeDirectory}`)
+  }
+  return absoluteDirectory
+}
+
 async function listRegularFiles(
   repositoryRoot: string,
   relativeDirectory: string
 ): Promise<string[]> {
-  const absoluteDirectory = path.join(repositoryRoot, relativeDirectory)
+  const absoluteDirectory = await assertContainedDirectory(
+    repositoryRoot,
+    relativeDirectory
+  )
   const entries = await readdir(absoluteDirectory, { withFileTypes: true })
   const nested = await Promise.all(
     entries.map(async (entry) => {
@@ -133,9 +204,17 @@ async function optionalRegularFile(
   relativePath: string
 ): Promise<string[]> {
   try {
-    const metadata = await lstat(path.join(repositoryRoot, relativePath))
+    const absoluteFile = path.join(repositoryRoot, relativePath)
+    const metadata = await lstat(absoluteFile)
     if (metadata.isSymbolicLink() || !metadata.isFile()) {
       throw new Error(`候选指纹要求普通文件：${relativePath}`)
+    }
+    const [realRoot, realFile] = await Promise.all([
+      repositoryRealRoot(repositoryRoot),
+      realpath(absoluteFile),
+    ])
+    if (!isWithinDirectory(realRoot, realFile)) {
+      throw new Error(`候选指纹文件越界：${relativePath}`)
     }
     return [relativePath]
   } catch (error) {
@@ -145,52 +224,73 @@ async function optionalRegularFile(
 }
 
 async function collectCandidateFiles(repositoryRoot: string): Promise<string[]> {
-  const rootFiles = await optionalRegularFile(repositoryRoot, ".vercelignore")
-  const roadmapEntries = await readdir(path.join(repositoryRoot, "roadmap"), {
-    withFileTypes: true,
-  })
-  const roadmapRootFiles = roadmapEntries
-    .filter((entry) => entry.isFile() && ROADMAP_ROOT_FILES.has(entry.name))
-    .map((entry) => `roadmap/${entry.name}`)
+  const rootFiles = (
+    await Promise.all(
+      [".gitignore", ".vercelignore"].map((file) =>
+        optionalRegularFile(repositoryRoot, file)
+      )
+    )
+  ).flat()
+  const roadmapRootFiles = (
+    await Promise.all(
+      [...ROADMAP_ROOT_FILES].map((file) =>
+        optionalRegularFile(repositoryRoot, `roadmap/${file}`)
+      )
+    )
+  ).flat()
   const roadmapTrees = await Promise.all(
     ROADMAP_FINGERPRINT_DIRECTORIES.map((directory) =>
       listRegularFiles(repositoryRoot, `roadmap/${directory}`)
     )
   )
-  const workflowEntries = await readdir(
-    path.join(repositoryRoot, ".github/workflows"),
-    { withFileTypes: true }
+  const workflowDirectory = await assertContainedDirectory(
+    repositoryRoot,
+    ".github/workflows"
   )
-  const workflows = workflowEntries
-    .filter(
-      (entry) =>
-        entry.isFile() && /^roadmap-.*\.ya?ml$/.test(entry.name)
+  const workflowEntries = await readdir(workflowDirectory, {
+    withFileTypes: true,
+  })
+  const workflows = (
+    await Promise.all(
+      workflowEntries
+        .filter((entry) => /^roadmap-.*\.ya?ml$/.test(entry.name))
+        .map((entry) =>
+          optionalRegularFile(
+            repositoryRoot,
+            `.github/workflows/${entry.name}`
+          )
+        )
     )
-    .map((entry) => `.github/workflows/${entry.name}`)
-  const lessons = (
-    await listRegularFiles(repositoryRoot, "docs/go-learning/daily-lessons")
-  ).filter((file) => /\/day-\d{2}-.+\.md$/.test(file))
-  const lessonDays = lessons.map((file) => Number(file.match(/\/day-(\d{2})-/)?.[1]))
-  const expectedDays = Array.from({ length: 37 }, (_, day) => day)
-  if (
-    lessonDays.length !== expectedDays.length ||
-    [...lessonDays].sort((left, right) => left - right).some(
-      (day, index) => day !== expectedDays[index]
+  ).flat()
+  const evaluationSkills = await Promise.all(
+    EVALUATION_SKILL_DIRECTORIES.map((directory) =>
+      listRegularFiles(repositoryRoot, directory)
     )
-  ) {
-    throw new Error("候选指纹必须包含且只能映射 Day 0–36 的 37 篇教程输入")
-  }
+  )
+  const courseSources = (
+    await listRegularFiles(repositoryRoot, COURSE_SOURCE_DIRECTORY)
+  ).filter((file) => !file.includes("/resources/internal/"))
+  const releaseSnapshots = await listRegularFiles(
+    repositoryRoot,
+    RELEASE_PROGRESS_DIRECTORY
+  )
   const files = [
     ...rootFiles,
     ...roadmapRootFiles,
     ...roadmapTrees.flat(),
     ...workflows,
-    ...lessons,
+    ...courseSources,
+    ...releaseSnapshots,
+    ...evaluationSkills.flat(),
   ]
-    .filter((file) => file !== PRIVATE_LEGACY_COURSE)
     .sort()
-  if (!files.includes("roadmap/package.json") || workflows.length === 0) {
-    throw new Error("候选指纹缺少 roadmap 配置或工作流")
+  if (
+    !files.includes("roadmap/package.json") ||
+    !files.includes("courses/catalog.json") ||
+    releaseSnapshots.length === 0 ||
+    workflows.length === 0
+  ) {
+    throw new Error("候选指纹缺少 roadmap、Course Catalog、Snapshot 或工作流")
   }
   return files
 }
@@ -247,8 +347,48 @@ export function validateEvidenceFileNames(
     actual.some((file, index) => file !== expected[index])
   ) {
     throw new Error(
-      `截图证据必须且只能包含 8 个规定状态：${actual.join(", ")}`
+      `截图证据必须且只能包含 ${REQUIRED_EVIDENCE.length} 个规定状态：${actual.join(", ")}`
     )
+  }
+}
+
+const EVIDENCE_MANIFEST_FILE = "evidence-manifest.json"
+
+async function assertReplaceableEvidenceManifest(
+  evidenceDirectory: string
+): Promise<void> {
+  try {
+    const metadata = await lstat(
+      path.join(evidenceDirectory, EVIDENCE_MANIFEST_FILE)
+    )
+    if (metadata.isSymbolicLink() || !metadata.isFile()) {
+      throw new Error("旧 E2E 证据清单必须是普通文件且不得为符号链接")
+    }
+  } catch (error) {
+    if ((error as NodeJS.ErrnoException).code === "ENOENT") return
+    throw error
+  }
+}
+
+export async function writeE2eEvidenceManifestAtomically(
+  evidenceDirectory: string,
+  serialized: string
+): Promise<void> {
+  await assertReplaceableEvidenceManifest(evidenceDirectory)
+  const outputFile = path.join(evidenceDirectory, EVIDENCE_MANIFEST_FILE)
+  const temporaryFile = `${outputFile}.tmp`
+  let temporaryCreated = false
+  try {
+    await writeFile(temporaryFile, serialized, {
+      encoding: "utf8",
+      flag: "wx",
+      mode: 0o600,
+    })
+    temporaryCreated = true
+    await rename(temporaryFile, outputFile)
+    temporaryCreated = false
+  } finally {
+    if (temporaryCreated) await rm(temporaryFile, { force: true })
   }
 }
 
@@ -353,7 +493,15 @@ async function inspectE2eEvidenceManifest(
     throw new Error("E2E_RUN_ID 只能包含字母、数字、点、下划线和连字符")
   }
   const directoryFiles = await readdir(evidenceDirectory)
-  validateEvidenceFileNames(directoryFiles, includeManifest)
+  if (!includeManifest && directoryFiles.includes(EVIDENCE_MANIFEST_FILE)) {
+    await assertReplaceableEvidenceManifest(evidenceDirectory)
+  }
+  validateEvidenceFileNames(
+    includeManifest
+      ? directoryFiles
+      : directoryFiles.filter((file) => file !== EVIDENCE_MANIFEST_FILE),
+    includeManifest
+  )
   const candidateHead = resolveCandidateHead(repositoryRoot, explicitCandidateHead)
   const candidateFingerprint = await createCandidateFingerprint(repositoryRoot)
   const images = await Promise.all(
@@ -386,7 +534,7 @@ async function inspectE2eEvidenceManifest(
     )
   )
   return {
-    schemaVersion: 2,
+    schemaVersion: 3,
     runId,
     candidate: {
       head: candidateHead,

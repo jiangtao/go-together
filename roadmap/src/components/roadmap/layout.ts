@@ -8,7 +8,11 @@ import {
 import type { LessonFlowNode } from "@/components/roadmap/lesson-node"
 import type { OverviewFlowNode } from "@/components/roadmap/overview-node"
 import type { StageFlowNode } from "@/components/roadmap/stage-node"
-import type { CourseLesson, CourseStage } from "@/types/course"
+import type {
+  RoadmapLesson,
+  RoadmapStage,
+  RoadmapTrack,
+} from "@/types/course"
 
 export type RoadmapNode = OverviewFlowNode | StageFlowNode | LessonFlowNode
 export type RoadmapEdgeKind = "structure" | "learning"
@@ -47,39 +51,27 @@ interface StagePlacement {
   height: number
 }
 
-interface TrackDefinition {
-  id: string
-  title: string
-  description: string
-  stageIds: [string, string]
-}
-
 export interface RoadmapLayout {
   nodes: RoadmapNode[]
   edges: RoadmapEdge[]
   focus: XYPosition & { zoom: number }
 }
 
-export const ROADMAP_TRACKS: TrackDefinition[] = [
-  {
-    id: "track-language-web",
-    title: "语言与 Web 基础",
-    description: "从 Go 语言模型进入 HTTP 与数据入口",
-    stageIds: ["stage-1", "stage-2"],
-  },
-  {
-    id: "track-data-service",
-    title: "数据与服务契约",
-    description: "连接持久化边界、proto 与 gRPC 服务链路",
-    stageIds: ["stage-3", "stage-4"],
-  },
-  {
-    id: "track-runtime-agent",
-    title: "运行时与 Agent",
-    description: "用并发、观测和集成切片完成可运行交付",
-    stageIds: ["stage-5", "stage-6"],
-  },
-]
+export function roadmapTrackNodeId(trackId: string): string {
+  return `track:${trackId}`
+}
+
+export function roadmapStageNodeId(stageId: string): string {
+  return `stage:${stageId}`
+}
+
+export function roadmapLessonNodeId(lessonId: string): string {
+  return `lesson:${lessonId}`
+}
+
+function learningEdgeId(sourceLessonId: string, targetLessonId: string): string {
+  return `path-${sourceLessonId.length}:${sourceLessonId}-${targetLessonId.length}:${targetLessonId}`
+}
 
 const DESKTOP_SETTINGS: LayoutSettings = {
   lessonColumns: 3,
@@ -130,10 +122,10 @@ function percentage(completed: number, total: number): number {
 }
 
 function stageHeight(
-  stage: CourseStage,
+  stage: RoadmapStage,
   settings: LayoutSettings
 ): number {
-  const rows = Math.ceil(stage.lessonDays.length / settings.lessonColumns)
+  const rows = Math.ceil(stage.lessonIds.length / settings.lessonColumns)
   return (
     settings.headerHeight +
     rows * settings.nodeHeight +
@@ -190,25 +182,31 @@ function structuralEdge(
 }
 
 export function buildRoadmapLayout({
+  courseTitle,
+  courseDescription,
+  tracks,
   stages,
   lessons,
   isMobile,
-  selectedDay,
-  recommendedDay,
+  selectedLessonId,
+  recommendedLessonId,
   onOpenCourse = () => undefined,
 }: {
-  stages: CourseStage[]
-  lessons: CourseLesson[]
+  courseTitle: string
+  courseDescription: string
+  tracks: RoadmapTrack[]
+  stages: RoadmapStage[]
+  lessons: RoadmapLesson[]
   isMobile: boolean
-  selectedDay: number | null
-  recommendedDay: number | null
-  onOpenCourse?: (lesson: CourseLesson, trigger: HTMLElement) => void
+  selectedLessonId: string | null
+  recommendedLessonId: string | null
+  onOpenCourse?: (lesson: RoadmapLesson, trigger: HTMLElement) => void
 }): RoadmapLayout {
   const settings = isMobile ? MOBILE_SETTINGS : DESKTOP_SETTINGS
   const graphWidth =
-    ROADMAP_TRACKS.length * settings.groupWidth +
-    (ROADMAP_TRACKS.length - 1) * settings.trackGap
-  const rootId = "roadmap-overview"
+    tracks.length * settings.groupWidth +
+    Math.max(0, tracks.length - 1) * settings.trackGap
+  const rootId = "roadmap:root"
   const completedLessons = lessons.filter(
     (lesson) => lesson.status === "通过"
   ).length
@@ -222,9 +220,9 @@ export function buildRoadmapLayout({
     style: { width: settings.rootWidth, height: settings.rootHeight },
     data: {
       variant: "root",
-      eyebrow: "总路线",
-      title: "Go 36 天实战",
-      description: "Day 0–36 · 3 条主干 · 6 个阶段",
+      eyebrow: `${tracks.length} 条主干 · ${stages.length} 个阶段 · ${lessons.length} 个课次`,
+      title: courseTitle,
+      description: courseDescription,
       completed: completedLessons,
       total: lessons.length,
       percentage: percentage(completedLessons, lessons.length),
@@ -235,17 +233,25 @@ export function buildRoadmapLayout({
     focusable: false,
   }
 
-  const topStageHeights = ROADMAP_TRACKS.map((track) => {
-    const stage = stages.find((candidate) => candidate.id === track.stageIds[0])
-    return stage ? stageHeight(stage, settings) : 0
-  })
-  const bottomStageY =
-    settings.stageTopY + Math.max(...topStageHeights) + settings.stageRowGap
+  const stageRows = Math.max(...tracks.map((track) => track.stageIds.length))
+  const stageRowY: number[] = []
+  let nextStageY = settings.stageTopY
+  for (let row = 0; row < stageRows; row += 1) {
+    stageRowY.push(nextStageY)
+    const rowHeight = Math.max(
+      ...tracks.map((track) => {
+        const stageId = track.stageIds[row]
+        const stage = stages.find((candidate) => candidate.id === stageId)
+        return stage ? stageHeight(stage, settings) : 0
+      })
+    )
+    nextStageY += rowHeight + settings.stageRowGap
+  }
   const stagePlacements = new Map<string, StagePlacement>()
   const trackNodes: OverviewFlowNode[] = []
   const structureEdges: RoadmapEdge[] = []
 
-  ROADMAP_TRACKS.forEach((track, trackIndex) => {
+  tracks.forEach((track, trackIndex) => {
     const groupX = trackIndex * (settings.groupWidth + settings.trackGap)
     const trackLessons = lessons.filter((lesson) =>
       track.stageIds.includes(lesson.stageId)
@@ -254,7 +260,7 @@ export function buildRoadmapLayout({
       (lesson) => lesson.status === "通过"
     ).length
     trackNodes.push({
-      id: track.id,
+      id: roadmapTrackNodeId(track.id),
       type: "overview",
       position: {
         x: groupX + (settings.groupWidth - settings.trackWidth) / 2,
@@ -275,7 +281,7 @@ export function buildRoadmapLayout({
       selectable: false,
       focusable: false,
     })
-    structureEdges.push(structuralEdge(rootId, track.id))
+    structureEdges.push(structuralEdge(rootId, roadmapTrackNodeId(track.id)))
 
     track.stageIds.forEach((stageId, stageIndex) => {
       const stage = stages.find((candidate) => candidate.id === stageId)
@@ -284,15 +290,27 @@ export function buildRoadmapLayout({
       }
       stagePlacements.set(stageId, {
         x: groupX,
-        y: stageIndex === 0 ? settings.stageTopY : bottomStageY,
+        y: stageRowY[stageIndex],
         height: stageHeight(stage, settings),
       })
     })
 
-    structureEdges.push(structuralEdge(track.id, track.stageIds[0]))
-    structureEdges.push(
-      structuralEdge(track.stageIds[0], track.stageIds[1])
-    )
+    if (track.stageIds[0]) {
+      structureEdges.push(
+        structuralEdge(
+          roadmapTrackNodeId(track.id),
+          roadmapStageNodeId(track.stageIds[0])
+        )
+      )
+    }
+    for (let index = 0; index < track.stageIds.length - 1; index += 1) {
+      structureEdges.push(
+        structuralEdge(
+          roadmapStageNodeId(track.stageIds[index]),
+          roadmapStageNodeId(track.stageIds[index + 1])
+        )
+      )
+    }
   })
 
   const stageNodes: StageFlowNode[] = []
@@ -309,11 +327,12 @@ export function buildRoadmapLayout({
     ).length
 
     stageNodes.push({
-      id: stage.id,
+      id: roadmapStageNodeId(stage.id),
       type: "stage",
       position: { x: placement.x, y: placement.y },
       data: {
         stage,
+        lessons: stageLessons,
         completed,
         total: stageLessons.length,
         percentage: percentage(completed, stageLessons.length),
@@ -337,28 +356,28 @@ export function buildRoadmapLayout({
       const y =
         settings.headerHeight + row * (settings.nodeHeight + settings.rowGap)
       const node: LessonFlowNode = {
-        id: lesson.id,
+        id: roadmapLessonNodeId(lesson.lessonId),
         type: "lesson",
-        parentId: stage.id,
+        parentId: roadmapStageNodeId(stage.id),
         extent: "parent",
         position: { x, y },
         style: { width: settings.nodeWidth, height: settings.nodeHeight },
         data: {
           lesson,
-          recommended: lesson.day === recommendedDay,
+          recommended: lesson.lessonId === recommendedLessonId,
           targetPosition: Position.Top,
           sourcePosition: Position.Bottom,
           onOpenCourse,
         },
-        selected: lesson.day === selectedDay,
+        selected: lesson.lessonId === selectedLessonId,
         draggable: false,
         selectable: true,
         focusable: true,
         ariaLabel: [
-          `${lesson.dayLabel} ${lesson.title}`,
+          `${lesson.label} ${lesson.title}`,
           `状态 ${lesson.status}`,
-          lesson.day === selectedDay ? "当前选中" : null,
-          lesson.day === recommendedDay ? "推荐课程" : null,
+          lesson.lessonId === selectedLessonId ? "当前选中" : null,
+          lesson.lessonId === recommendedLessonId ? "推荐课程" : null,
           "按 Enter 或空格查看详情",
         ]
           .filter(Boolean)
@@ -374,8 +393,13 @@ export function buildRoadmapLayout({
     })
   }
 
+  const lessonOrder = new Map(
+    lessons.map((lesson, index) => [lesson.lessonId, index])
+  )
   positionedLessons.sort(
-    (left, right) => left.node.data.lesson.day - right.node.data.lesson.day
+    (left, right) =>
+      (lessonOrder.get(left.node.data.lesson.lessonId) ?? 0) -
+      (lessonOrder.get(right.node.data.lesson.lessonId) ?? 0)
   )
 
   const learningEdges: RoadmapEdge[] = []
@@ -388,7 +412,10 @@ export function buildRoadmapLayout({
     source.node.data.sourcePosition = positions.source
     target.node.data.targetPosition = positions.target
     learningEdges.push({
-      id: `path-${source.node.data.lesson.day}-${target.node.data.lesson.day}`,
+      id: learningEdgeId(
+        source.node.data.lesson.lessonId,
+        target.node.data.lesson.lessonId
+      ),
       type: "smoothstep",
       source: source.node.id,
       target: target.node.id,
@@ -409,10 +436,10 @@ export function buildRoadmapLayout({
     })
   }
 
-  const focusDay = recommendedDay ?? lessons.at(-1)?.day ?? 0
+  const focusLessonId = recommendedLessonId ?? lessons.at(-1)?.lessonId
   const focusLesson =
     positionedLessons.find(
-      (positioned) => positioned.node.data.lesson.day === focusDay
+      (positioned) => positioned.node.data.lesson.lessonId === focusLessonId
     ) ?? positionedLessons[0]
   const focus = focusLesson
     ? {

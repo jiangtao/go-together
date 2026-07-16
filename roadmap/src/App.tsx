@@ -1,6 +1,20 @@
-import { useCallback, useEffect, useRef, useState } from "react"
+import {
+  useCallback,
+  useEffect,
+  useMemo,
+  useRef,
+  useState,
+  type RefObject,
+} from "react"
 import { flushSync } from "react-dom"
-import { AlertCircleIcon, BracesIcon, RotateCwIcon } from "lucide-react"
+import type { Viewport } from "@xyflow/react"
+import {
+  AlertCircleIcon,
+  ArchiveIcon,
+  BookOpenIcon,
+  BracesIcon,
+  RotateCwIcon,
+} from "lucide-react"
 
 import { LearningDrawer } from "@/components/learning-drawer"
 import { MarkdownReader } from "@/components/markdown-reader"
@@ -12,26 +26,45 @@ import {
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
 import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select"
+import {
   isEditableKeyboardTarget,
   shouldToggleZen,
+  surfaceBelongsToCourse,
   type Surface,
 } from "@/lib/app-state"
-import { parseCourseData } from "@/lib/course-data"
-import { summarizeProgress } from "@/lib/progress"
-import type { CourseData, CourseLesson, CourseResource } from "@/types/course"
+import {
+  loadCanonicalCourse,
+  resolveCoursePath,
+  type CanonicalCourseLoadResult,
+} from "@/lib/canonical-course"
+import { summarizeRoadmapProgress } from "@/lib/progress"
+import type { PublicCatalog } from "@/lib/public-course-contract"
+import type {
+  CourseResource,
+  RoadmapCourseData,
+  RoadmapLesson,
+} from "@/types/course"
 
 type CourseLoadState =
-  | { status: "loading"; course: null; error: "" }
-  | { status: "ready"; course: CourseData; error: "" }
-  | { status: "error"; course: null; error: string }
+  | { status: "loading"; result: null; error: "" }
+  | { status: "ready"; result: CanonicalCourseLoadResult; error: "" }
+  | { status: "error"; result: null; error: string }
+
+type LoadFocusTarget = "none" | "heading" | "course-select"
 
 const INITIAL_LOAD_STATE: CourseLoadState = {
   status: "loading",
-  course: null,
+  result: null,
   error: "",
 }
 
-function courseResourceForLesson(lesson: CourseLesson): CourseResource {
+function courseResourceForLesson(lesson: RoadmapLesson): CourseResource {
   return { label: "课程 Markdown", href: lesson.lessonHref }
 }
 
@@ -42,13 +75,27 @@ function CourseLoadingScreen({
   error: string | null
   onRetry: () => void
 }) {
+  const errorRef = useRef<HTMLDivElement>(null)
+
+  useEffect(() => {
+    if (!error) return
+    const frame = window.requestAnimationFrame(() => errorRef.current?.focus())
+    return () => window.cancelAnimationFrame(frame)
+  }, [error])
+
   return (
     <main className="course-load-screen" data-testid="course-load-screen">
       <div className="course-load-mark" aria-hidden="true">
         {error ? <AlertCircleIcon /> : <BracesIcon />}
       </div>
       {error ? (
-        <div role="alert" className="course-load-copy">
+        <div
+          ref={errorRef}
+          role="alert"
+          tabIndex={-1}
+          className="course-load-copy"
+          data-testid="course-load-error"
+        >
           <h1>路线图暂时无法加载</h1>
           <p>{error}</p>
           <Button type="button" variant="outline" onClick={onRetry}>
@@ -71,8 +118,127 @@ function CourseLoadingScreen({
   )
 }
 
-function RoadmapApplication({ courseData }: { courseData: CourseData }) {
-  const summary = summarizeProgress(courseData.lessons)
+function CourseIdentityControl({
+  catalog,
+  courseData,
+  canSwitch,
+  selectRef,
+  onSelectCourse,
+}: {
+  catalog: PublicCatalog
+  courseData: RoadmapCourseData
+  canSwitch: boolean
+  selectRef: RefObject<HTMLButtonElement | null>
+  onSelectCourse: (courseId: string) => void
+}) {
+  const publishedCourses = catalog.courses.filter(
+    (course) => course.lifecycle === "published"
+  )
+  if (publishedCourses.length < 2) {
+    return (
+      <div
+        className="active-course-static"
+        data-testid="active-course-static"
+        aria-label={`当前课程：${courseData.language.label}，${courseData.title}`}
+      >
+        <BookOpenIcon aria-hidden="true" />
+        <span>{courseData.language.label}</span>
+        <strong>{courseData.title}</strong>
+      </div>
+    )
+  }
+
+  const currentDeclaration = catalog.courses.find(
+    (course) => course.courseId === courseData.courseId
+  )
+  const choices =
+    currentDeclaration?.lifecycle === "retired"
+      ? [currentDeclaration, ...publishedCourses]
+      : publishedCourses
+
+  return (
+    <Select
+      value={courseData.courseId}
+      disabled={!canSwitch}
+      onValueChange={onSelectCourse}
+    >
+      <SelectTrigger
+        ref={selectRef}
+        className="course-select-trigger"
+        aria-label="切换课程"
+        data-testid="course-select-trigger"
+      >
+        <BookOpenIcon aria-hidden="true" />
+        <SelectValue />
+      </SelectTrigger>
+      <SelectContent position="popper" align="end">
+        {choices.map((course) => (
+          <SelectItem
+            key={course.courseId}
+            value={course.courseId}
+            disabled={course.lifecycle === "retired"}
+            data-testid={`course-option-${course.courseId}`}
+          >
+            {course.lifecycle === "retired" ? (
+              <ArchiveIcon aria-hidden="true" />
+            ) : null}
+            {course.language.label} · {course.title}
+          </SelectItem>
+        ))}
+      </SelectContent>
+    </Select>
+  )
+}
+
+function RoadmapApplication({
+  result,
+  focusTarget,
+  viewportCache,
+  onSelectCourse,
+}: {
+  result: CanonicalCourseLoadResult
+  focusTarget: LoadFocusTarget
+  viewportCache: Map<string, Viewport>
+  onSelectCourse: (courseId: string) => void
+}) {
+  const { catalog, courseData, courseRevision } = result
+  const activeLessons = useMemo(
+    () => courseData.lessons.filter((lesson) => lesson.lifecycle === "active"),
+    [courseData.lessons]
+  )
+  const activeLessonIds = useMemo(
+    () => new Set(activeLessons.map((lesson) => lesson.lessonId)),
+    [activeLessons]
+  )
+  const activeStages = useMemo(
+    () =>
+      courseData.stages
+        .map((stage) => ({
+          ...stage,
+          lessonIds: stage.lessonIds.filter((lessonId) =>
+            activeLessonIds.has(lessonId)
+          ),
+        }))
+        .filter((stage) => stage.lessonIds.length > 0),
+    [activeLessonIds, courseData.stages]
+  )
+  const activeStageIds = useMemo(
+    () => new Set(activeStages.map((stage) => stage.id)),
+    [activeStages]
+  )
+  const activeTracks = useMemo(
+    () =>
+      courseData.tracks
+        .map((track) => ({
+          ...track,
+          stageIds: track.stageIds.filter((stageId) =>
+            activeStageIds.has(stageId)
+          ),
+        }))
+        .filter((track) => track.stageIds.length > 0),
+    [activeStageIds, courseData.tracks]
+  )
+  const summary = summarizeRoadmapProgress(courseData.lessons)
   const [zen, setZen] = useState(false)
   const [surface, setSurface] = useState<Surface>({ kind: "canvas" })
   const [dayInitialFocus, setDayInitialFocus] = useState<
@@ -80,12 +246,17 @@ function RoadmapApplication({ courseData }: { courseData: CourseData }) {
   >("close")
   const [zenAnnouncement, setZenAnnouncement] = useState("")
   const roadmapRef = useRef<RoadmapCanvasHandle>(null)
+  const headingRef = useRef<HTMLHeadingElement>(null)
+  const courseSelectRef = useRef<HTMLButtonElement>(null)
   const focusFrame = useRef<number | null>(null)
   const panelLesson =
     surface.kind === "canvas"
       ? null
-      : (courseData.lessons.find((lesson) => lesson.day === surface.day) ??
-        null)
+      : (courseData.lessons.find(
+          (lesson) =>
+            lesson.courseId === surface.identity.courseId &&
+            lesson.lessonId === surface.identity.lessonId
+        ) ?? null)
   const panelStage = panelLesson
     ? (courseData.stages.find((stage) => stage.id === panelLesson.stageId) ??
       null)
@@ -111,6 +282,17 @@ function RoadmapApplication({ courseData }: { courseData: CourseData }) {
     },
     []
   )
+
+  useEffect(() => {
+    if (focusTarget === "none") return
+    scheduleFocus(() => {
+      if (focusTarget === "course-select" && courseSelectRef.current) {
+        courseSelectRef.current.focus()
+      } else {
+        headingRef.current?.focus()
+      }
+    })
+  }, [focusTarget, scheduleFocus])
 
   useEffect(() => {
     if (zen) {
@@ -182,22 +364,39 @@ function RoadmapApplication({ courseData }: { courseData: CourseData }) {
     (trigger: HTMLElement) => {
       flushSync(() => setSurface({ kind: "canvas" }))
       scheduleFocus(() => {
-        if (trigger.isConnected) trigger.focus()
+        if (trigger.isConnected) {
+          trigger.focus()
+        } else {
+          headingRef.current?.focus()
+        }
       })
     },
     [scheduleFocus]
   )
 
-  const handleSelectDay = useCallback((day: number, trigger: HTMLElement) => {
-    setDayInitialFocus("close")
-    setSurface({ kind: "day", day, trigger })
-  }, [])
+  const handleSelectLesson = useCallback(
+    (lesson: RoadmapLesson, trigger: HTMLElement) => {
+      setDayInitialFocus("close")
+      setSurface({
+        kind: "day",
+        identity: {
+          courseId: lesson.courseId,
+          lessonId: lesson.lessonId,
+        },
+        trigger,
+      })
+    },
+    []
+  )
 
   const handleOpenCourseFromCanvas = useCallback(
-    (lesson: CourseLesson, trigger: HTMLElement) => {
+    (lesson: RoadmapLesson, trigger: HTMLElement) => {
       setSurface({
         kind: "reader",
-        day: lesson.day,
+        identity: {
+          courseId: lesson.courseId,
+          lessonId: lesson.lessonId,
+        },
         resource: courseResourceForLesson(lesson),
         origin: "canvas",
         trigger,
@@ -207,11 +406,11 @@ function RoadmapApplication({ courseData }: { courseData: CourseData }) {
   )
 
   const handleOpenCourseFromDay = useCallback(
-    (lesson: CourseLesson) => {
+    (lesson: RoadmapLesson) => {
       if (surface.kind !== "day") return
       setSurface({
         kind: "reader",
-        day: lesson.day,
+        identity: surface.identity,
         resource: courseResourceForLesson(lesson),
         origin: "day",
         trigger: surface.trigger,
@@ -223,11 +422,20 @@ function RoadmapApplication({ courseData }: { courseData: CourseData }) {
   const handleReturnToDay = useCallback(() => {
     if (surface.kind !== "reader" || surface.origin !== "day") return
     setDayInitialFocus("resource")
-    setSurface({ kind: "day", day: surface.day, trigger: surface.trigger })
+    setSurface({
+      kind: "day",
+      identity: surface.identity,
+      trigger: surface.trigger,
+    })
   }, [surface])
 
+  if (!surfaceBelongsToCourse(surface, courseData.courseId)) {
+    throw new Error("交互 surface 与当前 Course 身份不一致")
+  }
   if (surface.kind !== "canvas" && (!panelLesson || !panelStage)) {
-    throw new Error(`课程数据缺失：Day ${surface.day}`)
+    throw new Error(
+      `课程数据缺失：${surface.identity.courseId}/${surface.identity.lessonId}`
+    )
   }
 
   const handleReaderOpenChange = (open: boolean) => {
@@ -243,32 +451,71 @@ function RoadmapApplication({ courseData }: { courseData: CourseData }) {
     if (!open && surface.kind === "day") closeToCanvas(surface.trigger)
   }
 
-  const selectedDay = surface.kind === "day" ? surface.day : null
+  const selectedLessonId =
+    surface.kind === "day" ? surface.identity.lessonId : null
   const readerResource = surface.kind === "reader" ? surface.resource : null
   const readerOrigin = surface.kind === "reader" ? surface.origin : "canvas"
   const readerLesson = surface.kind === "reader" ? panelLesson : null
   const dayLesson = surface.kind === "day" ? panelLesson : null
   const dayStage = surface.kind === "day" ? panelStage : null
+  const replacement = courseData.replacementCourseId
+    ? catalog.courses.find(
+        (course) => course.courseId === courseData.replacementCourseId
+      ) ?? null
+    : null
 
   return (
-    <div className="app-shell" data-zen={zen ? "true" : "false"}>
+    <div
+      className="app-shell"
+      data-zen={zen ? "true" : "false"}
+      data-course-revision={courseRevision}
+    >
       {!zen ? (
         <header className="page-header">
           <div className="brand-mark" aria-hidden="true">
             <BracesIcon />
           </div>
           <div className="brand-copy min-w-0 flex-1">
-            <h1>{courseData.title}</h1>
-            <p>课程 Markdown 提供内容，脱敏进度摘要展示状态</p>
+            <h1 ref={headingRef} tabIndex={-1} data-testid="course-heading">
+              {courseData.title}
+            </h1>
+            <p>{courseData.description}</p>
           </div>
           <div className="header-actions">
+            <CourseIdentityControl
+              catalog={catalog}
+              courseData={courseData}
+              canSwitch={surface.kind === "canvas"}
+              selectRef={courseSelectRef}
+              onSelectCourse={onSelectCourse}
+            />
             <Badge variant="outline" className="header-course-range">
-              Day {courseData.dayRange.start}–{courseData.dayRange.end} ·{" "}
-              {courseData.stages.length} 个阶段
+              {activeTracks.length} 条主干 · {activeStages.length} 个阶段
             </Badge>
             <RepositoryActions />
           </div>
         </header>
+      ) : null}
+
+      {!zen && courseData.lifecycle === "retired" ? (
+        <div
+          className="retired-course-notice"
+          role="status"
+          data-testid="retired-course-notice"
+        >
+          <ArchiveIcon aria-hidden="true" />
+          <span>此课程已退役，内容与历史进度继续保留。</span>
+          {replacement ? (
+            <Button
+              type="button"
+              variant="outline"
+              size="sm"
+              onClick={() => onSelectCourse(replacement.courseId)}
+            >
+              查看替代课程：{replacement.title}
+            </Button>
+          ) : null}
+        </div>
       ) : null}
 
       <main
@@ -278,14 +525,20 @@ function RoadmapApplication({ courseData }: { courseData: CourseData }) {
       >
         <RoadmapCanvas
           ref={roadmapRef}
-          stages={courseData.stages}
-          lessons={courseData.lessons}
-          selectedDay={selectedDay}
-          recommendedDay={summary.recommendedDay}
+          courseId={courseData.courseId}
+          courseRevision={courseRevision}
+          courseTitle={courseData.title}
+          courseDescription={courseData.description}
+          tracks={activeTracks}
+          stages={activeStages}
+          lessons={activeLessons}
+          selectedLessonId={selectedLessonId}
+          recommendedLessonId={summary.recommendedLessonId}
+          viewportCache={viewportCache}
           zen={zen}
           surfaceIsCanvas={surface.kind === "canvas"}
           onToggleZen={toggleZenMode}
-          onSelectDay={handleSelectDay}
+          onSelectLesson={handleSelectLesson}
           onOpenCourse={handleOpenCourseFromCanvas}
         />
       </main>
@@ -312,7 +565,8 @@ function RoadmapApplication({ courseData }: { courseData: CourseData }) {
       ) : null}
 
       <div className="sr-only" aria-live="polite" aria-atomic="true">
-        {zenAnnouncement}
+        {zenAnnouncement ||
+          `已加载${courseData.lifecycle === "retired" ? "退役" : ""}课程${courseData.title}`}
       </div>
     </div>
   )
@@ -320,43 +574,101 @@ function RoadmapApplication({ courseData }: { courseData: CourseData }) {
 
 function App() {
   const [requestVersion, setRequestVersion] = useState(0)
+  const [navigationVersion, setNavigationVersion] = useState(0)
+  const [focusTarget, setFocusTarget] = useState<LoadFocusTarget>(() =>
+    window.location.pathname === "/" ? "none" : "heading"
+  )
   const [loadState, setLoadState] = useState<CourseLoadState>(INITIAL_LOAD_STATE)
+  const requestGeneration = useRef(0)
+  const [viewportCache] = useState(() => new Map<string, Viewport>())
+
+  useEffect(() => {
+    const handlePopState = () => {
+      setFocusTarget("heading")
+      setLoadState(INITIAL_LOAD_STATE)
+      setNavigationVersion((version) => version + 1)
+    }
+    window.addEventListener("popstate", handlePopState)
+    return () => window.removeEventListener("popstate", handlePopState)
+  }, [])
 
   useEffect(() => {
     const controller = new AbortController()
-    void fetch("/course.json", {
-      signal: controller.signal,
-      credentials: "same-origin",
-      headers: { Accept: "application/json" },
-    })
-      .then((response) => {
-        if (!response.ok) {
-          throw new Error(`公开课程数据加载失败（HTTP ${response.status}）`)
-        }
-        return response.json() as Promise<unknown>
-      })
-      .then((value) => {
-        setLoadState({ status: "ready", course: parseCourseData(value), error: "" })
-      })
-      .catch((error: unknown) => {
-        if (controller.signal.aborted) return
+    const generation = requestGeneration.current + 1
+    requestGeneration.current = generation
+    let coursePath: string
+    try {
+      const route = resolveCoursePath(window.location.pathname)
+      coursePath = route.canonicalPath
+      if (route.shouldNormalize) {
+        window.history.replaceState(
+          window.history.state,
+          "",
+          `${route.canonicalPath}${window.location.search}${window.location.hash}`
+        )
+      }
+    } catch (error: unknown) {
+      queueMicrotask(() => {
+        if (generation !== requestGeneration.current) return
         setLoadState({
           status: "error",
-          course: null,
+          result: null,
+          error: error instanceof Error ? error.message : "当前课程 URL 无效",
+        })
+      })
+      return () => controller.abort()
+    }
+    void loadCanonicalCourse(coursePath, { signal: controller.signal })
+      .then((result) => {
+        if (generation !== requestGeneration.current) return
+        setLoadState({
+          status: "ready",
+          result,
+          error: "",
+        })
+      })
+      .catch((error: unknown) => {
+        if (
+          controller.signal.aborted ||
+          generation !== requestGeneration.current
+        ) {
+          return
+        }
+        setLoadState({
+          status: "error",
+          result: null,
           error: error instanceof Error ? error.message : "公开课程数据加载失败",
         })
       })
     return () => controller.abort()
-  }, [requestVersion])
+  }, [navigationVersion, requestVersion])
+
+  const handleSelectCourse = useCallback((courseId: string) => {
+    const pathname = `/courses/${courseId}`
+    if (window.location.pathname === pathname) return
+    window.history.pushState(null, "", pathname)
+    setFocusTarget("course-select")
+    setLoadState(INITIAL_LOAD_STATE)
+    setNavigationVersion((version) => version + 1)
+  }, [])
 
   if (loadState.status === "ready") {
-    return <RoadmapApplication courseData={loadState.course} />
+    return (
+      <RoadmapApplication
+        key={`${loadState.result.courseId}:${loadState.result.courseRevision}`}
+        result={loadState.result}
+        focusTarget={focusTarget}
+        viewportCache={viewportCache}
+        onSelectCourse={handleSelectCourse}
+      />
+    )
   }
   return (
     <CourseLoadingScreen
       error={loadState.status === "error" ? loadState.error : null}
       onRetry={() => {
         setLoadState(INITIAL_LOAD_STATE)
+        setFocusTarget("heading")
         setRequestVersion((version) => version + 1)
       }}
     />
