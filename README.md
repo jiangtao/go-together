@@ -18,6 +18,8 @@
 
 ## 新增课程（维护者）
 
+先阅读[新增与学习课程操作手册](./docs/course-authoring.md)：其中提供创建 Draft、添加 Lesson、验证发布和学习评测的可复制自然语言入口。
+
 本分支已用按课程隔离的学习记录替代旧的 `exercise/dayN` 布局；旧路径只用于迁移或兼容参考，新课程不得再写入旧 exercise 路径。要让一门新课出现在路线图，按以下顺序维护：
 
 1. 在 `courses/catalog.json` 注册唯一 `courseId`，填写 `manifestPath: courses/<courseId>/course.json`；完成校验后才将生命周期设为 `published`，`draft` 不进入公开课程选择器。
