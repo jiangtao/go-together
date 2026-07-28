@@ -22,8 +22,8 @@ function jobSource(source: string, jobName: string): string {
   return source.slice(start, followingJob === -1 ? undefined : start + 1 + followingJob)
 }
 
-describe("Roadmap 受审 prebuilt 发布工作流", () => {
-  it("只保留一个全事件、无 paths 过滤的发布入口", async () => {
+describe("Roadmap 纯托管质量工作流", () => {
+  it("只保留一个全事件、无 paths 过滤的质量入口", async () => {
     expect((await readdir(workflowDirectory)).filter((file) => file.startsWith("roadmap-"))).toEqual([
       "roadmap-release.yml",
     ])
@@ -32,109 +32,51 @@ describe("Roadmap 受审 prebuilt 发布工作流", () => {
     expect(source).toContain("push:")
     expect(source).toContain("branches: [main]")
     expect(source).toContain("workflow_dispatch:")
-    expect(source).toContain("candidate_sha:")
+    expect(source).not.toContain("candidate_sha:")
     expect(source).not.toContain("paths:")
     expect(source).not.toContain("deployment_status:")
+    const jobs = source.slice(source.indexOf("jobs:\n") + "jobs:\n".length)
+    expect(jobs.match(/^ {2}[a-z][\w-]*:$/gm)).toEqual(["  quality:"])
   })
 
-  it("让每个候选经过无浏览器托管门禁，再传递唯一 audited prebuilt", async () => {
+  it("以 lint 为必需门禁，并保留无浏览器检查与审计制品", async () => {
     const source = await releaseWorkflow()
     const quality = jobSource(source, "quality")
     expect(quality).toContain("npm run lint")
     expect(quality).toContain("npm run typecheck")
     expect(quality).toContain("npm run test")
     expect(quality).toContain("npm run build:hosting")
-    expect(quality).not.toContain("playwright")
-    expect(quality).not.toContain("test:e2e")
-    expect(quality).not.toContain("verify:release")
-    expect(source).not.toContain("playwright install")
-    expect(source).not.toContain("npm run smoke:deployment")
-    expect(source).not.toContain(".generated/e2e-evidence")
-    expect(source).not.toContain(".generated/release-receipt.json")
-    expect(source).toContain("roadmap-prebuilt-${{ needs.candidate.outputs.sha }}")
-    expect(source).toContain(".vercel/output")
-    expect(source).toContain(".generated/prebuilt-manifest.json")
-    expect(source).toContain("if-no-files-found: error")
-    expect(source).toContain("retention-days: 7")
-    expect(source).toContain("include-hidden-files: true")
-    expect(source).toContain("candidateHead")
-    expect(source).toContain("catalogDigest")
-    expect(source).toContain("prebuiltDigest")
+    expect(quality).toContain("roadmap-prebuilt-${{ github.sha }}")
+    expect(quality).toContain("roadmap/.vercel/output")
+    expect(quality).toContain("roadmap/.generated/prebuilt-manifest.json")
+    expect(quality).toContain("roadmap/.generated/public/courses/catalog.json")
+    expect(quality).toContain("if-no-files-found: error")
+    expect(quality).toContain("retention-days: 7")
+    expect(quality).toContain("include-hidden-files: true")
   })
 
-  it("隔离 fork、固定 action 与 CLI，且 Production 保留 staged/promote/rollback 链", async () => {
+  it("不安装或运行 Playwright/E2E，也不持有发布认证与部署职责", async () => {
     const source = await releaseWorkflow()
-    expect(source).toContain("github.event.pull_request.head.repo.fork == false")
-    expect(source).toContain("roadmap-preview")
-    expect(source).toContain("roadmap-production")
-    expect(source).toContain("--prebuilt")
-    expect(source).toContain("--prod --skip-domain")
-    expect(source).toContain("vercel promote")
-    expect(source).toContain("vercel rollback")
-    expect(source).toContain("smoke-rollback-production:")
-    expect(source).toContain(
-      "needs: [candidate, deploy-staged-production, smoke-staged-production]"
-    )
-    expect(source).toContain(
-      "needs: [candidate, promote-production, smoke-production]"
-    )
-    expect(source).toContain("needs: [candidate, rollback-production]")
-    expect(source).toContain(
-      "always() && needs.rollback-production.result == 'success'"
-    )
-    expect(source).toContain("npm ci --ignore-scripts")
-    expect(source).not.toContain("npx vercel")
+    expect(source.toLowerCase()).not.toContain("playwright")
+    expect(source).not.toContain("test:e2e")
+    expect(source).not.toContain("verify:release")
+    expect(source).not.toContain("npm run smoke:deployment")
+    expect(source).not.toContain("VERCEL_TOKEN")
+    expect(source).not.toContain("VERCEL_ORG_ID")
+    expect(source).not.toContain("VERCEL_PROJECT_ID")
+    expect(source).not.toContain("vercel deploy")
+    expect(source).not.toContain("vercel promote")
+    expect(source).not.toContain("vercel rollback")
+    expect(source).not.toContain("environment:")
+    expect(source).not.toMatch(/^ {2}(?:deploy|promote|rollback|smoke)-/m)
     expect(source).not.toMatch(/uses:\s+[^\n]+@v\d+/)
     for (const action of [
       "actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5",
       "actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020",
       "actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02",
-      "actions/download-artifact@d3f86a106a0bac45b974a628896c90dbdf5c8093",
     ]) {
       expect(source).toContain(action)
     }
-
-    for (const deploymentJob of [
-      "deploy-preview",
-      "deploy-staged-production",
-      "promote-production",
-      "rollback-production",
-    ]) {
-      const job = jobSource(source, deploymentJob)
-      expect(job).not.toContain("actions/checkout")
-      expect(job).toContain("npm ci --ignore-scripts")
-      expect(job).toContain("working-directory: .")
-      expect(job).not.toContain("working-directory: roadmap")
-    }
-
-    for (const deploymentJob of ["deploy-preview", "deploy-staged-production"]) {
-      const job = jobSource(source, deploymentJob)
-      expect(job).toContain("Verify downloaded audited artifact")
-      expect(job).toContain("vercel inspect")
-      expect(job).toContain("api.vercel.com/v13/deployments")
-    }
-
-    for (const smokeJob of [
-      "smoke-preview",
-      "smoke-staged-production",
-      "smoke-production",
-      "smoke-rollback-production",
-    ]) {
-      const job = jobSource(source, smokeJob)
-      expect(job).toContain("curl --proto '=https'")
-      expect(job).not.toContain("playwright")
-      expect(job).not.toContain("npm ci")
-    }
-
-    const promote = jobSource(source, "promote-production")
-    expect(promote).toContain("previous_url")
-    expect(promote).toContain("self-go.vercel.app")
-    expect(promote).toContain("vercel inspect")
-    expect(promote).toContain("outputs:")
-
-    const rollback = jobSource(source, "rollback-production")
-    expect(rollback).toContain(
-      "${{ needs.promote-production.outputs.previous_url }}"
-    )
+    expect(source).not.toContain("actions/download-artifact")
   })
 })
