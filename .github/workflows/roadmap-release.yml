@@ -100,6 +100,7 @@ jobs:
           name: roadmap-prebuilt-${{ needs.candidate.outputs.sha }}
           if-no-files-found: error
           retention-days: 7
+          include-hidden-files: true
           path: |
             roadmap/.vercel/output
             roadmap/.generated/prebuilt-manifest.json
@@ -124,13 +125,13 @@ jobs:
         with:
           node-version: 24.11.0
       - run: npm ci --ignore-scripts
-        working-directory: roadmap
+        working-directory: .
       - name: Verify downloaded audited artifact
         env:
           CANDIDATE_SHA: ${{ needs.candidate.outputs.sha }}
           CATALOG_DIGEST: ${{ needs.quality.outputs.catalog_digest }}
           PREBUILT_DIGEST: ${{ needs.quality.outputs.prebuilt_digest }}
-        working-directory: roadmap
+        working-directory: .
         run: |
           set -euo pipefail
           node -e 'const c=require("node:crypto");const f=require("node:fs");const h=p=>c.createHash("sha256").update(f.readFileSync(p)).digest("hex");if(!/^[a-f0-9]{40}$/.test(process.env.CANDIDATE_SHA??"")||h(".generated/public/courses/catalog.json")!==process.env.CATALOG_DIGEST||h(".generated/prebuilt-manifest.json")!==process.env.PREBUILT_DIGEST)throw new Error("下载的审计制品或候选摘要不匹配");'
@@ -142,7 +143,7 @@ jobs:
           CANDIDATE_SHA: ${{ needs.candidate.outputs.sha }}
           CATALOG_DIGEST: ${{ needs.quality.outputs.catalog_digest }}
           PREBUILT_DIGEST: ${{ needs.quality.outputs.prebuilt_digest }}
-        working-directory: roadmap
+        working-directory: .
         run: |
           set -euo pipefail
           test -n "$VERCEL_TOKEN" && test -n "$VERCEL_ORG_ID" && test -n "$VERCEL_PROJECT_ID"
@@ -188,13 +189,13 @@ jobs:
         with:
           node-version: 24.11.0
       - run: npm ci --ignore-scripts
-        working-directory: roadmap
+        working-directory: .
       - name: Verify downloaded audited artifact
         env:
           CANDIDATE_SHA: ${{ needs.candidate.outputs.sha }}
           CATALOG_DIGEST: ${{ needs.quality.outputs.catalog_digest }}
           PREBUILT_DIGEST: ${{ needs.quality.outputs.prebuilt_digest }}
-        working-directory: roadmap
+        working-directory: .
         run: |
           set -euo pipefail
           node -e 'const c=require("node:crypto");const f=require("node:fs");const h=p=>c.createHash("sha256").update(f.readFileSync(p)).digest("hex");if(!/^[a-f0-9]{40}$/.test(process.env.CANDIDATE_SHA??"")||h(".generated/public/courses/catalog.json")!==process.env.CATALOG_DIGEST||h(".generated/prebuilt-manifest.json")!==process.env.PREBUILT_DIGEST)throw new Error("下载的审计制品或候选摘要不匹配");'
@@ -206,7 +207,7 @@ jobs:
           CANDIDATE_SHA: ${{ needs.candidate.outputs.sha }}
           CATALOG_DIGEST: ${{ needs.quality.outputs.catalog_digest }}
           PREBUILT_DIGEST: ${{ needs.quality.outputs.prebuilt_digest }}
-        working-directory: roadmap
+        working-directory: .
         run: |
           set -euo pipefail
           test -n "$VERCEL_TOKEN" && test -n "$VERCEL_ORG_ID" && test -n "$VERCEL_PROJECT_ID"
@@ -251,11 +252,11 @@ jobs:
         with:
           node-version: 24.11.0
       - run: npm ci --ignore-scripts
-        working-directory: roadmap
+        working-directory: .
       - id: capture-current-production
         env:
           VERCEL_TOKEN: ${{ secrets.VERCEL_TOKEN }}
-        working-directory: roadmap
+        working-directory: .
         run: |
           set -euo pipefail
           test -n "$VERCEL_TOKEN"
@@ -263,7 +264,7 @@ jobs:
           printf 'previous_url=%s\n' "$previous_url" >> "$GITHUB_OUTPUT"
       - env:
           VERCEL_TOKEN: ${{ secrets.VERCEL_TOKEN }}
-        working-directory: roadmap
+        working-directory: .
         run: |
           set -euo pipefail
           test -n "$VERCEL_TOKEN"
@@ -300,10 +301,10 @@ jobs:
         with:
           node-version: 24.11.0
       - run: npm ci --ignore-scripts
-        working-directory: roadmap
+        working-directory: .
       - env:
           VERCEL_TOKEN: ${{ secrets.VERCEL_TOKEN }}
-        working-directory: roadmap
+        working-directory: .
         run: |
           set -euo pipefail
           test -n "$VERCEL_TOKEN"

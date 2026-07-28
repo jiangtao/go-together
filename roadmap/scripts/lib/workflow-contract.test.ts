@@ -56,6 +56,7 @@ describe("Roadmap 受审 prebuilt 发布工作流", () => {
     expect(source).toContain(".generated/prebuilt-manifest.json")
     expect(source).toContain("if-no-files-found: error")
     expect(source).toContain("retention-days: 7")
+    expect(source).toContain("include-hidden-files: true")
     expect(source).toContain("candidateHead")
     expect(source).toContain("catalogDigest")
     expect(source).toContain("prebuiltDigest")
@@ -102,6 +103,8 @@ describe("Roadmap 受审 prebuilt 发布工作流", () => {
       const job = jobSource(source, deploymentJob)
       expect(job).not.toContain("actions/checkout")
       expect(job).toContain("npm ci --ignore-scripts")
+      expect(job).toContain("working-directory: .")
+      expect(job).not.toContain("working-directory: roadmap")
     }
 
     for (const deploymentJob of ["deploy-preview", "deploy-staged-production"]) {
