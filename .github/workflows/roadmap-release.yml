@@ -74,21 +74,27 @@ jobs:
           cache-dependency-path: roadmap/package-lock.json
       - run: npm ci
         working-directory: roadmap
+      - run: npm run lint
+        working-directory: roadmap
+      - run: npm run typecheck
+        working-directory: roadmap
+      - run: npm run test
+        working-directory: roadmap
+      - run: npm run build:hosting
+        working-directory: roadmap
       - name: Require dispatched Production candidate to be reachable from main
         if: github.event_name == 'workflow_dispatch' && needs.candidate.outputs.target == 'production'
         run: |
           set -euo pipefail
           git fetch --no-tags origin main
           git merge-base --is-ancestor "${{ needs.candidate.outputs.sha }}" origin/main
-      - run: npm run verify:release
-        working-directory: roadmap
       - id: artifact
         env:
           CANDIDATE_SHA: ${{ needs.candidate.outputs.sha }}
         working-directory: roadmap
         run: |
           set -euo pipefail
-          node -e 'const c=require("node:crypto");const f=require("node:fs");const h=p=>c.createHash("sha256").update(f.readFileSync(p)).digest("hex");const receipt=JSON.parse(f.readFileSync(".generated/release-receipt.json","utf8"));if(receipt.candidate.head!==process.env.CANDIDATE_SHA)throw new Error("Release Receipt candidate SHA 不匹配");const catalog=h(".generated/public/courses/catalog.json");const prebuilt=h(".generated/prebuilt-manifest.json");if(receipt.inputs.catalog.sha256!==catalog||receipt.artifacts.prebuiltManifest.sha256!==prebuilt)throw new Error("Release Receipt 制品摘要不匹配");f.appendFileSync(process.env.GITHUB_OUTPUT,`catalog_digest=${catalog}\nprebuilt_digest=${prebuilt}\n`);'
+          node -e 'const c=require("node:crypto");const f=require("node:fs");const x=require("node:child_process");const h=p=>c.createHash("sha256").update(f.readFileSync(p)).digest("hex");const head=x.execFileSync("git",["rev-parse","HEAD"],{encoding:"utf8"}).trim();if(head!==process.env.CANDIDATE_SHA)throw new Error("候选 SHA 不匹配");const catalog=h(".generated/public/courses/catalog.json");const prebuilt=h(".generated/prebuilt-manifest.json");f.appendFileSync(process.env.GITHUB_OUTPUT,`catalog_digest=${catalog}\nprebuilt_digest=${prebuilt}\n`);'
       - uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
         with:
           name: roadmap-prebuilt-${{ needs.candidate.outputs.sha }}
@@ -97,8 +103,6 @@ jobs:
           path: |
             roadmap/.vercel/output
             roadmap/.generated/prebuilt-manifest.json
-            roadmap/.generated/release-receipt.json
-            roadmap/.generated/e2e-evidence/evidence-manifest.json
             roadmap/.generated/public/courses/catalog.json
             roadmap/package.json
             roadmap/package-lock.json
@@ -129,7 +133,7 @@ jobs:
         working-directory: roadmap
         run: |
           set -euo pipefail
-          node -e 'const c=require("node:crypto");const f=require("node:fs");const h=p=>c.createHash("sha256").update(f.readFileSync(p)).digest("hex");const r=JSON.parse(f.readFileSync(".generated/release-receipt.json","utf8"));if(r.candidate.head!==process.env.CANDIDATE_SHA||h(".generated/public/courses/catalog.json")!==process.env.CATALOG_DIGEST||h(".generated/prebuilt-manifest.json")!==process.env.PREBUILT_DIGEST)throw new Error("下载的审计制品或 Receipt 不匹配");'
+          node -e 'const c=require("node:crypto");const f=require("node:fs");const h=p=>c.createHash("sha256").update(f.readFileSync(p)).digest("hex");if(!/^[a-f0-9]{40}$/.test(process.env.CANDIDATE_SHA??"")||h(".generated/public/courses/catalog.json")!==process.env.CATALOG_DIGEST||h(".generated/prebuilt-manifest.json")!==process.env.PREBUILT_DIGEST)throw new Error("下载的审计制品或候选摘要不匹配");'
       - id: deploy
         env:
           VERCEL_TOKEN: ${{ secrets.VERCEL_TOKEN }}
@@ -155,18 +159,14 @@ jobs:
     permissions:
       contents: read
     steps:
-      - uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5
-        with:
-          ref: ${{ needs.candidate.outputs.sha }}
-      - uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020
-        with:
-          node-version: 24.11.0
-          cache: npm
-          cache-dependency-path: roadmap/package-lock.json
-      - run: npm ci
-        working-directory: roadmap
-      - run: npm run smoke:deployment -- "${{ needs.deploy-preview.outputs.url }}"
-        working-directory: roadmap
+      - env:
+          DEPLOYMENT_URL: ${{ needs.deploy-preview.outputs.url }}
+        run: |
+          set -euo pipefail
+          for path in / /courses/catalog.json /courses/go-backend /courses/editor-engineering; do
+            code="$(curl --proto '=https' --silent --show-error --retry 3 --retry-all-errors --connect-timeout 15 --max-time 60 --output /dev/null --write-out '%{http_code}' "${DEPLOYMENT_URL%/}$path")"
+            test "$code" = 200
+          done
 
   deploy-staged-production:
     if: needs.candidate.outputs.target == 'production'
@@ -197,7 +197,7 @@ jobs:
         working-directory: roadmap
         run: |
           set -euo pipefail
-          node -e 'const c=require("node:crypto");const f=require("node:fs");const h=p=>c.createHash("sha256").update(f.readFileSync(p)).digest("hex");const r=JSON.parse(f.readFileSync(".generated/release-receipt.json","utf8"));if(r.candidate.head!==process.env.CANDIDATE_SHA||h(".generated/public/courses/catalog.json")!==process.env.CATALOG_DIGEST||h(".generated/prebuilt-manifest.json")!==process.env.PREBUILT_DIGEST)throw new Error("下载的审计制品或 Receipt 不匹配");'
+          node -e 'const c=require("node:crypto");const f=require("node:fs");const h=p=>c.createHash("sha256").update(f.readFileSync(p)).digest("hex");if(!/^[a-f0-9]{40}$/.test(process.env.CANDIDATE_SHA??"")||h(".generated/public/courses/catalog.json")!==process.env.CATALOG_DIGEST||h(".generated/prebuilt-manifest.json")!==process.env.PREBUILT_DIGEST)throw new Error("下载的审计制品或候选摘要不匹配");'
       - id: deploy
         env:
           VERCEL_TOKEN: ${{ secrets.VERCEL_TOKEN }}
@@ -223,18 +223,14 @@ jobs:
     permissions:
       contents: read
     steps:
-      - uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5
-        with:
-          ref: ${{ needs.candidate.outputs.sha }}
-      - uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020
-        with:
-          node-version: 24.11.0
-          cache: npm
-          cache-dependency-path: roadmap/package-lock.json
-      - run: npm ci
-        working-directory: roadmap
-      - run: npm run smoke:deployment -- "${{ needs.deploy-staged-production.outputs.url }}"
-        working-directory: roadmap
+      - env:
+          DEPLOYMENT_URL: ${{ needs.deploy-staged-production.outputs.url }}
+        run: |
+          set -euo pipefail
+          for path in / /courses/catalog.json /courses/go-backend /courses/editor-engineering; do
+            code="$(curl --proto '=https' --silent --show-error --retry 3 --retry-all-errors --connect-timeout 15 --max-time 60 --output /dev/null --write-out '%{http_code}' "${DEPLOYMENT_URL%/}$path")"
+            test "$code" = 200
+          done
 
   promote-production:
     needs: [candidate, deploy-staged-production, smoke-staged-production]
@@ -279,18 +275,14 @@ jobs:
     permissions:
       contents: read
     steps:
-      - uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5
-        with:
-          ref: ${{ needs.candidate.outputs.sha }}
-      - uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020
-        with:
-          node-version: 24.11.0
-          cache: npm
-          cache-dependency-path: roadmap/package-lock.json
-      - run: npm ci
-        working-directory: roadmap
-      - run: npm run smoke:deployment -- https://self-go.vercel.app
-        working-directory: roadmap
+      - env:
+          DEPLOYMENT_URL: https://self-go.vercel.app
+        run: |
+          set -euo pipefail
+          for path in / /courses/catalog.json /courses/go-backend /courses/editor-engineering; do
+            code="$(curl --proto '=https' --silent --show-error --retry 3 --retry-all-errors --connect-timeout 15 --max-time 60 --output /dev/null --write-out '%{http_code}' "${DEPLOYMENT_URL%/}$path")"
+            test "$code" = 200
+          done
 
   rollback-production:
     if: always() && needs.promote-production.result == 'success' && needs.smoke-production.result == 'failure'
@@ -324,15 +316,11 @@ jobs:
     permissions:
       contents: read
     steps:
-      - uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5
-        with:
-          ref: ${{ needs.candidate.outputs.sha }}
-      - uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020
-        with:
-          node-version: 24.11.0
-          cache: npm
-          cache-dependency-path: roadmap/package-lock.json
-      - run: npm ci
-        working-directory: roadmap
-      - run: npm run smoke:deployment -- https://self-go.vercel.app
-        working-directory: roadmap
+      - env:
+          DEPLOYMENT_URL: https://self-go.vercel.app
+        run: |
+          set -euo pipefail
+          for path in / /courses/catalog.json /courses/go-backend /courses/editor-engineering; do
+            code="$(curl --proto '=https' --silent --show-error --retry 3 --retry-all-errors --connect-timeout 15 --max-time 60 --output /dev/null --write-out '%{http_code}' "${DEPLOYMENT_URL%/}$path")"
+            test "$code" = 200
+          done

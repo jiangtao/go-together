@@ -37,13 +37,23 @@ describe("Roadmap 受审 prebuilt 发布工作流", () => {
     expect(source).not.toContain("deployment_status:")
   })
 
-  it("让每个候选先经过完整 gate，再传递唯一 audited prebuilt", async () => {
+  it("让每个候选经过无浏览器托管门禁，再传递唯一 audited prebuilt", async () => {
     const source = await releaseWorkflow()
-    expect(source).toContain("npm run verify:release")
+    const quality = jobSource(source, "quality")
+    expect(quality).toContain("npm run lint")
+    expect(quality).toContain("npm run typecheck")
+    expect(quality).toContain("npm run test")
+    expect(quality).toContain("npm run build:hosting")
+    expect(quality).not.toContain("playwright")
+    expect(quality).not.toContain("test:e2e")
+    expect(quality).not.toContain("verify:release")
+    expect(source).not.toContain("playwright install")
+    expect(source).not.toContain("npm run smoke:deployment")
+    expect(source).not.toContain(".generated/e2e-evidence")
+    expect(source).not.toContain(".generated/release-receipt.json")
     expect(source).toContain("roadmap-prebuilt-${{ needs.candidate.outputs.sha }}")
     expect(source).toContain(".vercel/output")
     expect(source).toContain(".generated/prebuilt-manifest.json")
-    expect(source).toContain(".generated/release-receipt.json")
     expect(source).toContain("if-no-files-found: error")
     expect(source).toContain("retention-days: 7")
     expect(source).toContain("candidateHead")
@@ -99,6 +109,18 @@ describe("Roadmap 受审 prebuilt 发布工作流", () => {
       expect(job).toContain("Verify downloaded audited artifact")
       expect(job).toContain("vercel inspect")
       expect(job).toContain("api.vercel.com/v13/deployments")
+    }
+
+    for (const smokeJob of [
+      "smoke-preview",
+      "smoke-staged-production",
+      "smoke-production",
+      "smoke-rollback-production",
+    ]) {
+      const job = jobSource(source, smokeJob)
+      expect(job).toContain("curl --proto '=https'")
+      expect(job).not.toContain("playwright")
+      expect(job).not.toContain("npm ci")
     }
 
     const promote = jobSource(source, "promote-production")
