@@ -349,9 +349,12 @@ export const RoadmapCanvas = forwardRef<
                 <NetworkIcon aria-hidden="true" />
                 学习路径
               </CardTitle>
-              <CardDescription>
-                选择节点查看目标；拖动画布，滚轮或双指缩放
+              <CardDescription className="roadmap-course-description">
+                {courseDescription}
               </CardDescription>
+              <p className="roadmap-interaction-hint">
+                选择节点查看目标；拖动画布，滚轮或双指缩放
+              </p>
             </div>
             <Badge
               variant="secondary"

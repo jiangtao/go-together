@@ -41,10 +41,16 @@ Catalog + Course Source + Release Progress Snapshot
 
 ## Vercel 项目、Environment 与凭据
 
-- Project Name：`go-together-roadmap`
+- Project Name：`go-ahead`
+- Project ID：`prj_IueM8ji3ilkZo7rlJXLEtJzoB7e0`
+- 当前生产入口：<https://go-together-roadmap.vercel.app/>
+- 兼容入口：<https://lession-together.vercel.app/>
+- Legacy 入口：<https://self-go.vercel.app/>（只保留兼容，不作为文档与 GitHub Homepage 的推荐地址）
 - Framework：Vite（项目元数据）；实际部署格式为 Build Output API v3
 - Git Integration：Disabled
 - Node.js：24.11.0；npm 由 `roadmap/package-lock.json` 固定
+
+项目已原地改名为 `go-ahead`，没有创建第二个 Vercel 项目。目标域名 `go-ahead.vercel.app` 目前已分配给另一项目，Project Domains API 返回 HTTP 409，而当前账号 scope 不包含该外部项目；因此它不是当前生产入口。除非外部所有者先释放该域名，否则不得尝试删除、移动或夺取，也不得在文档或仓库 Homepage 中把它写成已上线地址。
 
 仅在 GitHub Environment 中配置以下 Secrets，Preview 与 Production 使用彼此独立的值和 branch policy：
 
@@ -102,4 +108,4 @@ Preview/staged smoke 未通过时不得 promote。Production 只从已经通过�
 
 ## English operational summary
 
-The only deployable artifact is the audited Vercel Build Output API v3 directory at `.vercel/output`. The single `roadmap-release` workflow runs the full release gate for every PR, main push, and explicit dispatch. It deploys only the verified prebuilt artifact: same-repository PRs receive a protected Preview deployment; main follows staged Production, smoke, promote, and rollback-with-resmoke. Fork PRs never receive Secrets or deploy. Deployment jobs do not checkout candidate code and verify Receipt/catalog/prebuilt digests plus Vercel metadata before proceeding. Source deployment, cloud builds, and Git Integration are disabled.
+The only deployable artifact is the audited Vercel Build Output API v3 directory at `.vercel/output`. The single `roadmap-release` workflow runs the full release gate for every PR, main push, and explicit dispatch. It deploys only the verified prebuilt artifact: same-repository PRs receive a protected Preview deployment; main follows staged Production, smoke, promote, and rollback-with-resmoke. Fork PRs never receive Secrets or deploy. Deployment jobs do not checkout candidate code and verify Receipt/catalog/prebuilt digests plus Vercel metadata before proceeding. Source deployment, cloud builds, and Git Integration are disabled. The Vercel project is `go-ahead` (`prj_IueM8ji3ilkZo7rlJXLEtJzoB7e0`), and the live production entry is <https://go-together-roadmap.vercel.app/>; <https://self-go.vercel.app/> is retained only as a legacy alias. The desired `go-ahead.vercel.app` hostname is globally assigned to a project outside the current account scope and is not advertised or reassigned pending release by its external owner.

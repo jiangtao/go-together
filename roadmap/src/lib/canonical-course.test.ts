@@ -115,10 +115,111 @@ function fetcher(fixture = canonicalFixture()) {
   })
 }
 
+function secondaryFixture(
+  status: "未开始" | "定向回炉" | "重新学习" | "通过" = "未开始"
+) {
+  const course = {
+    schemaVersion: 1,
+    courseId: "python-core",
+    courseRevision: REVISION,
+    title: "Python Core",
+    description: "Python language foundations",
+    language: { id: "python", label: "Python" },
+    lifecycle: "published",
+    replacementCourseId: null,
+    tracks: [
+      {
+        trackId: "language-model",
+        title: "Language model",
+        description: "Understand Python semantics",
+        stages: [
+          {
+            stageId: "functions",
+            title: "Functions",
+            description: "Functions and decorators",
+            lessons: [
+              {
+                lessonId: "decorators",
+                lifecycle: "active",
+                day: null,
+                title: "Decorators",
+                objective: "Explain decorator composition",
+                goals: ["Compose two decorators"],
+                contentRevision: CONTENT_REVISION,
+                lessonHref:
+                  "/courses/python-core/sources/lessons/decorators.md",
+              },
+            ],
+          },
+        ],
+      },
+    ],
+  }
+  const progress = {
+    schemaVersion: 1,
+    courseId: "python-core",
+    courseRevision: REVISION,
+    lessons: [
+      {
+        lessonId: "decorators",
+        status,
+        referenceScore: status === "通过" ? 90 : null,
+      },
+    ],
+  }
+  const declaration = {
+    courseId: "python-core",
+    courseRevision: REVISION,
+    title: course.title,
+    description: course.description,
+    language: course.language,
+    lifecycle: "published",
+    replacementCourseId: null,
+    pageHref: "/courses/python-core",
+    courseHref: "/courses/python-core/course.json",
+    progressHref: "/courses/python-core/progress.json",
+  }
+  return { course, progress, declaration }
+}
+
+function multiCourseFixture(options: {
+  goComplete?: boolean
+  pythonStatus?: "未开始" | "定向回炉" | "重新学习" | "通过"
+} = {}) {
+  const go = canonicalFixture()
+  if (options.goComplete) {
+    go.progress.lessons.forEach((lesson) => {
+      lesson.status = "通过"
+      lesson.referenceScore = 90
+    })
+  }
+  const python = secondaryFixture(options.pythonStatus)
+  const catalog = {
+    ...go.catalog,
+    // defaultCourseId 不参与运行时默认选择，声明顺序才是稳定创建顺序。
+    defaultCourseId: "python-core",
+    courses: [go.catalog.courses[0], python.declaration],
+  }
+  const byPath = new Map<string, unknown>([
+    ["/courses/catalog.json", catalog],
+    ["/courses/go-backend/course.json", go.course],
+    ["/courses/go-backend/progress.json", go.progress],
+    ["/courses/python-core/course.json", python.course],
+    ["/courses/python-core/progress.json", python.progress],
+  ])
+  const mockFetch = vi.fn<typeof fetch>(async (input) => {
+    const value = byPath.get(String(input))
+    return value === undefined
+      ? new Response("missing", { status: 404 })
+      : Response.json(value)
+  })
+  return { catalog, go, python, fetcher: mockFetch }
+}
+
 describe("canonical Course runtime loader", () => {
   it("resolves only the root alias and exact canonical Course paths", () => {
     expect(resolveCoursePath("/")).toEqual({
-      courseId: "go-backend",
+      courseId: null,
       canonicalPath: "/",
       shouldNormalize: false,
     })
@@ -146,7 +247,10 @@ describe("canonical Course runtime loader", () => {
     })
 
     expect(root.courseRevision).toBe(REVISION)
+    expect(root.selectionReason).toBe("earliest-incomplete")
+    expect(root.canonicalPath).toBe("/")
     expect(canonical.courseRevision).toBe(REVISION)
+    expect(canonical.selectionReason).toBe("explicit")
     expect(canonical.courseData).toEqual(root.courseData)
     expect(root.courseData.lessons).toHaveLength(37)
     expect(root.courseData.lessons[0]).toMatchObject({
@@ -163,6 +267,92 @@ describe("canonical Course runtime loader", () => {
         "/courses/go-backend/progress.json",
       ])
     )
+  })
+
+  it("根路径选择 Catalog 中声明最早的未完成 Published Course", async () => {
+    const fixture = multiCourseFixture()
+    const result = await loadCanonicalCourse("/", {
+      fetcher: fixture.fetcher,
+    })
+
+    expect(result.courseId).toBe("go-backend")
+    expect(result.selectionReason).toBe("earliest-incomplete")
+    expect(fixture.fetcher.mock.calls.map(([input]) => String(input))).not.toContain(
+      "/courses/python-core/course.json"
+    )
+  })
+
+  it("最早 Course 已完成时选择下一门声明最早的未完成 Course", async () => {
+    const fixture = multiCourseFixture({
+      goComplete: true,
+      pythonStatus: "定向回炉",
+    })
+    const result = await loadCanonicalCourse("/", {
+      fetcher: fixture.fetcher,
+    })
+
+    expect(result.courseId).toBe("python-core")
+    expect(result.selectionReason).toBe("earliest-incomplete")
+    expect(result.courseData.lessons[0].status).toBe("定向回炉")
+  })
+
+  it("全部 Published Course 完成时回退到声明最早的 Course", async () => {
+    const fixture = multiCourseFixture({
+      goComplete: true,
+      pythonStatus: "通过",
+    })
+    const result = await loadCanonicalCourse("/", {
+      fetcher: fixture.fetcher,
+    })
+
+    expect(result.courseId).toBe("go-backend")
+    expect(result.selectionReason).toBe("earliest-complete")
+  })
+
+  it("显式有效 courseId 永远优先且不读取其他 Course 的进度", async () => {
+    const fixture = multiCourseFixture()
+    const result = await loadCanonicalCourse("/courses/python-core", {
+      fetcher: fixture.fetcher,
+    })
+    const requests = fixture.fetcher.mock.calls.map(([input]) => String(input))
+
+    expect(result.courseId).toBe("python-core")
+    expect(result.selectionReason).toBe("explicit")
+    expect(requests).not.toContain("/courses/go-backend/course.json")
+    expect(requests).not.toContain("/courses/go-backend/progress.json")
+  })
+
+  it("无效 courseId 按同一默认算法回退并返回可解释的规范 URL", async () => {
+    const fixture = multiCourseFixture({
+      goComplete: true,
+      pythonStatus: "重新学习",
+    })
+    const result = await loadCanonicalCourse("/courses/not-registered", {
+      fetcher: fixture.fetcher,
+    })
+
+    expect(result.courseId).toBe("python-core")
+    expect(result.selectionReason).toBe("invalid-course-fallback")
+    expect(result.canonicalPath).toBe("/courses/python-core")
+    expect(result.selectionNotice).toContain("未找到课程“not-registered”")
+    expect(result.selectionNotice).toContain("Python Core")
+  })
+
+  it("生产运行时拒绝包含 Draft 的 Public Catalog，避免污染默认候选", async () => {
+    const fixture = multiCourseFixture()
+    fixture.catalog.courses.push({
+      ...fixture.python.declaration,
+      courseId: "draft-course",
+      title: "Draft Course",
+      lifecycle: "draft",
+      pageHref: "/courses/draft-course",
+      courseHref: "/courses/draft-course/course.json",
+      progressHref: "/courses/draft-course/progress.json",
+    })
+
+    await expect(
+      loadCanonicalCourse("/", { fetcher: fixture.fetcher })
+    ).rejects.toThrow("Published 或 Retired")
   })
 
   it("projects a structurally different Course without Day labels", async () => {

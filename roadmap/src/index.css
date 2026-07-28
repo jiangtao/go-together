@@ -245,7 +245,10 @@
   }
 
   .page-header h1 {
-    font-size: clamp(1.25rem, 2vw, 1.75rem);
+    width: fit-content;
+    max-width: 100%;
+    min-width: 0;
+    font-size: 1.75rem;
     line-height: 1.2;
     font-weight: 650;
     letter-spacing: -0.025em;
@@ -256,12 +259,6 @@
     border-radius: calc(var(--radius) * 0.65);
     outline: 3px solid color-mix(in oklch, var(--ring) 48%, transparent);
     outline-offset: 3px;
-  }
-
-  .page-header p {
-    margin-top: 0.25rem;
-    color: var(--muted-foreground);
-    font-size: 0.875rem;
   }
 
   .brand-mark {
@@ -289,6 +286,7 @@
 
   .header-actions [data-slot="button"],
   .header-actions [role="combobox"],
+  .course-select-trigger,
   .roadmap-toolbar button,
   .roadmap-toolbar [role="combobox"],
   .learning-drawer button,
@@ -302,35 +300,33 @@
   .course-select-trigger {
     min-width: 0;
     min-height: 2.75rem;
+    color: var(--foreground);
+    font: inherit;
+    font-weight: inherit;
+    letter-spacing: inherit;
   }
 
   .active-course-static {
-    display: inline-flex;
-    max-width: 18rem;
+    display: block;
+    max-width: 100%;
     align-items: center;
-    gap: 0.375rem;
-    padding-inline: 0.625rem;
-    color: var(--muted-foreground);
-    font-size: 0.8125rem;
-  }
-
-  .active-course-static svg {
-    size: 1rem;
-    flex: none;
-    color: var(--foreground);
-  }
-
-  .active-course-static strong {
     overflow: hidden;
-    color: var(--foreground);
-    font-weight: 620;
     text-overflow: ellipsis;
     white-space: nowrap;
   }
 
   .course-select-trigger {
-    max-width: min(22rem, 34vw);
-    padding-inline: 0.75rem;
+    max-width: min(34rem, 46vw);
+    height: auto;
+    margin-left: -0.5rem;
+    border-color: transparent;
+    padding: 0.25rem 0.5rem;
+    background: transparent;
+  }
+
+  .course-select-trigger:hover,
+  .course-select-trigger[aria-expanded="true"] {
+    background: var(--muted);
   }
 
   .course-select-trigger [data-slot="select-value"] {
@@ -339,7 +335,8 @@
     text-overflow: ellipsis;
   }
 
-  .retired-course-notice {
+  .retired-course-notice,
+  .course-route-notice {
     display: flex;
     min-width: 0;
     flex: none;
@@ -352,10 +349,15 @@
     font-size: 0.8125rem;
   }
 
-  .retired-course-notice > svg {
+  .retired-course-notice > svg,
+  .course-route-notice > svg {
     size: 1rem;
     flex: none;
     color: var(--foreground);
+  }
+
+  .course-route-notice {
+    background: color-mix(in oklch, var(--muted) 45%, transparent);
   }
 
   .retired-course-notice button {
@@ -457,6 +459,20 @@
     align-items: flex-start;
     justify-content: space-between;
     gap: 1rem;
+  }
+
+  .roadmap-course-description {
+    max-width: 75ch;
+    margin-top: 0.375rem;
+    line-height: 1.45;
+    text-wrap: pretty;
+  }
+
+  .roadmap-interaction-hint {
+    margin-top: 0.25rem;
+    color: var(--muted-foreground);
+    font-size: 0.75rem;
+    line-height: 1.4;
   }
 
   .roadmap-location {
@@ -1263,12 +1279,12 @@
     flex-wrap: wrap;
   }
 
-  .brand-copy {
-    flex-basis: calc(100% - 3.25rem);
+  .page-header h1 {
+    font-size: 1.375rem;
   }
 
-  .brand-copy p {
-    display: none;
+  .brand-copy {
+    flex-basis: calc(100% - 3.25rem);
   }
 
   .header-actions {
@@ -1279,23 +1295,19 @@
   }
 
   .course-select-trigger {
-    max-width: 9rem;
+    max-width: 100%;
   }
 
   .active-course-static {
-    max-width: 7rem;
-    padding-left: 0;
-  }
-
-  .active-course-static strong {
-    display: none;
+    max-width: 100%;
   }
 
   .repository-actions {
     margin-left: auto;
   }
 
-  .retired-course-notice {
+  .retired-course-notice,
+  .course-route-notice {
     align-items: flex-start;
     flex-wrap: wrap;
   }
@@ -1318,8 +1330,12 @@
     padding-right: 0.5rem;
   }
 
-  .roadmap-panel [data-slot="card-description"] {
-    max-width: 13rem;
+  .roadmap-course-description {
+    display: -webkit-box;
+    max-width: min(100%, 65ch);
+    overflow: hidden;
+    -webkit-box-orient: vertical;
+    -webkit-line-clamp: 2;
   }
 
   .roadmap-panel-header {
@@ -1327,7 +1343,7 @@
     padding: 0.75rem;
   }
 
-  .roadmap-panel-heading [data-slot="card-description"] {
+  .roadmap-interaction-hint {
     display: none;
   }
 

@@ -11,7 +11,6 @@ import type { Viewport } from "@xyflow/react"
 import {
   AlertCircleIcon,
   ArchiveIcon,
-  BookOpenIcon,
   BracesIcon,
   RotateCwIcon,
 } from "lucide-react"
@@ -83,6 +82,10 @@ function CourseLoadingScreen({
     return () => window.cancelAnimationFrame(frame)
   }, [error])
 
+  useEffect(() => {
+    document.title = error ? "课程加载失败" : "正在加载学习路线"
+  }, [error])
+
   return (
     <main className="course-load-screen" data-testid="course-load-screen">
       <div className="course-load-mark" aria-hidden="true">
@@ -136,15 +139,13 @@ function CourseIdentityControl({
   )
   if (publishedCourses.length < 2) {
     return (
-      <div
+      <span
         className="active-course-static"
         data-testid="active-course-static"
-        aria-label={`当前课程：${courseData.language.label}，${courseData.title}`}
+        aria-label={`当前课程：${courseData.title}`}
       >
-        <BookOpenIcon aria-hidden="true" />
-        <span>{courseData.language.label}</span>
-        <strong>{courseData.title}</strong>
-      </div>
+        {courseData.title}
+      </span>
     )
   }
 
@@ -164,12 +165,12 @@ function CourseIdentityControl({
     >
       <SelectTrigger
         ref={selectRef}
+        size="title"
         className="course-select-trigger"
-        aria-label="切换课程"
+        aria-label={`当前课程：${courseData.title}；切换课程`}
         data-testid="course-select-trigger"
       >
-        <BookOpenIcon aria-hidden="true" />
-        <SelectValue />
+        <SelectValue>{courseData.title}</SelectValue>
       </SelectTrigger>
       <SelectContent position="popper" align="end">
         {choices.map((course) => (
@@ -201,7 +202,7 @@ function RoadmapApplication({
   viewportCache: Map<string, Viewport>
   onSelectCourse: (courseId: string) => void
 }) {
-  const { catalog, courseData, courseRevision } = result
+  const { catalog, courseData, courseRevision, selectionNotice } = result
   const activeLessons = useMemo(
     () => courseData.lessons.filter((lesson) => lesson.lifecycle === "active"),
     [courseData.lessons]
@@ -293,6 +294,13 @@ function RoadmapApplication({
       }
     })
   }, [focusTarget, scheduleFocus])
+
+  useEffect(() => {
+    document.title = courseData.title
+    document
+      .querySelector('meta[name="description"]')
+      ?.setAttribute("content", courseData.description)
+  }, [courseData.description, courseData.title])
 
   useEffect(() => {
     if (zen) {
@@ -477,18 +485,16 @@ function RoadmapApplication({
           </div>
           <div className="brand-copy min-w-0 flex-1">
             <h1 ref={headingRef} tabIndex={-1} data-testid="course-heading">
-              {courseData.title}
+              <CourseIdentityControl
+                catalog={catalog}
+                courseData={courseData}
+                canSwitch={surface.kind === "canvas"}
+                selectRef={courseSelectRef}
+                onSelectCourse={onSelectCourse}
+              />
             </h1>
-            <p>{courseData.description}</p>
           </div>
           <div className="header-actions">
-            <CourseIdentityControl
-              catalog={catalog}
-              courseData={courseData}
-              canSwitch={surface.kind === "canvas"}
-              selectRef={courseSelectRef}
-              onSelectCourse={onSelectCourse}
-            />
             <Badge variant="outline" className="header-course-range">
               {activeTracks.length} 条主干 · {activeStages.length} 个阶段
             </Badge>
@@ -515,6 +521,17 @@ function RoadmapApplication({
               查看替代课程：{replacement.title}
             </Button>
           ) : null}
+        </div>
+      ) : null}
+
+      {!zen && selectionNotice ? (
+        <div
+          className="course-route-notice"
+          role="status"
+          data-testid="course-route-notice"
+        >
+          <AlertCircleIcon aria-hidden="true" />
+          <span>{selectionNotice}</span>
         </div>
       ) : null}
 
@@ -621,6 +638,13 @@ function App() {
     void loadCanonicalCourse(coursePath, { signal: controller.signal })
       .then((result) => {
         if (generation !== requestGeneration.current) return
+        if (window.location.pathname !== result.canonicalPath) {
+          window.history.replaceState(
+            window.history.state,
+            "",
+            `${result.canonicalPath}${window.location.search}${window.location.hash}`
+          )
+        }
         setLoadState({
           status: "ready",
           result,

@@ -4,8 +4,12 @@ import type { LookupFunction } from "node:net"
 
 import ipaddr from "ipaddr.js"
 
-const PROJECT_HOST = "go-together-roadmap.vercel.app"
-const PROJECT_PREVIEW_HOST = /^go-together-roadmap-[a-z0-9-]+\.vercel\.app$/
+const PROJECT_HOSTS = new Set([
+  "self-go.vercel.app",
+  "lession-together.vercel.app",
+  "go-together-roadmap.vercel.app",
+])
+const PROJECT_PREVIEW_HOST = /^go-ahead-[a-z0-9-]+\.vercel\.app$/
 
 export type AddressResolver = (hostname: string) => Promise<string[]>
 export type PinnedRequestImplementation = (
@@ -65,7 +69,7 @@ export function parseTrustedDeploymentUrl(input: string): URL {
   ) {
     throw new Error("Deployment URL 必须是无凭证、无参数、无自定义端口的受信 HTTPS 地址")
   }
-  if (hostname !== PROJECT_HOST && !PROJECT_PREVIEW_HOST.test(hostname)) {
+  if (!PROJECT_HOSTS.has(hostname) && !PROJECT_PREVIEW_HOST.test(hostname)) {
     throw new Error(`Deployment URL 主机不在 Vercel 项目允许范围：${hostname}`)
   }
   url.hostname = hostname

@@ -1,0 +1,46 @@
+{
+  "schemaVersion": 1,
+  "profileId": "typescript-editor-local",
+  "environment": {
+    "CI": "1",
+    "NO_COLOR": "1"
+  },
+  "commands": [
+    {
+      "commandId": "npm-test",
+      "argvTemplate": ["npm", "test"],
+      "variables": {},
+      "timeoutSeconds": 180
+    },
+    {
+      "commandId": "npm-typecheck",
+      "argvTemplate": ["npm", "run", "typecheck"],
+      "variables": {},
+      "timeoutSeconds": 180
+    },
+    {
+      "commandId": "npm-lint",
+      "argvTemplate": ["npm", "run", "lint"],
+      "variables": {},
+      "timeoutSeconds": 180
+    },
+    {
+      "commandId": "npm-test-e2e",
+      "argvTemplate": ["npm", "run", "test:e2e"],
+      "variables": {},
+      "timeoutSeconds": 300
+    },
+    {
+      "commandId": "npm-benchmark",
+      "argvTemplate": ["npm", "run", "benchmark"],
+      "variables": {},
+      "timeoutSeconds": 300
+    },
+    {
+      "commandId": "npm-build",
+      "argvTemplate": ["npm", "run", "build"],
+      "variables": {},
+      "timeoutSeconds": 300
+    }
+  ]
+}

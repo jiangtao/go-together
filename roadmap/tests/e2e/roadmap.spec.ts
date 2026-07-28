@@ -515,7 +515,15 @@ test("Course Select 以 URL 切换任意结构课程并按 history 恢复 transf
   await courseSelect.click()
   await page.getByRole("option", { name: "Python · Python Core" }).click()
   await expect(page).toHaveURL(/\/courses\/python-core$/)
+  await expect(page).toHaveTitle("Python Core")
+  await expect(page.locator('meta[name="description"]')).toHaveAttribute(
+    "content",
+    "Python 语言基础"
+  )
   await expect(page.getByTestId("course-heading")).toHaveText("Python Core")
+  await expect(page.locator(".roadmap-course-description")).toHaveText(
+    "Python 语言基础"
+  )
   await expect(courseSelect).toBeFocused()
   await expect(page.locator(".react-flow__node")).toHaveCount(6)
   await expect(page.getByTestId("lesson-node-functions")).toContainText(
@@ -539,6 +547,7 @@ test("Course Select 以 URL 切换任意结构课程并按 history 恢复 transf
 
   await page.goBack()
   await expect(page).toHaveURL(/\/$/)
+  await expect(page).toHaveTitle("Go 36 天学习路线图")
   await expect(page.getByTestId("course-heading")).toContainText("Go")
   await expect(page.getByTestId("course-heading")).toBeFocused()
   await page.goForward()
@@ -662,7 +671,7 @@ test("面板 trigger 被销毁时焦点回退到当前 Course 标题", async ({
   expectNoRuntimeErrors()
 })
 
-test("尾斜杠规范化、未知 Course 与 Retired Replacement 均失败透明", async ({
+test("尾斜杠规范化、未知 Course 确定回退与 Retired Replacement 均可解释", async ({
   page,
 }, testInfo) => {
   test.skip(
@@ -677,11 +686,14 @@ test("尾斜杠规范化、未知 Course 与 Retired Replacement 均失败透明
   await expect(page.getByTestId("course-heading")).toBeFocused()
 
   await page.goto("/courses/not-registered")
-  await expect(page.getByTestId("course-load-error")).toContainText(
-    "课程不存在"
+  await expect(page).toHaveURL(/\/courses\/go-backend$/)
+  await expect(page.getByTestId("course-route-notice")).toContainText(
+    "未找到课程“not-registered”"
   )
-  await expect(page.getByTestId("course-load-error")).toBeFocused()
-  await expect(page.locator(".react-flow__node")).toHaveCount(0)
+  await expect(page.getByTestId("course-route-notice")).toContainText(
+    "Go 36 天学习路线图"
+  )
+  await expect(page.locator(".react-flow__node")).toHaveCount(47)
 
   await page.goto("/courses/go-legacy")
   await expect(page).toHaveURL(/\/courses\/go-legacy$/)

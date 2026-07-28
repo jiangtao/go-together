@@ -120,42 +120,39 @@ describe("Vercel Build Output API v3 预构建包", () => {
     expect(
       PREBUILT_CONFIG.routes[0].headers["Content-Security-Policy"]
     ).toContain("connect-src 'self' https://api.github.com")
-    const encodedGuard = PREBUILT_CONFIG.routes.findIndex(
-      (route) => "status" in route && route.src.includes("%")
-    )
-    const uppercaseGuard = PREBUILT_CONFIG.routes.findIndex(
-      (route) => "status" in route && route.src.includes("[A-Z]")
-    )
     const filesystem = PREBUILT_CONFIG.routes.findIndex(
       (route) => "handle" in route && route.handle === "filesystem"
     )
-    const missingFileGuard = PREBUILT_CONFIG.routes.findIndex(
+    const courseSpaFallback = PREBUILT_CONFIG.routes.findIndex(
       (route) =>
-        "status" in route &&
-        route.src.includes("course\\.json") &&
-        !route.src.includes("%")
+        "dest" in route &&
+        route.dest === "/index.html" &&
+        route.src.includes("/courses/")
     )
-    const missingAssetGuard = PREBUILT_CONFIG.routes.findIndex(
-      (route) =>
-        "status" in route &&
-        route.src.includes("assets/")
-    )
-    const spaFallback = PREBUILT_CONFIG.routes.findIndex(
-      (route) => "dest" in route && route.dest === "/index.html"
-    )
-    const privateManifestGuard = PREBUILT_CONFIG.routes.findIndex(
-      (route) => "status" in route && route.src.includes("vite-manifest\\.json")
-    )
-    expect(encodedGuard).toBeGreaterThan(0)
-    expect(encodedGuard).toBeLessThan(filesystem)
-    expect(uppercaseGuard).toBeGreaterThan(0)
-    expect(uppercaseGuard).toBeLessThan(filesystem)
-    expect(missingFileGuard).toBeGreaterThan(filesystem)
-    expect(missingFileGuard).toBeLessThan(spaFallback)
-    expect(missingAssetGuard).toBeGreaterThan(filesystem)
-    expect(missingAssetGuard).toBeLessThan(spaFallback)
-    expect(privateManifestGuard).toBeGreaterThan(filesystem)
-    expect(privateManifestGuard).toBeLessThan(spaFallback)
+    expect(courseSpaFallback).toBeGreaterThan(0)
+    expect(courseSpaFallback).toBeLessThan(filesystem)
+    const courseRoute = PREBUILT_CONFIG.routes[courseSpaFallback]
+    expect("src" in courseRoute && new RegExp(courseRoute.src).test(
+      "/courses/editor-engineering"
+    )).toBe(true)
+    expect("src" in courseRoute && new RegExp(courseRoute.src).test(
+      "/courses/editor-engineering/"
+    )).toBe(true)
+    expect("src" in courseRoute && new RegExp(courseRoute.src).test(
+      "/courses/editor-engineering/course.json"
+    )).toBe(false)
+    expect("src" in courseRoute && new RegExp(courseRoute.src).test(
+      "/courses/editor.engineering"
+    )).toBe(false)
+    expect(
+      PREBUILT_CONFIG.routes.some((route) => "status" in route)
+    ).toBe(false)
+    expect(
+      PREBUILT_CONFIG.routes.filter(
+        (route) => "dest" in route && route.dest === "/index.html"
+      )
+    ).toHaveLength(1)
+    expect(PREBUILT_CONFIG.routes).toHaveLength(5)
   })
 
   it("拒绝预构建目录中的额外文件、source map 与符号链接", async () => {

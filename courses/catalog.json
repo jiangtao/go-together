@@ -12,6 +12,17 @@
       "lifecycle": "published",
       "replacementCourseId": null,
       "manifestPath": "courses/go-backend/course.json"
+    },
+    {
+      "courseId": "editor-engineering",
+      "title": "Web 编辑器工程实战",
+      "language": {
+        "id": "typescript",
+        "label": "TypeScript"
+      },
+      "lifecycle": "published",
+      "replacementCourseId": null,
+      "manifestPath": "courses/editor-engineering/course.json"
     }
   ]
 }

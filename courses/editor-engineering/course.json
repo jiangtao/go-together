@@ -1,0 +1,511 @@
+{
+  "schemaVersion": 1,
+  "courseId": "editor-engineering",
+  "title": "Web 编辑器工程实战",
+  "description": "以 TypeScript、React、ProseMirror 与成熟 Yjs 协同生态为主线，从浏览器编辑语义和结构化文档模型进入交互、持久化、协同与生产工程，形成独立设计、实现、验证和部署可用 Web 富文本编辑器的能力。English title: Web Editor Engineering in Practice.",
+  "language": {
+    "id": "typescript",
+    "label": "TypeScript"
+  },
+  "lifecycle": "published",
+  "replacementCourseId": null,
+  "evaluationPolicyPath": "evaluation/policy.md",
+  "commandProfilePath": "evaluation/command-profile.json",
+  "publicResources": [],
+  "internalResources": [],
+  "tracks": [
+    {
+      "trackId": "editor-foundations",
+      "title": "编辑器原理与 ProseMirror 核心",
+      "description": "先建立动机与系统边界，再掌握浏览器编辑语义、结构化文档、状态变换、选区和扩展模型。",
+      "stages": [
+        {
+          "stageId": "browser-and-document-model",
+          "title": "浏览器与文档模型",
+          "description": "理解编辑器为什么是复杂系统，并建立从 DOM 输入到结构化状态变换的基础模型。",
+          "lessons": [
+            {
+              "lessonId": "why-editor-engineering",
+              "lifecycle": "active",
+              "day": 0,
+              "title": "为什么值得学习 Web 编辑器工程",
+              "objective": "在写业务代码前建立编辑器的产品价值、系统边界、技术选型和工程指标判断，明确本课程的目标、验收标准、非目标与个人学习动机。",
+              "goals": [
+                "解释 Web 编辑器对用户、业务、产品平台和工程能力的价值。",
+                "画出结构化文档、交互状态、持久化与实时协同的系统边界。",
+                "说明 ProseMirror 的适用条件、代价和不应选择它的场景。",
+                "建立质量、性能、可靠性、协同收敛和数据安全指标，并形成个人学习目标。"
+              ],
+              "contentPath": "lessons/why-editor-engineering.md",
+              "exerciseTemplatePath": null,
+              "evaluation": {
+                "competencies": [
+                  {"competencyId": "motivation-and-value", "title": "解释 Web 编辑器工程的用户、业务与平台价值"},
+                  {"competencyId": "editor-system-boundaries", "title": "识别编辑器复杂系统的核心边界与数据所有权"},
+                  {"competencyId": "technology-and-quality-judgment", "title": "判断 ProseMirror 适用性并定义工程指标与学习目标"}
+                ],
+                "requiredEvidence": ["notes", "architecture-observation", "personal-learning-goal"],
+                "scoringBasis": ["准确", "机制与边界", "取舍明确", "指标可测", "证据可验证"]
+              }
+            },
+            {
+              "lessonId": "browser-editing-boundaries",
+              "lifecycle": "active",
+              "day": 1,
+              "title": "浏览器编辑边界：contenteditable 只是入口",
+              "objective": "理解 contenteditable、输入事件、IME、DOM Selection 与编辑器状态之间的关系，能够划分浏览器、编辑器引擎和产品应用的责任。",
+              "goals": ["观察真实输入事件序列。", "解释 DOM 与结构化状态为何不能混为一谈。", "识别 IME、拼写检查和浏览器差异带来的边界。", "建立输入延迟与 Long Task 基线。"],
+              "contentPath": "lessons/browser-editing-boundaries.md",
+              "exerciseTemplatePath": null,
+              "evaluation": {
+                "competencies": [
+                  {"competencyId": "browser-input-mechanism", "title": "解释浏览器输入、composition 与 DOM 变更机制"},
+                  {"competencyId": "editing-boundary-design", "title": "划分浏览器、引擎和应用的数据与事件边界"},
+                  {"competencyId": "input-observation-evidence", "title": "用事件轨迹与性能数据验证输入判断"}
+                ],
+                "requiredEvidence": ["notes", "event-trace", "metrics-evidence"],
+                "scoringBasis": ["准确", "因果链完整", "边界清晰", "兼容性意识", "证据可复现"]
+              }
+            },
+            {
+              "lessonId": "document-model-and-schema",
+              "lifecycle": "active",
+              "day": 2,
+              "title": "结构化文档模型与 Schema",
+              "objective": "掌握 ProseMirror 树形文档、Node、Fragment、Slice、NodeSpec 与 MarkSpec，并能从产品约束推导最小可演进 Schema。",
+              "goals": ["区分块节点、行内节点和 mark。", "用 content expression 表达合法结构。", "为属性、链接和列表定义约束。", "用合法与非法 fixtures 验证 Schema。"],
+              "contentPath": "lessons/document-model-and-schema.md",
+              "exerciseTemplatePath": null,
+              "evaluation": {
+                "competencies": [
+                  {"competencyId": "structured-document-model", "title": "解释 ProseMirror 结构化文档与 Schema 机制"},
+                  {"competencyId": "schema-boundary-design", "title": "从产品约束设计最小且可演进的 Schema"},
+                  {"competencyId": "schema-fixture-verification", "title": "用正反 fixtures 和解析指标验证 Schema"}
+                ],
+                "requiredEvidence": ["notes", "schema-adr", "explicit-exercise-evidence", "metrics-evidence"],
+                "scoringBasis": ["准确", "不变量完整", "取舍明确", "正反验证", "性能可测"]
+              }
+            },
+            {
+              "lessonId": "state-view-and-transaction",
+              "lifecycle": "active",
+              "day": 3,
+              "title": "EditorState、EditorView 与 Transaction 数据流",
+              "objective": "理解不可变 EditorState、EditorView、Transform、Step 和 Transaction 的单向循环，能够追踪用户意图如何形成可检查的状态变换。",
+              "goals": ["创建最小 ProseMirror 编辑器。", "追踪 transaction、steps 与新状态。", "理解 dispatchTransaction 集成点。", "验证禁止直接修改文档 DOM 的边界。"],
+              "contentPath": "lessons/state-view-and-transaction.md",
+              "exerciseTemplatePath": null,
+              "evaluation": {
+                "competencies": [
+                  {"competencyId": "state-transaction-mechanism", "title": "解释 State、View、Transform、Step 与 Transaction 的关系"},
+                  {"competencyId": "dispatch-data-flow", "title": "设计可观察且单一入口的 dispatch 数据流"},
+                  {"competencyId": "transaction-trace-verification", "title": "用 transaction 轨迹与基准验证状态变换"}
+                ],
+                "requiredEvidence": ["notes", "transaction-trace", "explicit-exercise-evidence", "metrics-evidence"],
+                "scoringBasis": ["准确", "数据流完整", "边界清晰", "变换可重放", "证据可验证"]
+              }
+            }
+          ]
+        },
+        {
+          "stageId": "interaction-and-extensibility",
+          "title": "交互与扩展模型",
+          "description": "掌握位置、选区、命令、插件和输入管线，建立可组合且可测试的编辑交互。",
+          "lessons": [
+            {
+              "lessonId": "selection-cursor-and-mapping",
+              "lifecycle": "active",
+              "day": 4,
+              "title": "选区、光标、位置与映射",
+              "objective": "理解 DOM Selection 与 ProseMirror Selection 的差异，掌握文档位置、ResolvedPos、TextSelection、NodeSelection 和 StepMap 映射。",
+              "goals": ["可视化 ProseMirror position。", "区分 anchor/head 与 from/to。", "验证变换后的选区映射。", "定位常见光标跳跃问题。"],
+              "contentPath": "lessons/selection-cursor-and-mapping.md",
+              "exerciseTemplatePath": null,
+              "evaluation": {
+                "competencies": [
+                  {"competencyId": "selection-position-mechanism", "title": "解释 DOM 与 ProseMirror 的选区、光标和位置模型"},
+                  {"competencyId": "selection-mapping-design", "title": "为文档变换设计正确的选区映射"},
+                  {"competencyId": "cursor-debugging-evidence", "title": "用边界案例和可视化证据定位光标问题"}
+                ],
+                "requiredEvidence": ["notes", "position-visualization", "explicit-exercise-evidence", "metrics-evidence"],
+                "scoringBasis": ["准确", "方向与边界清晰", "映射不变量", "边界覆盖", "性能可测"]
+              }
+            },
+            {
+              "lessonId": "commands-keymaps-and-plugins",
+              "lifecycle": "active",
+              "day": 5,
+              "title": "Command、Keymap 与 Plugin 扩展模型",
+              "objective": "区分用户意图、Command、Transaction、Keymap、Plugin state、view props 与 decorations，构建统一且可组合的扩展边界。",
+              "goals": ["实现可探测 enabled 状态的命令。", "统一工具栏与快捷键。", "实现有状态 Plugin。", "设计避免插件耦合的扩展契约。"],
+              "contentPath": "lessons/commands-keymaps-and-plugins.md",
+              "exerciseTemplatePath": null,
+              "evaluation": {
+                "competencies": [
+                  {"competencyId": "command-plugin-mechanism", "title": "解释 Command、Keymap、Plugin 与 Transaction 的职责"},
+                  {"competencyId": "extension-contract-design", "title": "设计可组合、可探测且低耦合的扩展契约"},
+                  {"competencyId": "command-behavior-verification", "title": "验证工具栏、快捷键和插件状态的一致性"}
+                ],
+                "requiredEvidence": ["notes", "command-contract", "explicit-exercise-evidence", "metrics-evidence"],
+                "scoringBasis": ["准确", "职责分离", "组合性", "行为一致", "延迟可测"]
+              }
+            },
+            {
+              "lessonId": "input-ime-and-paste",
+              "lifecycle": "active",
+              "day": 6,
+              "title": "输入、IME 与粘贴管线",
+              "objective": "掌握 ProseMirror 的 DOM 输入、composition、clipboard Slice、DOMParser 与 transformPasted 管线，制定兼顾结构保真、兼容性和安全的输入策略。",
+              "goals": ["建立英文、中文 IME 与粘贴 fixtures。", "实现 HTML allowlist 和链接策略。", "理解 Slice 的开放深度。", "测量大粘贴的主线程成本。"],
+              "contentPath": "lessons/input-ime-and-paste.md",
+              "exerciseTemplatePath": null,
+              "evaluation": {
+                "competencies": [
+                  {"competencyId": "input-paste-mechanism", "title": "解释输入、IME、clipboard 解析和 Slice 插入机制"},
+                  {"competencyId": "paste-policy-design", "title": "设计结构保真、降级与安全兼顾的粘贴策略"},
+                  {"competencyId": "input-corpus-verification", "title": "用跨来源 corpus 和性能数据验证输入策略"}
+                ],
+                "requiredEvidence": ["notes", "paste-policy", "explicit-exercise-evidence", "metrics-evidence"],
+                "scoringBasis": ["准确", "IME 边界", "安全取舍", "语料覆盖", "长任务可观察"]
+              }
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "trackId": "application-engineering",
+      "title": "编辑能力与文档应用",
+      "description": "把 ProseMirror 核心能力接入 React 产品，并建立序列化、CRUD、持久化、版本与本地恢复边界。",
+      "stages": [
+        {
+          "stageId": "editing-capabilities",
+          "title": "编辑器能力",
+          "description": "处理 React 生命周期、NodeView、历史和文档格式演进。",
+          "lessons": [
+            {
+              "lessonId": "react-integration-and-node-views",
+              "lifecycle": "active",
+              "day": 7,
+              "title": "React 集成、NodeView 与编辑器 UI",
+              "objective": "建立 React 与 EditorView 的生命周期边界，使用工具栏、浮层、decorations 与 NodeView 实现产品 UI，同时保持焦点和选区稳定。",
+              "goals": ["封装 EditorView 生命周期。", "实现工具栏与链接浮层。", "实现一个交互式 NodeView。", "测量 React 提交次数与输入延迟。"],
+              "contentPath": "lessons/react-integration-and-node-views.md",
+              "exerciseTemplatePath": null,
+              "evaluation": {
+                "competencies": [
+                  {"competencyId": "react-editor-lifecycle", "title": "解释 React 与 ProseMirror 生命周期和状态所有权"},
+                  {"competencyId": "node-view-ui-boundary", "title": "设计 NodeView、浮层与工具栏的交互边界"},
+                  {"competencyId": "focus-render-verification", "title": "验证焦点、选区、清理和渲染成本"}
+                ],
+                "requiredEvidence": ["notes", "integration-boundary", "explicit-exercise-evidence", "metrics-evidence"],
+                "scoringBasis": ["准确", "所有权清晰", "生命周期完整", "焦点可靠", "渲染可测"]
+              }
+            },
+            {
+              "lessonId": "history-undo-and-redo",
+              "lifecycle": "active",
+              "day": 8,
+              "title": "撤销、重做与用户意图分组",
+              "objective": "理解 history plugin 的事件分组、映射和选择恢复，区分用户操作、系统 transaction 与未来协同历史。",
+              "goals": ["验证输入与命令的历史分组。", "控制 addToHistory 与 closeHistory。", "恢复内容和选区。", "建立历史延迟与内存基线。"],
+              "contentPath": "lessons/history-undo-and-redo.md",
+              "exerciseTemplatePath": null,
+              "evaluation": {
+                "competencies": [
+                  {"competencyId": "history-grouping-mechanism", "title": "解释撤销栈、事件分组、映射与 redo 失效机制"},
+                  {"competencyId": "history-intent-policy", "title": "定义用户与系统变更进入历史的规则"},
+                  {"competencyId": "history-sequence-verification", "title": "用操作序列验证内容、选区、延迟和内存"}
+                ],
+                "requiredEvidence": ["notes", "history-policy", "explicit-exercise-evidence", "metrics-evidence"],
+                "scoringBasis": ["准确", "用户意图", "边界明确", "序列覆盖", "资源可测"]
+              }
+            },
+            {
+              "lessonId": "serialization-and-migrations",
+              "lifecycle": "active",
+              "day": 9,
+              "title": "序列化、导入导出与 Schema 迁移",
+              "objective": "设计 ProseMirror JSON、HTML 导入导出和版本 envelope，确保文档 round-trip、旧版本迁移与未知内容降级可验证。",
+              "goals": ["定义稳定存储 envelope。", "验证 JSON 与 HTML round-trip。", "实现幂等 Schema migration。", "测量大文档编码解码成本。"],
+              "contentPath": "lessons/serialization-and-migrations.md",
+              "exerciseTemplatePath": null,
+              "evaluation": {
+                "competencies": [
+                  {"competencyId": "serialization-mechanism", "title": "解释 JSON、DOM parser/serializer 与 Schema 版本边界"},
+                  {"competencyId": "migration-contract-design", "title": "设计可重放、幂等且可回滚的迁移契约"},
+                  {"competencyId": "roundtrip-matrix-verification", "title": "用版本矩阵与性能数据验证序列化"}
+                ],
+                "requiredEvidence": ["notes", "serialization-contract", "explicit-exercise-evidence", "metrics-evidence"],
+                "scoringBasis": ["准确", "兼容边界", "迁移幂等", "round-trip 完整", "成本可测"]
+              }
+            }
+          ]
+        },
+        {
+          "stageId": "documents-and-persistence",
+          "title": "文档与持久化",
+          "description": "把编辑器嵌入文档产品，处理 CRUD、保存版本、并发写入和离线恢复。",
+          "lessons": [
+            {
+              "lessonId": "document-crud-and-api",
+              "lifecycle": "active",
+              "day": 10,
+              "title": "文档 CRUD 与应用领域边界",
+              "objective": "把编辑器状态与 Document 聚合、列表元数据、Repository 和 API 分开，完成创建、读取、更新、软删除与恢复的可测试纵向切片。",
+              "goals": ["定义 Document 身份与生命周期。", "设计 CRUD API 和 Repository。", "处理切换文档与未保存状态。", "验证 1,000 文档列表行为。"],
+              "contentPath": "lessons/document-crud-and-api.md",
+              "exerciseTemplatePath": null,
+              "evaluation": {
+                "competencies": [
+                  {"competencyId": "document-domain-model", "title": "解释 Document 聚合与编辑器状态的边界"},
+                  {"competencyId": "crud-api-contract", "title": "设计身份稳定、幂等且可演进的 CRUD 契约"},
+                  {"competencyId": "crud-state-verification", "title": "用状态机、contract tests 和列表指标验证 CRUD"}
+                ],
+                "requiredEvidence": ["notes", "api-contract", "explicit-exercise-evidence", "metrics-evidence"],
+                "scoringBasis": ["准确", "领域边界", "生命周期完整", "失败语义", "性能可测"]
+              }
+            },
+            {
+              "lessonId": "autosave-persistence-and-versions",
+              "lifecycle": "active",
+              "day": 11,
+              "title": "自动保存、持久化与版本控制",
+              "objective": "掌握 debounce、dirty state、revision、幂等写、乐观并发控制、原子保存和版本快照，证明失败与切换场景不会静默丢写。",
+              "goals": ["实现有状态 autosave。", "使用 revision 或 ETag 防止静默覆盖。", "注入超时、重试与冲突。", "控制保存频率并记录延迟。"],
+              "contentPath": "lessons/autosave-persistence-and-versions.md",
+              "exerciseTemplatePath": null,
+              "evaluation": {
+                "competencies": [
+                  {"competencyId": "autosave-state-machine", "title": "解释自动保存、确认与 dirty 状态机"},
+                  {"competencyId": "persistence-version-policy", "title": "设计幂等写、并发控制和版本恢复策略"},
+                  {"competencyId": "save-failure-verification", "title": "用故障注入与频率延迟指标证明不丢写"}
+                ],
+                "requiredEvidence": ["notes", "save-state-machine", "explicit-exercise-evidence", "metrics-evidence"],
+                "scoringBasis": ["准确", "失败路径", "并发安全", "无静默丢写", "请求与延迟可测"]
+              }
+            },
+            {
+              "lessonId": "local-offline-recovery",
+              "lifecycle": "active",
+              "day": 12,
+              "title": "本地离线恢复与同步状态机",
+              "objective": "区分内存、浏览器 durable storage 与服务端确认状态，使用 IndexedDB 和持久队列完成断网编辑、刷新恢复和重连。",
+              "goals": ["设计本地快照与操作队列。", "实现离线和重连状态机。", "执行刷新、崩溃和配额失败演练。", "测量恢复时间和积压规模。"],
+              "contentPath": "lessons/local-offline-recovery.md",
+              "exerciseTemplatePath": null,
+              "evaluation": {
+                "competencies": [
+                  {"competencyId": "offline-durability-model", "title": "解释内存、本地 durable 与远端确认三层状态"},
+                  {"competencyId": "offline-sync-state-machine", "title": "设计可恢复、可重试且用户可见的离线同步流程"},
+                  {"competencyId": "recovery-drill-verification", "title": "用故障演练和恢复指标验证本地可靠性"}
+                ],
+                "requiredEvidence": ["notes", "offline-state-machine", "explicit-exercise-evidence", "metrics-evidence"],
+                "scoringBasis": ["准确", "持久性边界", "状态可见", "故障覆盖", "恢复可测"]
+              }
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "trackId": "collaboration-and-production",
+      "title": "协同与生产工程",
+      "description": "使用成熟 Yjs/ProseMirror 协同生态，处理网络分区、离线、历史、测试、性能、可观测性、部署和独立验收。",
+      "stages": [
+        {
+          "stageId": "collaboration-and-sync",
+          "title": "协同与同步",
+          "description": "理解并集成 Yjs、y-prosemirror、provider、Awareness、协同历史和冲突策略。",
+          "lessons": [
+            {
+              "lessonId": "yjs-collaboration-foundations",
+              "lifecycle": "active",
+              "day": 13,
+              "title": "Yjs 与 ProseMirror 协同基础",
+              "objective": "比较 ProseMirror 中央权威 step 协同与 Yjs CRDT 绑定，掌握 Y.Doc、shared types、updates、state vectors 和 y-prosemirror 的事实源边界。",
+              "goals": ["完成协同技术 ADR。", "连接两个本地 Y.Doc 与编辑器。", "验证 update 的交换性质和幂等性。", "记录首次同步与更新体积。"],
+              "contentPath": "lessons/yjs-collaboration-foundations.md",
+              "exerciseTemplatePath": null,
+              "evaluation": {
+                "competencies": [
+                  {"competencyId": "collaboration-model-comparison", "title": "比较中央权威 step 协同与 Yjs CRDT 模型"},
+                  {"competencyId": "yjs-prosemirror-boundary", "title": "设计 Y.Doc、binding、provider 与投影数据的所有权"},
+                  {"competencyId": "convergence-update-verification", "title": "用并发序列、state vector 和更新指标验证收敛"}
+                ],
+                "requiredEvidence": ["notes", "collaboration-adr", "explicit-exercise-evidence", "metrics-evidence"],
+                "scoringBasis": ["准确", "算法边界", "事实源明确", "收敛验证", "更新成本可测"]
+              }
+            },
+            {
+              "lessonId": "presence-cursors-and-sync",
+              "lifecycle": "active",
+              "day": 14,
+              "title": "Provider、Awareness 与协同光标",
+              "objective": "理解 network provider、room、连接生命周期、Awareness 与 relative position，完成内容同步、在线状态和远端光标。",
+              "goals": ["实现双标签页内容同步。", "渲染远端选择与用户状态。", "区分持久内容和短暂 presence。", "限制 Awareness 更新频率和负载。"],
+              "contentPath": "lessons/presence-cursors-and-sync.md",
+              "exerciseTemplatePath": null,
+              "evaluation": {
+                "competencies": [
+                  {"competencyId": "provider-awareness-mechanism", "title": "解释 provider、room、Awareness 与 relative position"},
+                  {"competencyId": "presence-security-boundary", "title": "设计非持久 presence 的身份、权限与隐私边界"},
+                  {"competencyId": "cursor-sync-verification", "title": "验证远端光标映射、断连生命周期与带宽"}
+                ],
+                "requiredEvidence": ["notes", "connection-state-matrix", "explicit-exercise-evidence", "metrics-evidence"],
+                "scoringBasis": ["准确", "临时状态边界", "身份安全", "映射可靠", "频率与带宽可测"]
+              }
+            },
+            {
+              "lessonId": "conflicts-offline-and-collab-history",
+              "lifecycle": "active",
+              "day": 15,
+              "title": "网络分区、语义冲突与协同历史",
+              "objective": "理解 CRDT 收敛不等于业务语义正确，处理离线 updates、Y.UndoManager、语义冲突、持久化、快照和 Schema 兼容。",
+              "goals": ["模拟双端网络分区与重连。", "定义本地意图撤销。", "区分结构收敛与标题等语义冲突。", "验证持久化、压缩与恢复策略。"],
+              "contentPath": "lessons/conflicts-offline-and-collab-history.md",
+              "exerciseTemplatePath": null,
+              "evaluation": {
+                "competencies": [
+                  {"competencyId": "partition-conflict-mechanism", "title": "解释分区、最终收敛、语义冲突和协同历史"},
+                  {"competencyId": "collab-recovery-policy", "title": "设计 update 持久化、撤销、快照和 Schema 兼容策略"},
+                  {"competencyId": "partition-seed-verification", "title": "用随机分区种子与恢复指标验证可靠性"}
+                ],
+                "requiredEvidence": ["notes", "conflict-runbook", "explicit-exercise-evidence", "metrics-evidence"],
+                "scoringBasis": ["准确", "语义边界", "本地意图", "故障可恢复", "收敛与同步可测"]
+              }
+            }
+          ]
+        },
+        {
+          "stageId": "quality-and-operations",
+          "title": "质量与运行",
+          "description": "建立风险驱动测试、性能预算、可观测性、安全和部署门禁。",
+          "lessons": [
+            {
+              "lessonId": "editor-testing-strategy",
+              "lifecycle": "active",
+              "day": 16,
+              "title": "编辑器测试策略与质量门禁",
+              "objective": "建立 Schema、Command、Transaction、React、浏览器、粘贴和协同测试分层，用不变量和故障模型驱动质量门禁。",
+              "goals": ["建立风险到测试层的矩阵。", "编写纯状态与 property tests。", "覆盖真实浏览器和协同 E2E。", "测量 flaky 与 CI 时间。"],
+              "contentPath": "lessons/editor-testing-strategy.md",
+              "exerciseTemplatePath": null,
+              "evaluation": {
+                "competencies": [
+                  {"competencyId": "editor-test-layering", "title": "解释编辑器测试层级、能力与限制"},
+                  {"competencyId": "risk-driven-test-design", "title": "从不变量和故障模型设计最小测试组合"},
+                  {"competencyId": "quality-gate-verification", "title": "用重复运行、覆盖矩阵和 CI 指标验证门禁"}
+                ],
+                "requiredEvidence": ["notes", "test-matrix", "explicit-exercise-evidence", "metrics-evidence"],
+                "scoringBasis": ["准确", "风险对应", "层级合理", "无伪覆盖", "稳定性与耗时可测"]
+              }
+            },
+            {
+              "lessonId": "performance-and-large-documents",
+              "lifecycle": "active",
+              "day": 17,
+              "title": "性能分析与大文档预算",
+              "objective": "以固定夹具测量 input-to-paint、transaction、DOM、React、NodeView、decorations、序列化与协同更新成本，完成一次证据驱动优化。",
+              "goals": ["建立设备与夹具基线。", "记录 p50/p95 和 Long Task。", "定位一次真实瓶颈。", "验证优化不破坏正确性。"],
+              "contentPath": "lessons/performance-and-large-documents.md",
+              "exerciseTemplatePath": null,
+              "evaluation": {
+                "competencies": [
+                  {"competencyId": "editor-performance-model", "title": "解释编辑器交互、渲染、存储和协同性能成本"},
+                  {"competencyId": "performance-budget-design", "title": "设计绑定目标环境和夹具的性能预算"},
+                  {"competencyId": "profile-optimization-verification", "title": "用优化前后 profile 与正确性回归证明改进"}
+                ],
+                "requiredEvidence": ["notes", "performance-profile", "explicit-exercise-evidence", "metrics-evidence"],
+                "scoringBasis": ["准确", "基线可比", "归因可信", "预算明确", "正确性未回退"]
+              }
+            },
+            {
+              "lessonId": "observability-security-and-deployment",
+              "lifecycle": "active",
+              "day": 18,
+              "title": "可观测性、安全与部署集成",
+              "objective": "建立不采集正文的编辑器遥测、错误与同步健康指标，处理粘贴/链接安全、权限、Schema rollout、feature flag、部署和回滚。",
+              "goals": ["定义隐私安全的 telemetry。", "建立编辑与同步健康面板。", "执行恶意输入和权限测试。", "完成预览部署与回滚演练。"],
+              "contentPath": "lessons/observability-security-and-deployment.md",
+              "exerciseTemplatePath": null,
+              "evaluation": {
+                "competencies": [
+                  {"competencyId": "editor-operability-model", "title": "解释编辑器错误、同步、安全和发布可观测面"},
+                  {"competencyId": "privacy-rollout-design", "title": "设计数据最小化、权限、版本 rollout 与回滚边界"},
+                  {"competencyId": "production-drill-verification", "title": "用攻击、断网、告警和回滚演练验证生产能力"}
+                ],
+                "requiredEvidence": ["notes", "operations-runbook", "explicit-exercise-evidence", "metrics-evidence"],
+                "scoringBasis": ["准确", "隐私优先", "安全边界", "可定位可回滚", "运行开销可测"]
+              }
+            }
+          ]
+        },
+        {
+          "stageId": "independent-verification",
+          "title": "独立综合验证",
+          "description": "在新约束下独立完成架构决策、综合实现、故障处理和生产验收。",
+          "lessons": [
+            {
+              "lessonId": "independent-architecture-design",
+              "lifecycle": "active",
+              "day": 19,
+              "title": "独立架构设计与技术决策",
+              "objective": "面对新的编辑器需求，独立从用户场景推导文档不变量、模块边界、数据所有权、同步模型、风险和性能预算。",
+              "goals": ["完成需求澄清与非目标。", "设计模块与数据流。", "提交至少三份 ADR。", "建立风险、指标和验证计划。"],
+              "contentPath": "lessons/independent-architecture-design.md",
+              "exerciseTemplatePath": null,
+              "evaluation": {
+                "competencies": [
+                  {"competencyId": "requirements-to-invariants", "title": "从需求独立推导编辑器不变量和非目标"},
+                  {"competencyId": "architecture-decision-quality", "title": "以 ADR 说明模块、数据、协同与部署取舍"},
+                  {"competencyId": "verification-plan-quality", "title": "设计覆盖质量、性能、可靠性和安全的验证计划"}
+                ],
+                "requiredEvidence": ["notes", "architecture-design", "decision-records", "verification-plan"],
+                "scoringBasis": ["准确", "证据链完整", "取舍可辩护", "风险闭环", "指标可执行"]
+              }
+            },
+            {
+              "lessonId": "independent-integration-build",
+              "lifecycle": "active",
+              "day": 20,
+              "title": "独立综合实现与故障注入",
+              "objective": "在薄脚手架和明确验收契约下，独立整合结构化编辑、CRUD、持久化、协同、离线和恢复，并通过故障注入证明能力。",
+              "goals": ["实现完整纵向切片。", "保持模块边界和数据事实源。", "通过合同、E2E 与分区测试。", "满足固定夹具性能预算。"],
+              "contentPath": "lessons/independent-integration-build.md",
+              "exerciseTemplatePath": null,
+              "evaluation": {
+                "competencies": [
+                  {"competencyId": "independent-editor-implementation", "title": "独立实现课程范围内的可用编辑器"},
+                  {"competencyId": "integration-boundary-integrity", "title": "保持编辑、应用、存储与协同边界一致"},
+                  {"competencyId": "fault-performance-evidence", "title": "用自动测试、故障注入和性能证据证明实现"}
+                ],
+                "requiredEvidence": ["notes", "release-candidate", "test-evidence", "metrics-evidence"],
+                "scoringBasis": ["独立完成", "正确", "边界完整", "故障可恢复", "预算达标"]
+              }
+            },
+            {
+              "lessonId": "production-readiness-review",
+              "lifecycle": "active",
+              "day": 21,
+              "title": "生产就绪验收与能力答辩",
+              "objective": "通过功能演示、未知故障定位、恢复演练、架构答辩和证据审计，独立判断编辑器是否可用、可运行和可发布。",
+              "goals": ["完成端到端验收。", "定位一个未知故障。", "执行恢复与回滚。", "形成双语说明、验收报告和技术债 backlog。"],
+              "contentPath": "lessons/production-readiness-review.md",
+              "exerciseTemplatePath": null,
+              "evaluation": {
+                "competencies": [
+                  {"competencyId": "product-scope-acceptance", "title": "证明最终编辑器满足功能范围和非目标约束"},
+                  {"competencyId": "production-diagnosis-recovery", "title": "独立完成未知故障诊断、恢复与回滚"},
+                  {"competencyId": "engineering-defense", "title": "以架构、质量、性能、协同和安全证据完成答辩"}
+                ],
+                "requiredEvidence": ["notes", "acceptance-report", "operations-evidence", "bilingual-readme"],
+                "scoringBasis": ["独立判断", "范围完整", "证据可信", "无关键缺口", "可运行可回滚"]
+              }
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}

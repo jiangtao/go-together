@@ -17,6 +17,13 @@ export interface CanonicalCourseLoadResult {
   catalog: PublicCatalog
   catalogCourse: PublicCatalogCourse
   courseData: RoadmapCourseData
+  canonicalPath: string
+  selectionReason:
+    | "explicit"
+    | "earliest-incomplete"
+    | "earliest-complete"
+    | "invalid-course-fallback"
+  selectionNotice: string | null
 }
 
 async function fetchJson(
@@ -34,7 +41,7 @@ async function fetchJson(
 }
 
 export interface ResolvedCoursePath {
-  courseId: string
+  courseId: string | null
   canonicalPath: string
   shouldNormalize: boolean
 }
@@ -42,7 +49,7 @@ export interface ResolvedCoursePath {
 export function resolveCoursePath(pathname: string): ResolvedCoursePath {
   if (pathname === "/") {
     return {
-      courseId: "go-backend",
+      courseId: null,
       canonicalPath: "/",
       shouldNormalize: false,
     }
@@ -55,6 +62,85 @@ export function resolveCoursePath(pathname: string): ResolvedCoursePath {
     canonicalPath,
     shouldNormalize: pathname !== canonicalPath,
   }
+}
+
+interface LoadedPublicCourse {
+  catalogCourse: PublicCatalogCourse
+  course: PublicCourse
+  progress: PublicProgress
+}
+
+function activeLessonIds(course: PublicCourse): string[] {
+  return course.tracks.flatMap((track) =>
+    track.stages.flatMap((stage) =>
+      stage.lessons
+        .filter((lesson) => lesson.lifecycle === "active")
+        .map((lesson) => lesson.lessonId)
+    )
+  )
+}
+
+export function isPublicCourseComplete(
+  course: PublicCourse,
+  progress: PublicProgress
+): boolean {
+  const statusByLessonId = new Map(
+    progress.lessons.map((lesson) => [lesson.lessonId, lesson.status])
+  )
+  return activeLessonIds(course).every(
+    (lessonId) => statusByLessonId.get(lessonId) === "通过"
+  )
+}
+
+async function loadPublicCourse(
+  catalog: PublicCatalog,
+  catalogCourse: PublicCatalogCourse,
+  fetcher: typeof fetch,
+  signal?: AbortSignal
+): Promise<LoadedPublicCourse> {
+  const [courseValue, progressValue] = await Promise.all([
+    fetchJson(fetcher, catalogCourse.courseHref, signal),
+    fetchJson(fetcher, catalogCourse.progressHref, signal),
+  ])
+  const course = parsePublicCourse(courseValue)
+  const progress = parsePublicProgress(progressValue)
+  validatePublicCatalogCoursePair(catalog, course)
+  validatePublicCourseProgressPair(course, progress)
+  return { catalogCourse, course, progress }
+}
+
+async function loadDefaultCourse(
+  catalog: PublicCatalog,
+  fetcher: typeof fetch,
+  signal?: AbortSignal
+): Promise<{
+  loaded: LoadedPublicCourse
+  reason: "earliest-incomplete" | "earliest-complete"
+}> {
+  // Public Catalog 的声明顺序就是没有 createdAt 时的稳定创建顺序。
+  const candidates = catalog.courses.filter(
+    (course) => course.lifecycle === "published"
+  )
+  if (candidates.length === 0) {
+    throw new Error("当前没有可用于默认预览的 Published 课程")
+  }
+
+  let earliest: LoadedPublicCourse | null = null
+  for (const candidate of candidates) {
+    let loaded: LoadedPublicCourse
+    try {
+      loaded = await loadPublicCourse(catalog, candidate, fetcher, signal)
+    } catch (error: unknown) {
+      const cause = error instanceof Error ? error.message : "公开进度加载失败"
+      throw new Error(`无法确定默认课程：${candidate.title} 的${cause}`)
+    }
+    earliest ??= loaded
+    if (!isPublicCourseComplete(loaded.course, loaded.progress)) {
+      return { loaded, reason: "earliest-incomplete" }
+    }
+  }
+
+  return { loaded: earliest!, reason: "earliest-complete" }
 }
 
 function projectCurrentRoadmap(
@@ -127,27 +213,46 @@ export async function loadCanonicalCourse(
   options: { fetcher?: typeof fetch; signal?: AbortSignal } = {}
 ): Promise<CanonicalCourseLoadResult> {
   const fetcher = options.fetcher ?? fetch
-  const courseId = resolveCoursePath(pathname).courseId
+  const route = resolveCoursePath(pathname)
   const catalog = parsePublicCatalog(
     await fetchJson(fetcher, "/courses/catalog.json", options.signal)
   )
-  const catalogCourse = catalog.courses.find(
-    (course) => course.courseId === courseId
-  )
-  if (!catalogCourse) throw new Error(`课程不存在：${courseId}`)
-  const [courseValue, progressValue] = await Promise.all([
-    fetchJson(fetcher, catalogCourse.courseHref, options.signal),
-    fetchJson(fetcher, catalogCourse.progressHref, options.signal),
-  ])
-  const course = parsePublicCourse(courseValue)
-  const progress = parsePublicProgress(progressValue)
-  validatePublicCatalogCoursePair(catalog, course)
-  validatePublicCourseProgressPair(course, progress)
+  const explicitCourse = route.courseId
+    ? catalog.courses.find((course) => course.courseId === route.courseId)
+    : null
+
+  let loaded: LoadedPublicCourse
+  let selectionReason: CanonicalCourseLoadResult["selectionReason"]
+  let selectionNotice: string | null = null
+  let canonicalPath = route.canonicalPath
+
+  if (explicitCourse) {
+    loaded = await loadPublicCourse(
+      catalog,
+      explicitCourse,
+      fetcher,
+      options.signal
+    )
+    selectionReason = "explicit"
+  } else {
+    const selected = await loadDefaultCourse(catalog, fetcher, options.signal)
+    loaded = selected.loaded
+    selectionReason = selected.reason
+    if (route.courseId !== null) {
+      selectionReason = "invalid-course-fallback"
+      canonicalPath = loaded.catalogCourse.pageHref
+      selectionNotice = `未找到课程“${route.courseId}”，已按公开学习进度切换到“${loaded.course.title}”。`
+    }
+  }
+
   return {
-    courseId,
-    courseRevision: course.courseRevision,
+    courseId: loaded.course.courseId,
+    courseRevision: loaded.course.courseRevision,
     catalog,
-    catalogCourse,
-    courseData: projectCurrentRoadmap(course, progress),
+    catalogCourse: loaded.catalogCourse,
+    courseData: projectCurrentRoadmap(loaded.course, loaded.progress),
+    canonicalPath,
+    selectionReason,
+    selectionNotice,
   }
 }

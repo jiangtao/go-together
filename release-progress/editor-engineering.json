@@ -1,0 +1,118 @@
+{
+  "schemaVersion": 1,
+  "courseId": "editor-engineering",
+  "courseRevision": "sha256:191e69827ee843f44c77d7d9b6e7b08d01376626f500984bc53895e3574156e1",
+  "privateInputDigest": "sha256:fa8938d225792bee318be5cb4dc17c71eb6bf237e4e0be0b0c1f46fd9e7f783e",
+  "lessons": [
+    {
+      "lessonId": "why-editor-engineering",
+      "status": "未开始",
+      "referenceScore": null
+    },
+    {
+      "lessonId": "browser-editing-boundaries",
+      "status": "未开始",
+      "referenceScore": null
+    },
+    {
+      "lessonId": "document-model-and-schema",
+      "status": "未开始",
+      "referenceScore": null
+    },
+    {
+      "lessonId": "state-view-and-transaction",
+      "status": "未开始",
+      "referenceScore": null
+    },
+    {
+      "lessonId": "selection-cursor-and-mapping",
+      "status": "未开始",
+      "referenceScore": null
+    },
+    {
+      "lessonId": "commands-keymaps-and-plugins",
+      "status": "未开始",
+      "referenceScore": null
+    },
+    {
+      "lessonId": "input-ime-and-paste",
+      "status": "未开始",
+      "referenceScore": null
+    },
+    {
+      "lessonId": "react-integration-and-node-views",
+      "status": "未开始",
+      "referenceScore": null
+    },
+    {
+      "lessonId": "history-undo-and-redo",
+      "status": "未开始",
+      "referenceScore": null
+    },
+    {
+      "lessonId": "serialization-and-migrations",
+      "status": "未开始",
+      "referenceScore": null
+    },
+    {
+      "lessonId": "document-crud-and-api",
+      "status": "未开始",
+      "referenceScore": null
+    },
+    {
+      "lessonId": "autosave-persistence-and-versions",
+      "status": "未开始",
+      "referenceScore": null
+    },
+    {
+      "lessonId": "local-offline-recovery",
+      "status": "未开始",
+      "referenceScore": null
+    },
+    {
+      "lessonId": "yjs-collaboration-foundations",
+      "status": "未开始",
+      "referenceScore": null
+    },
+    {
+      "lessonId": "presence-cursors-and-sync",
+      "status": "未开始",
+      "referenceScore": null
+    },
+    {
+      "lessonId": "conflicts-offline-and-collab-history",
+      "status": "未开始",
+      "referenceScore": null
+    },
+    {
+      "lessonId": "editor-testing-strategy",
+      "status": "未开始",
+      "referenceScore": null
+    },
+    {
+      "lessonId": "performance-and-large-documents",
+      "status": "未开始",
+      "referenceScore": null
+    },
+    {
+      "lessonId": "observability-security-and-deployment",
+      "status": "未开始",
+      "referenceScore": null
+    },
+    {
+      "lessonId": "independent-architecture-design",
+      "status": "未开始",
+      "referenceScore": null
+    },
+    {
+      "lessonId": "independent-integration-build",
+      "status": "未开始",
+      "referenceScore": null
+    },
+    {
+      "lessonId": "production-readiness-review",
+      "status": "未开始",
+      "referenceScore": null
+    }
+  ]
+}

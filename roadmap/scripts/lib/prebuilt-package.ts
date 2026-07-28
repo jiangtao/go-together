@@ -46,21 +46,8 @@ export const PREBUILT_CONFIG = {
       },
       continue: true,
     },
-    {
-      src: "/(?:vite-manifest|course|courses|sources).*%(?:00|25|2[eE]|2[fF]|5[cC]).*",
-      status: 404,
-    },
-    {
-      src: "/(?:[vV][iI][tT][eE]-[mM][aA][nN][iI][fF][eE][sS][tT]|[cC][oO][uU][rR][sS][eE][sS]?|[sS][oO][uU][rR][cC][eE][sS]).*[A-Z].*",
-      status: 404,
-    },
+    { src: "^/courses/[^/.]+/?$", dest: "/index.html" },
     { handle: "filesystem" },
-    { src: "/assets/.*", status: 404 },
-    {
-      src: "/(?:vite-manifest\\.json|course\\.json|sources/lessons/.*|courses/(?:catalog\\.json|[^/]+/(?:course\\.json|progress\\.json|sources/.*)))",
-      status: 404,
-    },
-    { src: "/.*", dest: "/index.html" },
   ],
 } as const
 

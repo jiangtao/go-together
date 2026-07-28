@@ -4,9 +4,9 @@
 >
 > A reusable, curriculum-driven learning framework.
 
-`lesson-together` 把课程内容、逐日练习、学习评测和进度可视化组织成一条可执行、可复盘的学习路径。框架可替换课程主题；当前参考课程是“Node.js 工程师 → Go 后端开发者”，按 Day 0–36 推进，适合用 36+ 天完成。
+`lesson-together` 把课程内容、逐日练习、学习评测和进度可视化组织成一条可执行、可复盘的学习路径。框架支持多课程共存；当前已发布“Node.js 工程师 → Go 后端开发者”与“Web 编辑器工程实战”两门课程。
 
-仓库地址保持为 [github.com/jiangtao/go-together](https://github.com/jiangtao/go-together)；本次命名只描述产品定位，不修改仓库、目录、package、部署项目或应用内品牌。
+仓库地址保持为 [github.com/jiangtao/go-together](https://github.com/jiangtao/go-together)，Vercel 项目名为 `go-ahead`；仓库、目录、package 与应用内品牌保持不变。
 
 ## 组成
 
@@ -44,7 +44,9 @@
 
 ## 快速入口
 
-- Production Roadmap：<https://go-together-roadmap.vercel.app>
+- Production Roadmap（当前可访问入口）：<https://go-together-roadmap.vercel.app/>
+- 兼容入口：<https://lession-together.vercel.app/>
+- Legacy 入口：<https://self-go.vercel.app/>（仅保留兼容，不作为推荐链接）
 - GitHub 源码：<https://github.com/jiangtao/go-together>
 - 本地启动：
 
@@ -56,10 +58,12 @@ npm run dev
 
 需要 Node.js 24.x 与 npm 11.x，默认本地地址为 <http://127.0.0.1:5173/>。完整开发、验证和安全发布命令见 [`roadmap/README.md`](./roadmap/README.md) 与 [`roadmap/DEPLOYMENT.md`](./roadmap/DEPLOYMENT.md)。
 
+目标域名 `go-ahead.vercel.app` 当前已被另一 Vercel 项目全局占用，因此不是本项目的线上入口。只有外部所有者释放且该域名成功登记到本项目后，才能将它提升为推荐入口。
+
 ## 公开边界
 
 公开站点只包含教程的结构化安全投影和脱敏进度摘要；回答、练习笔记、评测正文、私有路径、本机信息、环境变量和 source map 均不会发布。GitHub Actions 只承担 lint 与安全 prebuilt 托管，不运行浏览器 E2E；完整测试保留为本地/人工验证。
 
 ## English summary
 
-lesson-together is a reusable learning framework that turns a curriculum into daily lessons, exercises, evaluations, and a visual progress roadmap. The current reference curriculum guides Node.js engineers toward Go backend development over 36+ days. Private notes and evaluation prose stay local; only a sanitized course projection and redacted progress summary are published.
+lesson-together is a reusable, multi-course learning framework that turns curricula into lessons, exercises, evaluations, and a visual progress roadmap. The published catalog currently includes Go backend engineering and Web editor engineering. The Vercel project is named `go-ahead`, while the live production entry is <https://go-together-roadmap.vercel.app/>. <https://lession-together.vercel.app/> remains a compatibility alias, and <https://self-go.vercel.app/> is retained only as a legacy alias. The desired `go-ahead.vercel.app` hostname belongs to another Vercel project and is not advertised as live pending release by its external owner. Private notes and evaluation prose stay local; only sanitized course projections and redacted progress summaries are published.
