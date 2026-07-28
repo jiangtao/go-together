@@ -20,10 +20,16 @@ export interface CanonicalCourseLoadResult {
   canonicalPath: string
   selectionReason:
     | "explicit"
-    | "earliest-incomplete"
-    | "earliest-complete"
+    | "catalog-first"
     | "invalid-course-fallback"
   selectionNotice: string | null
+}
+
+export class NoPublishedCoursesError extends Error {
+  constructor() {
+    super("当前没有可公开的 Published 课程")
+    this.name = "NoPublishedCoursesError"
+  }
 }
 
 async function fetchJson(
@@ -70,28 +76,6 @@ interface LoadedPublicCourse {
   progress: PublicProgress
 }
 
-function activeLessonIds(course: PublicCourse): string[] {
-  return course.tracks.flatMap((track) =>
-    track.stages.flatMap((stage) =>
-      stage.lessons
-        .filter((lesson) => lesson.lifecycle === "active")
-        .map((lesson) => lesson.lessonId)
-    )
-  )
-}
-
-export function isPublicCourseComplete(
-  course: PublicCourse,
-  progress: PublicProgress
-): boolean {
-  const statusByLessonId = new Map(
-    progress.lessons.map((lesson) => [lesson.lessonId, lesson.status])
-  )
-  return activeLessonIds(course).every(
-    (lessonId) => statusByLessonId.get(lessonId) === "通过"
-  )
-}
-
 async function loadPublicCourse(
   catalog: PublicCatalog,
   catalogCourse: PublicCatalogCourse,
@@ -109,38 +93,14 @@ async function loadPublicCourse(
   return { catalogCourse, course, progress }
 }
 
-async function loadDefaultCourse(
-  catalog: PublicCatalog,
-  fetcher: typeof fetch,
-  signal?: AbortSignal
-): Promise<{
-  loaded: LoadedPublicCourse
-  reason: "earliest-incomplete" | "earliest-complete"
-}> {
-  // Public Catalog 的声明顺序就是没有 createdAt 时的稳定创建顺序。
-  const candidates = catalog.courses.filter(
+function firstPublishedCourse(catalog: PublicCatalog): PublicCatalogCourse {
+  const first = catalog.courses.find(
     (course) => course.lifecycle === "published"
   )
-  if (candidates.length === 0) {
-    throw new Error("当前没有可用于默认预览的 Published 课程")
+  if (!first) {
+    throw new NoPublishedCoursesError()
   }
-
-  let earliest: LoadedPublicCourse | null = null
-  for (const candidate of candidates) {
-    let loaded: LoadedPublicCourse
-    try {
-      loaded = await loadPublicCourse(catalog, candidate, fetcher, signal)
-    } catch (error: unknown) {
-      const cause = error instanceof Error ? error.message : "公开进度加载失败"
-      throw new Error(`无法确定默认课程：${candidate.title} 的${cause}`)
-    }
-    earliest ??= loaded
-    if (!isPublicCourseComplete(loaded.course, loaded.progress)) {
-      return { loaded, reason: "earliest-incomplete" }
-    }
-  }
-
-  return { loaded: earliest!, reason: "earliest-complete" }
+  return first
 }
 
 function projectCurrentRoadmap(
@@ -210,7 +170,11 @@ function projectCurrentRoadmap(
 
 export async function loadCanonicalCourse(
   pathname: string,
-  options: { fetcher?: typeof fetch; signal?: AbortSignal } = {}
+  options: {
+    fetcher?: typeof fetch
+    signal?: AbortSignal
+    onCanonicalPath?: (pathname: string) => void
+  } = {}
 ): Promise<CanonicalCourseLoadResult> {
   const fetcher = options.fetcher ?? fetch
   const route = resolveCoursePath(pathname)
@@ -221,28 +185,39 @@ export async function loadCanonicalCourse(
     ? catalog.courses.find((course) => course.courseId === route.courseId)
     : null
 
-  let loaded: LoadedPublicCourse
+  let selectedCourse: PublicCatalogCourse
   let selectionReason: CanonicalCourseLoadResult["selectionReason"]
   let selectionNotice: string | null = null
   let canonicalPath = route.canonicalPath
 
   if (explicitCourse) {
+    selectedCourse = explicitCourse
+    selectionReason = "explicit"
+  } else {
+    selectedCourse = firstPublishedCourse(catalog)
+    selectionReason = "catalog-first"
+    canonicalPath = selectedCourse.pageHref
+    if (route.courseId !== null) {
+      selectionReason = "invalid-course-fallback"
+      selectionNotice = `未找到课程“${route.courseId}”，已按 Catalog 顺序切换到“${selectedCourse.title}”。`
+    }
+  }
+  options.onCanonicalPath?.(canonicalPath)
+
+  let loaded: LoadedPublicCourse
+  try {
     loaded = await loadPublicCourse(
       catalog,
-      explicitCourse,
+      selectedCourse,
       fetcher,
       options.signal
     )
-    selectionReason = "explicit"
-  } else {
-    const selected = await loadDefaultCourse(catalog, fetcher, options.signal)
-    loaded = selected.loaded
-    selectionReason = selected.reason
-    if (route.courseId !== null) {
-      selectionReason = "invalid-course-fallback"
-      canonicalPath = loaded.catalogCourse.pageHref
-      selectionNotice = `未找到课程“${route.courseId}”，已按公开学习进度切换到“${loaded.course.title}”。`
-    }
+  } catch (error: unknown) {
+    if (explicitCourse) throw error
+    const cause = error instanceof Error ? error.message : "公开课程加载失败"
+    throw new Error(
+      `无法加载 Catalog 第一门 Published 课程：${selectedCourse.title} 的${cause}`
+    )
   }
 
   return {

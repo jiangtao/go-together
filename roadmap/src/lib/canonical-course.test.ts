@@ -247,8 +247,8 @@ describe("canonical Course runtime loader", () => {
     })
 
     expect(root.courseRevision).toBe(REVISION)
-    expect(root.selectionReason).toBe("earliest-incomplete")
-    expect(root.canonicalPath).toBe("/")
+    expect(root.selectionReason).toBe("catalog-first")
+    expect(root.canonicalPath).toBe("/courses/go-backend")
     expect(canonical.courseRevision).toBe(REVISION)
     expect(canonical.selectionReason).toBe("explicit")
     expect(canonical.courseData).toEqual(root.courseData)
@@ -269,20 +269,30 @@ describe("canonical Course runtime loader", () => {
     )
   })
 
-  it("根路径选择 Catalog 中声明最早的未完成 Published Course", async () => {
+  it("根路径选择 Catalog 中第一门 Published Course", async () => {
     const fixture = multiCourseFixture()
+    const events: string[] = []
+    const orderedFetch = vi.fn<typeof fetch>(async (input, init) => {
+      events.push(String(input))
+      return fixture.fetcher(input, init)
+    })
     const result = await loadCanonicalCourse("/", {
-      fetcher: fixture.fetcher,
+      fetcher: orderedFetch,
+      onCanonicalPath: (pathname) => events.push(`replace:${pathname}`),
     })
 
     expect(result.courseId).toBe("go-backend")
-    expect(result.selectionReason).toBe("earliest-incomplete")
-    expect(fixture.fetcher.mock.calls.map(([input]) => String(input))).not.toContain(
-      "/courses/python-core/course.json"
-    )
+    expect(result.selectionReason).toBe("catalog-first")
+    expect(result.canonicalPath).toBe("/courses/go-backend")
+    expect(events).toEqual([
+      "/courses/catalog.json",
+      "replace:/courses/go-backend",
+      "/courses/go-backend/course.json",
+      "/courses/go-backend/progress.json",
+    ])
   })
 
-  it("最早 Course 已完成时选择下一门声明最早的未完成 Course", async () => {
+  it("第一门 Course 已完成时仍按 Catalog 顺序选择第一门", async () => {
     const fixture = multiCourseFixture({
       goComplete: true,
       pythonStatus: "定向回炉",
@@ -291,22 +301,12 @@ describe("canonical Course runtime loader", () => {
       fetcher: fixture.fetcher,
     })
 
-    expect(result.courseId).toBe("python-core")
-    expect(result.selectionReason).toBe("earliest-incomplete")
-    expect(result.courseData.lessons[0].status).toBe("定向回炉")
-  })
-
-  it("全部 Published Course 完成时回退到声明最早的 Course", async () => {
-    const fixture = multiCourseFixture({
-      goComplete: true,
-      pythonStatus: "通过",
-    })
-    const result = await loadCanonicalCourse("/", {
-      fetcher: fixture.fetcher,
-    })
-
     expect(result.courseId).toBe("go-backend")
-    expect(result.selectionReason).toBe("earliest-complete")
+    expect(result.selectionReason).toBe("catalog-first")
+    expect(result.canonicalPath).toBe("/courses/go-backend")
+    expect(fixture.fetcher.mock.calls.map(([input]) => String(input))).not.toContain(
+      "/courses/python-core/progress.json"
+    )
   })
 
   it("显式有效 courseId 永远优先且不读取其他 Course 的进度", async () => {
@@ -318,11 +318,12 @@ describe("canonical Course runtime loader", () => {
 
     expect(result.courseId).toBe("python-core")
     expect(result.selectionReason).toBe("explicit")
+    expect(result.canonicalPath).toBe("/courses/python-core")
     expect(requests).not.toContain("/courses/go-backend/course.json")
     expect(requests).not.toContain("/courses/go-backend/progress.json")
   })
 
-  it("无效 courseId 按同一默认算法回退并返回可解释的规范 URL", async () => {
+  it("无效 courseId 确定性回退到 Catalog 第一门 Published Course", async () => {
     const fixture = multiCourseFixture({
       goComplete: true,
       pythonStatus: "重新学习",
@@ -331,11 +332,32 @@ describe("canonical Course runtime loader", () => {
       fetcher: fixture.fetcher,
     })
 
-    expect(result.courseId).toBe("python-core")
+    expect(result.courseId).toBe("go-backend")
     expect(result.selectionReason).toBe("invalid-course-fallback")
-    expect(result.canonicalPath).toBe("/courses/python-core")
+    expect(result.canonicalPath).toBe("/courses/go-backend")
     expect(result.selectionNotice).toContain("未找到课程“not-registered”")
-    expect(result.selectionNotice).toContain("Python Core")
+    expect(result.selectionNotice).toContain("Go Backend")
+    expect(fixture.fetcher.mock.calls.map(([input]) => String(input))).not.toContain(
+      "/courses/python-core/course.json"
+    )
+  })
+
+  it("Catalog 为空时单次读取后进入无 Published 课程结果", async () => {
+    const emptyCatalogFetch = vi.fn<typeof fetch>(async (input) => {
+      if (String(input) !== "/courses/catalog.json") {
+        return new Response("unexpected", { status: 500 })
+      }
+      return Response.json({
+        schemaVersion: 1,
+        defaultCourseId: "go-backend",
+        courses: [],
+      })
+    })
+
+    await expect(
+      loadCanonicalCourse("/", { fetcher: emptyCatalogFetch })
+    ).rejects.toThrow("当前没有可公开的 Published 课程")
+    expect(emptyCatalogFetch).toHaveBeenCalledTimes(1)
   })
 
   it("生产运行时拒绝包含 Draft 的 Public Catalog，避免污染默认候选", async () => {

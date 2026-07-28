@@ -391,9 +391,17 @@ test("公开课程数据提供确定加载态", async ({ page }) => {
   const responseGate = new Promise<void>((resolve) => {
     releaseResponse = resolve
   })
+  let releaseCourse!: () => void
+  const courseGate = new Promise<void>((resolve) => {
+    releaseCourse = resolve
+  })
 
   await page.route("**/courses/catalog.json", async (route) => {
     await responseGate
+    await route.continue()
+  })
+  await page.route("**/courses/go-backend/course.json", async (route) => {
+    await courseGate
     await route.continue()
   })
   await page.goto("/")
@@ -406,8 +414,38 @@ test("公开课程数据提供确定加载态", async ({ page }) => {
   ).toBe(false)
   await expect(page.locator(".react-flow__node")).toHaveCount(0)
   releaseResponse()
+  await expect(page).toHaveURL(/\/courses\/go-backend$/)
+  await expect(page.getByTestId("course-load-screen")).toBeVisible()
+  releaseCourse()
   await expect(page.locator(".react-flow__node")).toHaveCount(47)
   await expect(page.getByTestId("course-load-screen")).toHaveCount(0)
+  await expect(page).toHaveURL(/\/courses\/go-backend$/)
+  expectNoRuntimeErrors()
+})
+
+test("空 Catalog 进入明确空状态且不重复请求或重定向", async ({ page }) => {
+  const expectNoRuntimeErrors = watchRuntimeErrors(page)
+  let catalogRequests = 0
+  await page.route("**/courses/catalog.json", async (route) => {
+    catalogRequests += 1
+    await route.fulfill({
+      json: {
+        schemaVersion: 1,
+        defaultCourseId: "go-backend",
+        courses: [],
+      },
+    })
+  })
+
+  await page.goto("/")
+  await expect(page.getByTestId("course-empty-screen")).toBeVisible()
+  await expect(page.getByRole("heading", { level: 1 })).toHaveText(
+    "暂无已发布课程"
+  )
+  await expect(page).toHaveURL(/\/$/)
+  const requestsAtEmptyState = catalogRequests
+  await page.waitForTimeout(250)
+  expect(catalogRequests).toBe(requestsAtEmptyState)
   expectNoRuntimeErrors()
 })
 
@@ -477,6 +515,7 @@ test("根路径与规范 Go 路径只消费同一组 canonical revision", async 
   })
 
   await page.goto("/")
+  await expect(page).toHaveURL(/\/courses\/go-backend$/)
   const rootRevision = await page.locator(".app-shell").getAttribute(
     "data-course-revision"
   )
@@ -496,6 +535,43 @@ test("根路径与规范 Go 路径只消费同一组 canonical revision", async 
   expect(courseRequests).toContain("/courses/catalog.json")
   expect(courseRequests).toContain("/courses/go-backend/course.json")
   expect(courseRequests).toContain("/courses/go-backend/progress.json")
+  expectNoRuntimeErrors()
+})
+
+test("真实 Published Course Select 恰有两门并在刷新后保持显式 URL", async ({
+  page,
+}) => {
+  const expectNoRuntimeErrors = watchRuntimeErrors(page)
+  await page.goto("/")
+  await expect(page).toHaveURL(/\/courses\/go-backend$/)
+
+  const courseSelect = page.getByTestId("course-select-trigger")
+  await courseSelect.click()
+  await expect(page.getByRole("option")).toHaveCount(2)
+  await page
+    .getByRole("option", { name: "TypeScript · Web 编辑器工程实战" })
+    .click()
+  await expect(page).toHaveURL(/\/courses\/editor-engineering$/)
+  await expect(page.getByTestId("course-heading")).toHaveText(
+    "Web 编辑器工程实战"
+  )
+
+  await page.reload()
+  await expect(page).toHaveURL(/\/courses\/editor-engineering$/)
+  await expect(page.getByTestId("course-heading")).toHaveText(
+    "Web 编辑器工程实战"
+  )
+  expect(
+    await page.evaluate(
+      () => document.documentElement.scrollWidth > window.innerWidth + 1
+    )
+  ).toBe(false)
+
+  await page.getByTestId("course-select-trigger").click()
+  await page
+    .getByRole("option", { name: "Go · Go 36 天学习路线图" })
+    .click()
+  await expect(page).toHaveURL(/\/courses\/go-backend$/)
   expectNoRuntimeErrors()
 })
 
@@ -546,7 +622,7 @@ test("Course Select 以 URL 切换任意结构课程并按 history 恢复 transf
   await page.getByTestId("learning-drawer-close").click()
 
   await page.goBack()
-  await expect(page).toHaveURL(/\/$/)
+  await expect(page).toHaveURL(/\/courses\/go-backend$/)
   await expect(page).toHaveTitle("Go 36 天学习路线图")
   await expect(page.getByTestId("course-heading")).toContainText("Go")
   await expect(page.getByTestId("course-heading")).toBeFocused()
@@ -613,7 +689,7 @@ test("迟到 Course 请求不能覆盖 history 已选择的 Active Course", asyn
   await expect(page).toHaveURL(/\/courses\/python-core$/)
   await expect(page.getByTestId("course-load-screen")).toBeVisible()
   await page.evaluate(() => window.history.back())
-  await expect(page).toHaveURL(/\/$/)
+  await expect(page).toHaveURL(/\/courses\/go-backend$/)
   await expect(page.getByTestId("course-heading")).toContainText("Go")
   await page.waitForTimeout(850)
   await expect(page.getByTestId("course-heading")).toContainText("Go")

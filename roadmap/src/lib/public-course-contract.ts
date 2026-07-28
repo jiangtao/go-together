@@ -184,7 +184,10 @@ function validateCatalogRelationships(
 ): void {
   const byId = new Map(courses.map((course) => [course.courseId, course]))
   const defaultCourse = byId.get(defaultCourseId)
-  if (!defaultCourse || defaultCourse.lifecycle !== "published") {
+  if (
+    courses.some((course) => course.lifecycle === "published") &&
+    (!defaultCourse || defaultCourse.lifecycle !== "published")
+  ) {
     throw new Error("Default Course 必须 Published")
   }
   const languageLabels = new Map<string, string>()
@@ -225,8 +228,8 @@ export function parsePublicCatalog(value: unknown): PublicCatalog {
     throw new Error("publicCatalog.schemaVersion 必须为 1")
   }
   id(catalog.defaultCourseId, "publicCatalog.defaultCourseId")
-  if (!Array.isArray(catalog.courses) || catalog.courses.length === 0) {
-    throw new Error("publicCatalog.courses 必须是非空数组")
+  if (!Array.isArray(catalog.courses)) {
+    throw new Error("publicCatalog.courses 必须是数组")
   }
   const courses = catalog.courses.map((candidate, index) => {
     const context = `publicCatalog.courses[${index}]`

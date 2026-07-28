@@ -39,6 +39,7 @@ import {
 } from "@/lib/app-state"
 import {
   loadCanonicalCourse,
+  NoPublishedCoursesError,
   resolveCoursePath,
   type CanonicalCourseLoadResult,
 } from "@/lib/canonical-course"
@@ -53,6 +54,7 @@ import type {
 type CourseLoadState =
   | { status: "loading"; result: null; error: "" }
   | { status: "ready"; result: CanonicalCourseLoadResult; error: "" }
+  | { status: "empty"; result: null; error: "" }
   | { status: "error"; result: null; error: string }
 
 type LoadFocusTarget = "none" | "heading" | "course-select"
@@ -117,6 +119,24 @@ function CourseLoadingScreen({
           <span className="sr-only">正在加载公开课程数据</span>
         </div>
       )}
+    </main>
+  )
+}
+
+function CourseEmptyScreen() {
+  useEffect(() => {
+    document.title = "暂无已发布课程"
+  }, [])
+
+  return (
+    <main className="course-load-screen" data-testid="course-empty-screen">
+      <div className="course-load-mark" aria-hidden="true">
+        <BracesIcon />
+      </div>
+      <div className="course-load-copy">
+        <h1>暂无已发布课程</h1>
+        <p>Catalog 当前没有可公开访问的 Published 课程。</p>
+      </div>
     </main>
   )
 }
@@ -635,7 +655,21 @@ function App() {
       })
       return () => controller.abort()
     }
-    void loadCanonicalCourse(coursePath, { signal: controller.signal })
+    void loadCanonicalCourse(coursePath, {
+      signal: controller.signal,
+      onCanonicalPath: (canonicalPath) => {
+        if (
+          generation === requestGeneration.current &&
+          window.location.pathname !== canonicalPath
+        ) {
+          window.history.replaceState(
+            window.history.state,
+            "",
+            `${canonicalPath}${window.location.search}${window.location.hash}`
+          )
+        }
+      },
+    })
       .then((result) => {
         if (generation !== requestGeneration.current) return
         if (window.location.pathname !== result.canonicalPath) {
@@ -656,6 +690,10 @@ function App() {
           controller.signal.aborted ||
           generation !== requestGeneration.current
         ) {
+          return
+        }
+        if (error instanceof NoPublishedCoursesError) {
+          setLoadState({ status: "empty", result: null, error: "" })
           return
         }
         setLoadState({
@@ -686,6 +724,9 @@ function App() {
         onSelectCourse={handleSelectCourse}
       />
     )
+  }
+  if (loadState.status === "empty") {
+    return <CourseEmptyScreen />
   }
   return (
     <CourseLoadingScreen
