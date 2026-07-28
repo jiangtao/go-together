@@ -103,7 +103,7 @@ describe("Roadmap 受审 prebuilt 发布工作流", () => {
 
     const promote = jobSource(source, "promote-production")
     expect(promote).toContain("previous_url")
-    expect(promote).toContain("go-together-roadmap.vercel.app")
+    expect(promote).toContain("self-go.vercel.app")
     expect(promote).toContain("vercel inspect")
     expect(promote).toContain("outputs:")
 

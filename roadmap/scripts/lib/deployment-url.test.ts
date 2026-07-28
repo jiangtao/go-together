@@ -11,8 +11,8 @@ import {
 
 describe("部署 URL 信任边界", () => {
   it.each([
-    ["https://go-ahead-git-main-team.vercel.app/path", undefined],
-    ["https://go-ahead-pr-123-a1b2c3.vercel.app/path", undefined],
+    ["https://self-go-git-main-team.vercel.app/path", undefined],
+    ["https://self-go-pr-123-a1b2c3.vercel.app/path", undefined],
     ["https://self-go.vercel.app", undefined],
     ["https://lession-together.vercel.app", undefined],
     ["https://go-together-roadmap.vercel.app", undefined],
@@ -22,17 +22,17 @@ describe("部署 URL 信任边界", () => {
 
   it.each([
     "https://go-ahead.vercel.app",
-    "http://go-together-roadmap.vercel.app",
-    "https://user:password@go-together-roadmap.vercel.app",
-    "https://go-together-roadmap.vercel.app?token=x",
-    "https://go-together-roadmap.vercel.app#fragment",
-    "https://go-together-roadmap.vercel.app:444",
+    "http://self-go.vercel.app",
+    "https://user:password@self-go.vercel.app",
+    "https://self-go.vercel.app?token=x",
+    "https://self-go.vercel.app#fragment",
+    "https://self-go.vercel.app:444",
     "https://localhost",
     "https://127.0.0.1",
     "https://[::1]",
     "https://learn.example.com",
     "https://unrelated-project.vercel.app",
-    "https://go-together-roadmap.vercel.app.evil.example",
+    "https://self-go.vercel.app.evil.example",
   ])("拒绝不受信地址 %s", (input) => {
     expect(() => parseTrustedDeploymentUrl(input)).toThrow()
   })
@@ -65,7 +65,7 @@ describe("部署 URL 信任边界", () => {
 
   it("DNS 只解析一次并冻结公网地址，后续 lookup 不接受重绑定结果", async () => {
     const url = parseTrustedDeploymentUrl(
-      "https://go-together-roadmap.vercel.app"
+      "https://self-go.vercel.app"
     )
     let calls = 0
     const resolved = await resolveTrustedDeployment(url, async () => {
@@ -92,7 +92,7 @@ describe("部署 URL 信任边界", () => {
     expect(calls).toBe(1)
     expect(requestOptions.servername).toBe(url.hostname)
     expect(createChromiumHostResolverRule(resolved)).toBe(
-      "MAP go-together-roadmap.vercel.app 76.76.21.21,EXCLUDE localhost"
+      "MAP self-go.vercel.app 76.76.21.21,EXCLUDE localhost"
     )
 
     await expect(
@@ -102,7 +102,7 @@ describe("部署 URL 信任边界", () => {
 
   it("无 IPv4 时生成经过固定格式验证的 IPv6 Chromium 映射", async () => {
     const url = parseTrustedDeploymentUrl(
-      "https://go-ahead-ipv6.vercel.app"
+      "https://self-go-ipv6.vercel.app"
     )
     const resolved = await resolveTrustedDeployment(url, async () => [
       "2606:4700:4700::1111",
@@ -112,13 +112,13 @@ describe("部署 URL 信任边界", () => {
       family: 6,
     })
     expect(createChromiumHostResolverRule(resolved)).toBe(
-      "MAP go-ahead-ipv6.vercel.app [2606:4700:4700::1111],EXCLUDE localhost"
+      "MAP self-go-ipv6.vercel.app [2606:4700:4700::1111],EXCLUDE localhost"
     )
   })
 
   it("不发外部请求即可验证重定向和跨主机响应被拒绝", async () => {
     const url = parseTrustedDeploymentUrl(
-      "https://go-together-roadmap.vercel.app"
+      "https://self-go.vercel.app"
     )
     const resolved = await resolveTrustedDeployment(url, async () => [
       "76.76.21.21",

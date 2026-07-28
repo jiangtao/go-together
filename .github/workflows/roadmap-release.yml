@@ -246,7 +246,7 @@ jobs:
       cancel-in-progress: false
     environment:
       name: roadmap-production
-      url: https://go-together-roadmap.vercel.app
+      url: https://self-go.vercel.app
     steps:
       - uses: actions/download-artifact@d3f86a106a0bac45b974a628896c90dbdf5c8093
         with:
@@ -263,7 +263,7 @@ jobs:
         run: |
           set -euo pipefail
           test -n "$VERCEL_TOKEN"
-          previous_url="$(./node_modules/.bin/vercel inspect https://go-together-roadmap.vercel.app --format=json --token="$VERCEL_TOKEN" | node -e 'const f=require("node:fs");const deployment=JSON.parse(f.readFileSync(0,"utf8"));if(deployment.target!=="production"||typeof deployment.url!=="string"||!deployment.url.endsWith(".vercel.app"))throw new Error("当前生产别名没有解析为可回滚的 Production Deployment");process.stdout.write(`https://${deployment.url}`)')"
+          previous_url="$(./node_modules/.bin/vercel inspect https://self-go.vercel.app --format=json --token="$VERCEL_TOKEN" | node -e 'const f=require("node:fs");const deployment=JSON.parse(f.readFileSync(0,"utf8"));if(deployment.target!=="production"||typeof deployment.url!=="string"||!deployment.url.endsWith(".vercel.app"))throw new Error("当前生产别名没有解析为可回滚的 Production Deployment");process.stdout.write(`https://${deployment.url}`)')"
           printf 'previous_url=%s\n' "$previous_url" >> "$GITHUB_OUTPUT"
       - env:
           VERCEL_TOKEN: ${{ secrets.VERCEL_TOKEN }}
@@ -289,7 +289,7 @@ jobs:
           cache-dependency-path: roadmap/package-lock.json
       - run: npm ci
         working-directory: roadmap
-      - run: npm run smoke:deployment -- https://go-together-roadmap.vercel.app
+      - run: npm run smoke:deployment -- https://self-go.vercel.app
         working-directory: roadmap
 
   rollback-production:
@@ -334,5 +334,5 @@ jobs:
           cache-dependency-path: roadmap/package-lock.json
       - run: npm ci
         working-directory: roadmap
-      - run: npm run smoke:deployment -- https://go-together-roadmap.vercel.app
+      - run: npm run smoke:deployment -- https://self-go.vercel.app
         working-directory: roadmap

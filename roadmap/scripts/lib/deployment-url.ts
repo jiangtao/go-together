@@ -9,7 +9,7 @@ const PROJECT_HOSTS = new Set([
   "lession-together.vercel.app",
   "go-together-roadmap.vercel.app",
 ])
-const PROJECT_PREVIEW_HOST = /^go-ahead-[a-z0-9-]+\.vercel\.app$/
+const PROJECT_PREVIEW_HOST = /^self-go-[a-z0-9-]+\.vercel\.app$/
 
 export type AddressResolver = (hostname: string) => Promise<string[]>
 export type PinnedRequestImplementation = (

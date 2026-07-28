@@ -6,7 +6,7 @@
 
 `lesson-together` 把课程内容、逐日练习、学习评测和进度可视化组织成一条可执行、可复盘的学习路径。框架支持多课程共存；当前已发布“Node.js 工程师 → Go 后端开发者”与“Web 编辑器工程实战”两门课程。
 
-仓库地址保持为 [github.com/jiangtao/go-together](https://github.com/jiangtao/go-together)，Vercel 项目名为 `go-ahead`；仓库、目录、package 与应用内品牌保持不变。
+仓库地址保持为 [github.com/jiangtao/go-together](https://github.com/jiangtao/go-together)，Vercel 项目名为 `self-go`；仓库、目录、package 与应用内品牌保持不变。
 
 ## 组成
 
@@ -44,9 +44,9 @@
 
 ## 快速入口
 
-- Production Roadmap（当前可访问入口）：<https://go-together-roadmap.vercel.app/>
-- 兼容入口：<https://lession-together.vercel.app/>
-- Legacy 入口：<https://self-go.vercel.app/>（仅保留兼容，不作为推荐链接）
+- Production Roadmap（唯一推荐入口）：<https://self-go.vercel.app/>
+- Legacy 兼容入口：<https://go-together-roadmap.vercel.app/>
+- Legacy 兼容入口：<https://lession-together.vercel.app/>
 - GitHub 源码：<https://github.com/jiangtao/go-together>
 - 本地启动：
 
@@ -58,7 +58,7 @@ npm run dev
 
 需要 Node.js 24.x 与 npm 11.x，默认本地地址为 <http://127.0.0.1:5173/>。完整开发、验证和安全发布命令见 [`roadmap/README.md`](./roadmap/README.md) 与 [`roadmap/DEPLOYMENT.md`](./roadmap/DEPLOYMENT.md)。
 
-目标域名 `go-ahead.vercel.app` 当前已被另一 Vercel 项目全局占用，因此不是本项目的线上入口。只有外部所有者释放且该域名成功登记到本项目后，才能将它提升为推荐入口。
+历史上曾考虑使用 `go-ahead.vercel.app`，但该域名已被另一 Vercel 项目全局占用。它只作为历史冲突记录保留，不再是本项目的目标域名或推荐入口。
 
 ## 公开边界
 
@@ -66,4 +66,4 @@ npm run dev
 
 ## English summary
 
-lesson-together is a reusable, multi-course learning framework that turns curricula into lessons, exercises, evaluations, and a visual progress roadmap. The published catalog currently includes Go backend engineering and Web editor engineering. The Vercel project is named `go-ahead`, while the live production entry is <https://go-together-roadmap.vercel.app/>. <https://lession-together.vercel.app/> remains a compatibility alias, and <https://self-go.vercel.app/> is retained only as a legacy alias. The desired `go-ahead.vercel.app` hostname belongs to another Vercel project and is not advertised as live pending release by its external owner. Private notes and evaluation prose stay local; only sanitized course projections and redacted progress summaries are published.
+lesson-together is a reusable, multi-course learning framework that turns curricula into lessons, exercises, evaluations, and a visual progress roadmap. The published catalog currently includes Go backend engineering and Web editor engineering. The Vercel project is named `self-go`, and the sole recommended production entry is <https://self-go.vercel.app/>. <https://go-together-roadmap.vercel.app/> and <https://lession-together.vercel.app/> remain legacy compatibility aliases. The externally owned `go-ahead.vercel.app` hostname is retained only as a historical conflict record and is no longer a target. Private notes and evaluation prose stay local; only sanitized course projections and redacted progress summaries are published.
