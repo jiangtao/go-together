@@ -3,7 +3,6 @@
 
 import argparse
 import json
-import os
 import re
 import shlex
 import shutil
@@ -11,7 +10,7 @@ import subprocess
 import sys
 from dataclasses import dataclass
 from pathlib import Path
-from typing import Any, Iterable, Optional, Sequence
+from typing import Any, Optional, Sequence
 
 
 ID_PATTERN = re.compile(r"^[a-z0-9]+(?:-[a-z0-9]+)*$")
@@ -35,6 +34,7 @@ STATUS_LABEL_DETAILS = {
 }
 ENABLED_COURSE_IDS = frozenset({"algorithm-review"})
 SCHEDULE_MARKER = "# go-together-answer-review"
+REVIEW_COMMENT_MARKER_PREFIX = "go-together-answer-review"
 
 
 class WorkflowError(ValueError):
@@ -58,6 +58,7 @@ class LessonIdentity:
 class RemoteIssue:
     number: int
     url: str
+    state: str
     body: str
     labels: frozenset[str]
     identity: LessonIdentity
@@ -151,6 +152,13 @@ def resolve_active_lesson(
     return LessonIdentity(course_id, lesson_id)
 
 
+def require_issue_enabled_course(course_id: str) -> None:
+    if course_id not in ENABLED_COURSE_IDS:
+        raise WorkflowError(
+            "当前答题 Issue 流程仅为 algorithm-review 启用；其他 Course 必须先显式接入"
+        )
+
+
 def _run_command(
     argv: Sequence[str], *, input_text: Optional[str] = None, timeout: int = 60
 ) -> subprocess.CompletedProcess[str]:
@@ -237,6 +245,8 @@ def _metadata_from_body(body: object) -> LessonIdentity:
         raise WorkflowError("答题 Issue 协议元数据无效") from error
     if not isinstance(value, dict):
         raise WorkflowError("答题 Issue 协议元数据无效")
+    if set(value) != {"schemaVersion", "courseId", "lessonId"}:
+        raise WorkflowError("答题 Issue 协议元数据字段不符合约束")
     if value.get("schemaVersion") != 1:
         raise WorkflowError("答题 Issue 协议版本不受支持")
     course_id = value.get("courseId")
@@ -265,29 +275,37 @@ def _remote_issue(value: object) -> RemoteIssue:
         raise WorkflowError("GitHub Issue 列表项无效")
     number = value.get("number")
     url = value.get("url")
+    state = value.get("state")
     if not isinstance(number, int) or number <= 0 or not isinstance(url, str):
         raise WorkflowError("GitHub Issue 标识无效")
+    if not isinstance(state, str) or state.upper() not in {"OPEN", "CLOSED"}:
+        raise WorkflowError("GitHub Issue 状态无效")
     return RemoteIssue(
         number=number,
         url=url,
+        state=state.upper(),
         body=value.get("body", ""),
         labels=_labels_from_value(value.get("labels", [])),
         identity=_metadata_from_body(value.get("body", "")),
     )
 
 
-def list_open_issues(config: AnswerConfig, label: Optional[str] = None) -> list[RemoteIssue]:
+def list_issues(
+    config: AnswerConfig, *, state: str, label: Optional[str] = None
+) -> list[RemoteIssue]:
+    if state not in {"open", "closed", "all"}:
+        raise WorkflowError("GitHub Issue 查询状态无效")
     arguments = [
         "issue",
         "list",
         "--repo",
         config.target_repository,
         "--state",
-        "open",
+        state,
         "--limit",
         "1000",
         "--json",
-        "number,url,body,labels",
+        "number,url,state,body,labels",
     ]
     if label is not None:
         arguments.extend(["--label", label])
@@ -296,12 +314,18 @@ def list_open_issues(config: AnswerConfig, label: Optional[str] = None) -> list[
         raise WorkflowError("GitHub Issue 列表无效")
     issues: list[RemoteIssue] = []
     for item in response:
+        if not isinstance(item, dict):
+            raise WorkflowError("GitHub Issue 列表项无效")
+        body = item.get("body")
+        if not isinstance(body, str) or METADATA_PATTERN.search(body) is None:
+            # The configured private repository can host unrelated Issues.
+            continue
         try:
             issues.append(_remote_issue(item))
         except WorkflowError:
-            # The configured private repository can host unrelated Issues. Only
-            # Issues carrying this protocol's metadata are workflow candidates.
-            continue
+            # A malformed protocol-bearing Issue is unsafe to ignore: creating
+            # another Issue could violate the stable identity's uniqueness.
+            raise
     return issues
 
 
@@ -336,21 +360,33 @@ def _answer_body(identity: LessonIdentity) -> str:
 
 
 def create_or_reuse_issue(config: AnswerConfig, identity: LessonIdentity) -> dict[str, Any]:
-    if identity.course_id not in ENABLED_COURSE_IDS:
-        raise WorkflowError(
-            "当前答题 Issue 流程仅为 algorithm-review 启用；其他 Course 必须先显式接入"
-        )
+    require_issue_enabled_course(identity.course_id)
     verify_target_repository(config)
     ensure_labels(config)
     matching = [
         issue
-        for issue in list_open_issues(config)
+        for issue in list_issues(config, state="all")
         if issue.identity == identity
     ]
     if len(matching) > 1:
-        raise WorkflowError("同一稳定学习身份存在多个活跃答题 Issue，必须先人工消除冲突")
+        raise WorkflowError("同一稳定学习身份存在多个答题 Issue，必须先人工消除冲突")
     if matching:
         issue = matching[0]
+        if issue.state == "CLOSED":
+            _run_gh(
+                [
+                    "issue",
+                    "reopen",
+                    str(issue.number),
+                    "--repo",
+                    config.target_repository,
+                ]
+            )
+            return {
+                "action": "reopened",
+                "issueNumber": issue.number,
+                "issueUrl": issue.url,
+            }
         return {"action": "reused", "issueNumber": issue.number, "issueUrl": issue.url}
     response = _run_gh(
         [
@@ -386,7 +422,7 @@ def _load_issue(config: AnswerConfig, number: int) -> RemoteIssue:
                 "--repo",
                 config.target_repository,
                 "--json",
-                "number,url,body,labels",
+                "number,url,state,body,labels",
             ]
         ),
         "GitHub Issue",
@@ -421,10 +457,7 @@ def submit_issue(
 ) -> dict[str, Any]:
     verify_target_repository(config)
     issue = _load_issue(config, number)
-    if issue.identity.course_id not in ENABLED_COURSE_IDS:
-        raise WorkflowError(
-            "当前答题 Issue 流程仅为 algorithm-review 启用；其他 Course 必须先显式接入"
-        )
+    require_issue_enabled_course(issue.identity.course_id)
     resolve_active_lesson(workspace, issue.identity.course_id, issue.identity.lesson_id)
     current_status = _current_status(issue)
     if current_status not in {
@@ -444,6 +477,40 @@ def _generic_review_comment(status: str) -> str:
         "review:blocked": "自动审核无法安全完成；请检查协议与本机审核环境后重试。",
     }
     return comments[status]
+
+
+def _review_comment_marker(status: str) -> str:
+    return f"<!-- {REVIEW_COMMENT_MARKER_PREFIX}: {status} -->"
+
+
+def _review_comment(status: str) -> str:
+    return "\n".join([_review_comment_marker(status), _generic_review_comment(status)])
+
+
+def _has_review_comment(config: AnswerConfig, issue: RemoteIssue, status: str) -> bool:
+    response = _parse_json_output(
+        _run_gh(
+            [
+                "api",
+                f"repos/{config.target_repository}/issues/{issue.number}/comments",
+                "--paginate",
+                "--slurp",
+            ]
+        ),
+        "GitHub Issue 评论列表",
+    )
+    pages = response if isinstance(response, list) else []
+    comments: list[object] = []
+    for page in pages:
+        if isinstance(page, list):
+            comments.extend(page)
+        else:
+            comments.append(page)
+    marker = _review_comment_marker(status)
+    return any(
+        isinstance(comment, dict) and marker in comment.get("body", "")
+        for comment in comments
+    )
 
 
 def _review_status(config: AnswerConfig, issue: RemoteIssue, workspace: Path) -> str:
@@ -496,7 +563,7 @@ def review_all(config: AnswerConfig, workspace: Path) -> dict[str, list[int]]:
         "skipped": [],
     }
     try:
-        for issue in list_open_issues(config, label="review:pending"):
+        for issue in list_issues(config, state="open", label="review:pending"):
             try:
                 if _current_status(issue) != "review:pending":
                     result["skipped"].append(issue.number)
@@ -504,22 +571,23 @@ def review_all(config: AnswerConfig, workspace: Path) -> dict[str, list[int]]:
                 resolve_active_lesson(
                     workspace, issue.identity.course_id, issue.identity.lesson_id
                 )
-                if issue.identity.course_id not in ENABLED_COURSE_IDS:
-                    raise WorkflowError("该 Course 尚未接入答题 Issue 审核流程")
+                require_issue_enabled_course(issue.identity.course_id)
                 target_status = _review_status(config, issue, workspace)
-                changed = _set_status(config, issue, target_status)
+                changed = _current_status(issue) != target_status
                 if changed:
-                    _run_gh(
-                        [
-                            "issue",
-                            "comment",
-                            str(issue.number),
-                            "--repo",
-                            config.target_repository,
-                            "--body",
-                            _generic_review_comment(target_status),
-                        ]
-                    )
+                    if not _has_review_comment(config, issue, target_status):
+                        _run_gh(
+                            [
+                                "issue",
+                                "comment",
+                                str(issue.number),
+                                "--repo",
+                                config.target_repository,
+                                "--body",
+                                _review_comment(target_status),
+                            ]
+                        )
+                    _set_status(config, issue, target_status)
                 if target_status == "review:passed":
                     result["passed"].append(issue.number)
                 elif target_status == "review:revision-needed":

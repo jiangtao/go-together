@@ -1,4 +1,4 @@
-# Issue tracker: GitHub Issues
+# 工程票据追踪 / Issue tracker
 
 工程规格与实现票据发布在 [jiangtao/go-together Issues](https://github.com/jiangtao/go-together/issues)，使用 `gh issue` 创建、读取与更新。规格与票据必须使用标准 triage 标签，并在正文中声明真实阻塞边。
 
@@ -20,3 +20,15 @@
 ## Learning Answer Issues
 
 课程学习回答不是工程票据，不能创建在当前公开仓库。首个接入的 `algorithm-review` Course 使用本机配置指定的私有 GitHub 答题仓库；协议、命令和 22:00 审核流程见 `docs/learning-issues.md`。
+
+## English
+
+Engineering specifications and implementation tickets are published in [jiangtao/go-together Issues](https://github.com/jiangtao/go-together/issues). Create, read, and update them through `gh issue`; use the standard triage labels and state the real blocking boundary in the body.
+
+- Publish or link the specification before each implementation ticket. Every ticket contains what to build, acceptance criteria, and `Blocked by`.
+- `ready-for-agent` means that a specification is complete enough for implementation; closing an Issue does not replace a triage label.
+- Read the target Issue before any GitHub write, so that a maintainer's body, comments, labels, and blocking relations are not overwritten.
+- Historical `.scratch/` files remain local history and are not a publication location for new engineering tickets.
+- When a skill says “publish to the issue tracker”, use `gh issue create --repo jiangtao/go-together` and apply `ready-for-agent`, unless the workflow explicitly needs another state. Fetch a ticket with `gh issue view <number> --repo jiangtao/go-together`.
+
+Learning answers are not engineering tickets and must never be created in this public repository. The first integrated Course, `algorithm-review`, uses a private GitHub answer repository chosen by local configuration; see `docs/learning-issues.md` for the protocol, commands, and 22:00 review workflow.

@@ -41,7 +41,7 @@ python3 tools/learning_issues.py init \
 
 ## 作答流程
 
-为一个明确 Lesson 创建或复用唯一答题 Issue：
+为一个明确 Lesson 创建或复用唯一答题 Issue；若唯一匹配 Issue 被手工关闭，工具会重新打开它而不新建重复 Issue：
 
 ```bash
 python3 tools/learning_issues.py open \
@@ -107,3 +107,113 @@ Cron 不会唤醒处于休眠或关机状态的 Mac；本流程不承诺漏跑�
 - 审核评论为固定的流程性文本，不能引用学习者回答、给出标准答案、提示、代码或推导。
 - 审核器、GitHub CLI、协议或网络失败时不输出回答内容；该 Issue 保持待审核，供下一次任务重试。
 - 真正的课程评测仍必须通过 `$evaluate-course-lesson` 和当前 Course Evaluation Policy 完成。
+
+## English Reference
+
+`algorithm-review` learner answers can be handled asynchronously through Issues in a private GitHub repository. The current course repository stores only the protocol and tooling; it never stores learner answers, the answer-repository address, access tokens, or review logs.
+
+### Boundary and prerequisites
+
+- The answer repository must be private, accessible to the learner, and have Issues enabled. The public `jiangtao/go-together` repository must not be used for answers.
+- Every Answer Issue belongs to one stable learning identity, `(courseId, lessonId)`. A Day, title, path, or conversation memory cannot replace that identity.
+- The learner is the only author of the answer body. Creation writes a skeleton only; review updates protocol labels and a generic review comment only.
+- The local Evaluation Record remains the sole source of evaluation, Progress, and Release Progress. An Answer-Issue review status does not mean the Course was passed.
+- The tool serves `algorithm-review` only. Another Course must be explicitly integrated and given its own Course Evaluation Policy.
+
+### Local configuration
+
+Keep the configuration in a Git-ignored local location. A recommended `.learning-issues/answer-issues.json` is:
+
+```json
+{
+  "schemaVersion": 1,
+  "targetRepository": "owner/private-learning-answers",
+  "reviewerCommand": [
+    "/usr/bin/python3",
+    "/absolute/path/to/go-together/tools/codex_issue_reviewer.py",
+    "--workspace",
+    "/absolute/path/to/go-together"
+  ]
+}
+```
+
+`targetRepository` is not shareable public Course metadata. `reviewerCommand` invokes the constrained reviewer: it runs a read-only, ephemeral Codex session and returns only `passed`, `revision-needed`, or `blocked`; it does not write answers to local logs.
+
+Initialize the protocol labels in the private answer repository:
+
+```bash
+python3 tools/learning_issues.py init \
+  --config .learning-issues/answer-issues.json \
+  --workspace .
+```
+
+Initialization verifies GitHub CLI authentication, private visibility of the configured repository, and its Issue capability, then creates protocol labels idempotently.
+
+### Answer workflow
+
+Create or reuse the single Answer Issue for a concrete Lesson. If its sole matching Issue was manually closed, the tool reopens it rather than creating a duplicate:
+
+```bash
+python3 tools/learning_issues.py open \
+  --config .learning-issues/answer-issues.json \
+  --workspace . \
+  --course-id algorithm-review \
+  --lesson-id arrays-strings-matrices
+```
+
+The learner fills in “学习者回答” and “证据链接” in that private Issue, then submits it to the review queue:
+
+```bash
+python3 tools/learning_issues.py submit \
+  --config .learning-issues/answer-issues.json \
+  --workspace . \
+  --issue <issue-number>
+```
+
+Protocol status labels are mutually exclusive:
+
+| Label | Meaning | Automatic next state |
+| --- | --- | --- |
+| `answer:open` | The learner is writing | `review:pending` |
+| `review:pending` | Waiting for nightly review | `review:passed`, `review:revision-needed`, or `review:blocked` |
+| `review:passed` | This Issue-review round finished | No automatic transition |
+| `review:revision-needed` | The learner must revise | The learner resubmits it as `review:pending` |
+| `review:blocked` | Protocol, safety, or runtime condition blocks review | A maintainer may resubmit after repair |
+
+Without a reliable review conclusion, the tool retains `review:pending`; it must never incorrectly mark `review:passed`.
+
+### Daily 22:00 review task
+
+Preview the dedicated crontab entry first:
+
+```bash
+python3 tools/learning_issues.py schedule-preview \
+  --config .learning-issues/answer-issues.json \
+  --workspace .
+```
+
+After confirmation, install it:
+
+```bash
+python3 tools/learning_issues.py schedule-install \
+  --config .learning-issues/answer-issues.json \
+  --workspace .
+```
+
+The job runs daily at `22:00` in the local timezone, with absolute paths, a minimal `PATH`, a single-instance lock, and a minimal log under the configuration directory. Reinstalling replaces only its `go-together-answer-review` entry and preserves other crontab jobs. Uninstall also removes only that entry:
+
+```bash
+python3 tools/learning_issues.py schedule-uninstall \
+  --config .learning-issues/answer-issues.json \
+  --workspace .
+```
+
+Cron does not wake a sleeping or powered-off Mac; this workflow does not promise catch-up execution.
+
+### Review discipline
+
+- The reviewer reads only the current Course, current Lesson, current private Issue, and minimal evidence.
+- It must not edit an Issue body, Course source, Notes, Evaluation Record, Progress, Release Progress, or crontab.
+- Review comments are fixed workflow text and must not quote a learner answer or provide an answer key, hint, code, or derivation.
+- A reviewer, GitHub CLI, protocol, or network failure never emits answer contents. The Issue remains pending for a later retry.
+- Formal Course evaluation must still use `$evaluate-course-lesson` and the current Course Evaluation Policy.

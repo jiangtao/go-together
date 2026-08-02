@@ -80,6 +80,10 @@ Notes 和 Evaluation 仅写入当前 Lesson 的私有学习记录，不进入 Gi
 
 `algorithm-review` 可额外使用私有 GitHub 答题仓库承载学习者自行撰写的回答。答题 Issue 由稳定身份 `(courseId, lessonId)` 绑定，远程标签只表示作答和审核阶段；它不替代本机 Notes、Evaluation Record、Progress 或 Release Progress。配置、命令与每日 22:00 审核规则见 [`docs/learning-issues.md`](./learning-issues.md)。
 
+### Private Answer Issues for `algorithm-review`
+
+`algorithm-review` may additionally use a private GitHub answer repository for learner-authored responses. An Answer Issue is bound to the stable identity `(courseId, lessonId)` and its remote labels express only answer and review stages; it never replaces local Notes, Evaluation Record, Progress, or Release Progress. See [`docs/learning-issues.md`](./learning-issues.md) for configuration, commands, and the daily 22:00 review rules.
+
 ## 常见阻断
 
 - 缺少 `courseId`、`lessonId`、必填元数据或评测数据时，Skill 会停止，不猜测。

@@ -90,13 +90,24 @@ if args[:2] == ["label", "create"]:
 if args[:2] == ["issue", "list"]:
     print(os.environ.get("LEARNING_ISSUES_FAKE_ISSUES", "[]"))
     raise SystemExit(0)
+if args[:1] == ["api"]:
+    print(os.environ.get("LEARNING_ISSUES_FAKE_COMMENTS", "[]"))
+    raise SystemExit(0)
 if args[:2] == ["issue", "create"]:
     print("https://github.com/learner/private-answers/issues/42")
     raise SystemExit(0)
 if args[:2] == ["issue", "view"]:
     print(os.environ["LEARNING_ISSUES_FAKE_VIEW"])
     raise SystemExit(0)
-if args[:2] in (["issue", "edit"], ["issue", "comment"]):
+if args[:2] == ["issue", "comment"]:
+    if os.environ.get("LEARNING_ISSUES_FAKE_COMMENT_FAILURE") == "1":
+        raise SystemExit(75)
+    raise SystemExit(0)
+if args[:2] == ["issue", "edit"]:
+    if os.environ.get("LEARNING_ISSUES_FAKE_EDIT_FAILURE") == "1":
+        raise SystemExit(76)
+    raise SystemExit(0)
+if args[:2] == ["issue", "reopen"]:
     raise SystemExit(0)
 raise SystemExit(91)
 """,
@@ -155,17 +166,17 @@ raise SystemExit(91)
             for line in self.gh_log.read_text(encoding="utf-8").splitlines()
         ]
 
-    def _issue(self, *, number=42, status="answer:open", answer=""):
+    def _issue(self, *, number=42, status="answer:open", answer="", state="OPEN"):
         metadata = {
             "schemaVersion": 1,
             "courseId": "algorithm-review",
             "lessonId": "arrays-strings-matrices",
-            "status": status,
         }
         labels = [status]
         return {
             "number": number,
             "url": f"https://github.com/learner/private-answers/issues/{number}",
+            "state": state,
             "body": (
                 "<!-- go-together-answer: "
                 + json.dumps(metadata, ensure_ascii=False, separators=(",", ":"))
@@ -222,6 +233,54 @@ raise SystemExit(91)
         self.assertFalse(
             any(call[:2] == ["issue", "create"] for call in self._gh_calls())
         )
+
+    def test_open_reopens_a_matching_closed_issue_instead_of_creating_a_duplicate(self):
+        issue = self._issue(state="CLOSED")
+        result = self._run(
+            "open",
+            "--config",
+            str(self.config),
+            "--workspace",
+            str(self.workspace),
+            "--course-id",
+            "algorithm-review",
+            "--lesson-id",
+            "arrays-strings-matrices",
+            environment=self._environment(
+                LEARNING_ISSUES_FAKE_ISSUES=json.dumps([issue], ensure_ascii=False)
+            ),
+        )
+
+        self.assertEqual(result.returncode, 0, result.stderr)
+        self.assertEqual(json.loads(result.stdout)["action"], "reopened")
+        calls = self._gh_calls()
+        self.assertTrue(any(call[:2] == ["issue", "reopen"] for call in calls))
+        self.assertFalse(any(call[:2] == ["issue", "create"] for call in calls))
+
+    def test_open_rejects_protocol_metadata_with_a_second_status_source(self):
+        issue = self._issue()
+        issue["body"] = issue["body"].replace(
+            '"lessonId":"arrays-strings-matrices"',
+            '"lessonId":"arrays-strings-matrices","status":"answer:open"',
+        )
+        result = self._run(
+            "open",
+            "--config",
+            str(self.config),
+            "--workspace",
+            str(self.workspace),
+            "--course-id",
+            "algorithm-review",
+            "--lesson-id",
+            "arrays-strings-matrices",
+            environment=self._environment(
+                LEARNING_ISSUES_FAKE_ISSUES=json.dumps([issue], ensure_ascii=False)
+            ),
+        )
+
+        self.assertEqual(result.returncode, 2)
+        self.assertIn("元数据字段", result.stderr)
+        self.assertFalse(any(call[:2] == ["issue", "create"] for call in self._gh_calls()))
 
     def test_open_ignores_unrelated_issues_in_the_configured_private_repository(self):
         unrelated_issue = {
@@ -412,6 +471,174 @@ raise SystemExit(91)
         comment_call = next(call for call in calls if call[:2] == ["issue", "comment"])
         comment = comment_call[comment_call.index("--body") + 1]
         self.assertNotIn("不可写入输出的学习者回答", comment)
+
+    def test_review_processes_only_pending_issues_and_preserves_non_protocol_labels(self):
+        reviewer = self.workspace / "reviewer.py"
+        reviewer.write_text(
+            "import json\nimport sys\njson.load(sys.stdin)\nprint(json.dumps({'status': 'passed'}))\n",
+            encoding="utf-8",
+        )
+        self._write_config([sys.executable, str(reviewer)])
+        pending = self._issue(status="review:pending")
+        pending["labels"].append({"name": "maintainer-note"})
+        open_issue = self._issue(number=43)
+        result = self._run(
+            "review-all",
+            "--config",
+            str(self.config),
+            "--workspace",
+            str(self.workspace),
+            environment=self._environment(
+                LEARNING_ISSUES_FAKE_ISSUES=json.dumps(
+                    [pending, open_issue], ensure_ascii=False
+                )
+            ),
+        )
+
+        self.assertEqual(result.returncode, 0, result.stderr)
+        self.assertEqual(json.loads(result.stdout)["passed"], [42])
+        edit_call = next(call for call in self._gh_calls() if call[:2] == ["issue", "edit"])
+        self.assertIn("42", edit_call)
+        self.assertNotIn("maintainer-note", edit_call)
+        self.assertNotIn("43", edit_call)
+
+    def test_review_stops_when_another_local_review_holds_the_lock(self):
+        lock = self.config.parent / ".go-together-answer-review.lock"
+        lock.mkdir()
+        result = self._run(
+            "review-all",
+            "--config",
+            str(self.config),
+            "--workspace",
+            str(self.workspace),
+        )
+
+        self.assertEqual(result.returncode, 2)
+        self.assertIn("正在运行", result.stderr)
+        self.assertFalse(any(call[:2] == ["issue", "list"] for call in self._gh_calls()))
+
+    def test_review_cannot_write_evaluation_progress_or_release_progress_records(self):
+        reviewer = self.workspace / "reviewer.py"
+        reviewer.write_text(
+            "import json\nimport sys\njson.load(sys.stdin)\nprint(json.dumps({'status': 'passed'}))\n",
+            encoding="utf-8",
+        )
+        self._write_config([sys.executable, str(reviewer)])
+        protected_records = {
+            self.workspace
+            / "learning-records"
+            / "algorithm-review"
+            / "arrays-strings-matrices"
+            / "evaluation.json": '{"evaluation":"unchanged"}',
+            self.workspace
+            / "progress"
+            / "algorithm-review.json": '{"progress":"unchanged"}',
+            self.workspace
+            / "release-progress"
+            / "algorithm-review.json": '{"release":"unchanged"}',
+        }
+        for path, contents in protected_records.items():
+            path.parent.mkdir(parents=True, exist_ok=True)
+            path.write_text(contents, encoding="utf-8")
+
+        issue = self._issue(status="review:pending")
+        result = self._run(
+            "review-all",
+            "--config",
+            str(self.config),
+            "--workspace",
+            str(self.workspace),
+            environment=self._environment(
+                LEARNING_ISSUES_FAKE_ISSUES=json.dumps([issue], ensure_ascii=False)
+            ),
+        )
+
+        self.assertEqual(result.returncode, 0, result.stderr)
+        self.assertEqual(json.loads(result.stdout)["passed"], [42])
+        for path, contents in protected_records.items():
+            self.assertEqual(path.read_text(encoding="utf-8"), contents)
+
+    def test_answer_issue_configuration_is_ignored_by_git(self):
+        result = subprocess.run(
+            ["git", "check-ignore", "-q", ".learning-issues/answer-issues.json"],
+            cwd=REPOSITORY_ROOT,
+            text=True,
+            capture_output=True,
+            check=False,
+        )
+
+        self.assertEqual(result.returncode, 0, result.stderr)
+
+    def test_review_keeps_an_issue_pending_when_writing_the_audit_comment_fails(self):
+        reviewer = self.workspace / "reviewer.py"
+        reviewer.write_text(
+            "import json\nimport sys\njson.load(sys.stdin)\nprint(json.dumps({'status': 'passed'}))\n",
+            encoding="utf-8",
+        )
+        self._write_config([sys.executable, str(reviewer)])
+        issue = self._issue(status="review:pending")
+        result = self._run(
+            "review-all",
+            "--config",
+            str(self.config),
+            "--workspace",
+            str(self.workspace),
+            environment=self._environment(
+                LEARNING_ISSUES_FAKE_ISSUES=json.dumps([issue], ensure_ascii=False),
+                LEARNING_ISSUES_FAKE_COMMENT_FAILURE="1",
+            ),
+        )
+
+        self.assertEqual(result.returncode, 0, result.stderr)
+        self.assertEqual(json.loads(result.stdout)["pending"], [42])
+        self.assertFalse(
+            any(call[:2] == ["issue", "edit"] for call in self._gh_calls())
+        )
+
+    def test_review_does_not_duplicate_a_comment_after_a_label_write_retry(self):
+        reviewer = self.workspace / "reviewer.py"
+        reviewer.write_text(
+            "import json\nimport sys\njson.load(sys.stdin)\nprint(json.dumps({'status': 'passed'}))\n",
+            encoding="utf-8",
+        )
+        self._write_config([sys.executable, str(reviewer)])
+        issue = self._issue(status="review:pending")
+        first = self._run(
+            "review-all",
+            "--config",
+            str(self.config),
+            "--workspace",
+            str(self.workspace),
+            environment=self._environment(
+                LEARNING_ISSUES_FAKE_ISSUES=json.dumps([issue], ensure_ascii=False),
+                LEARNING_ISSUES_FAKE_EDIT_FAILURE="1",
+            ),
+        )
+
+        self.assertEqual(first.returncode, 0, first.stderr)
+        self.assertEqual(json.loads(first.stdout)["pending"], [42])
+        self.assertTrue(any(call[:2] == ["issue", "comment"] for call in self._gh_calls()))
+
+        self.gh_log.unlink()
+        second = self._run(
+            "review-all",
+            "--config",
+            str(self.config),
+            "--workspace",
+            str(self.workspace),
+            environment=self._environment(
+                LEARNING_ISSUES_FAKE_ISSUES=json.dumps([issue], ensure_ascii=False),
+                LEARNING_ISSUES_FAKE_COMMENTS=json.dumps(
+                    [{"body": "<!-- go-together-answer-review: review:passed -->"}]
+                ),
+            ),
+        )
+
+        self.assertEqual(second.returncode, 0, second.stderr)
+        self.assertEqual(json.loads(second.stdout)["passed"], [42])
+        self.assertFalse(
+            any(call[:2] == ["issue", "comment"] for call in self._gh_calls())
+        )
 
     def test_schedule_preview_renders_an_isolated_daily_2200_crontab_entry(self):
         result = self._run(
