@@ -11,15 +11,21 @@
 ### 简单恢复
 
 - [#232 用栈实现队列](https://leetcode.cn/problems/implement-queue-using-stacks/)（操作责任拆分）。
+- [#225 用队列实现栈](https://leetcode.cn/problems/implement-stack-using-queues/)（接口语义转换）。
+- [#622 设计循环队列](https://leetcode.cn/problems/design-circular-queue/)（循环边界）。
 
 ### 经典模板（Hot 100 优先）
 
 - [#146 LRU 缓存](https://leetcode.cn/problems/lru-cache/)（哈希与双向链表协作）。
 - [#380 O(1) 时间插入、删除和获取随机元素](https://leetcode.cn/problems/insert-delete-getrandom-o1/)（数组与索引映射）。
+- Hot 100 优先队列：[#155 最小栈](https://leetcode.cn/problems/min-stack/)（辅助状态同步）。
+- Hot 100 优先队列：[#295 数据流的中位数](https://leetcode.cn/problems/find-median-from-data-stream/)（双堆接口）。
 
 ### 深入迁移
 
 - [#460 LFU 缓存](https://leetcode.cn/problems/lfu-cache/)（频次分层与访问顺序）。
+- [#432 全 O(1) 的数据结构](https://leetcode.cn/problems/all-oone-data-structure/)（频次桶与双向链表）。
+- [#895 最大频率栈](https://leetcode.cn/problems/maximum-frequency-stack/)（频次与时序）。
 
 ## 限时与复盘
 

@@ -19,15 +19,20 @@ TypeScript 的递归树节点接口应允许空子节点；Go 用指针表达空
 ### 简单恢复
 
 - [#226 翻转二叉树](https://leetcode.cn/problems/invert-binary-tree/)（递归子树）。
+- [#144 二叉树的前序遍历](https://leetcode.cn/problems/binary-tree-preorder-traversal/)（递归进入时处理）。
+- [#145 二叉树的后序遍历](https://leetcode.cn/problems/binary-tree-postorder-traversal/)（递归退出时处理）。
 
 ### 经典模板（Hot 100 优先）
 
 - Hot 100 优先队列：[#94 二叉树的中序遍历](https://leetcode.cn/problems/binary-tree-inorder-traversal/)（显式栈）。
 - Hot 100 优先队列：[#102 二叉树的层序遍历](https://leetcode.cn/problems/binary-tree-level-order-traversal/)（按层队列）。
 - Hot 100 优先队列：[#104 二叉树的最大深度](https://leetcode.cn/problems/maximum-depth-of-binary-tree/)（递归语义）。
+- Hot 100 优先队列：[#101 对称二叉树](https://leetcode.cn/problems/symmetric-tree/)（镜像双递归）。
+- Hot 100 优先队列：[#110 平衡二叉树](https://leetcode.cn/problems/balanced-binary-tree/)（后序聚合与提前失败）。
 ### 深入迁移
 
 - 进阶延伸：[#297 二叉树的序列化与反序列化](https://leetcode.cn/problems/serialize-and-deserialize-binary-tree/)（结构编码）。
+- 进阶延伸：[#105 从前序与中序遍历序列构造二叉树](https://leetcode.cn/problems/construct-binary-tree-from-preorder-and-inorder-traversal/)（递归区间）。
 
 ## 交付
 

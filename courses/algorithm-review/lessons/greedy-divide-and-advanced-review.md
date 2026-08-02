@@ -26,10 +26,13 @@
 - Hot 100 优先队列：[#45 跳跃游戏 II](https://leetcode.cn/problems/jump-game-ii/)（分层贪心）。
 - Hot 100 优先队列：[#56 合并区间](https://leetcode.cn/problems/merge-intervals/)（排序后合并）。
 - Hot 100 优先队列：[#763 划分字母区间](https://leetcode.cn/problems/partition-labels/)（最后出现位置）。
+- [#452 用最少数量的箭引爆气球](https://leetcode.cn/problems/minimum-number-of-arrows-to-burst-balloons/)（端点贪心）。
+- [#435 无重叠区间](https://leetcode.cn/problems/non-overlapping-intervals/)（保留最早结束区间）。
 ### 深入迁移
 
 - 进阶延伸：[#239 滑动窗口最大值](https://leetcode.cn/problems/sliding-window-maximum/)（窗口与单调队列）。
 - 进阶延伸：[#10 正则表达式匹配](https://leetcode.cn/problems/regular-expression-matching/)（高耦合状态设计）。
+- 进阶延伸：[#315 计算右侧小于当前元素的个数](https://leetcode.cn/problems/count-of-smaller-numbers-after-self/)（归并分治计数）。
 
 ## 交付
 

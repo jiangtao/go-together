@@ -19,15 +19,20 @@
 ### 简单恢复
 
 - [#77 组合](https://leetcode.cn/problems/combinations/)（起始下标）。
+- [#17 电话号码的字母组合](https://leetcode.cn/problems/letter-combinations-of-a-phone-number/)（固定层数选择）。
 
 ### 经典模板（Hot 100 优先）
 
 - Hot 100 优先队列：[#46 全排列](https://leetcode.cn/problems/permutations/)（已选集合）。
 - Hot 100 优先队列：[#78 子集](https://leetcode.cn/problems/subsets/)（选择或跳过）。
 - Hot 100 优先队列：[#39 组合总和](https://leetcode.cn/problems/combination-sum/)（起始下标与剪枝）。
+- Hot 100 优先队列：[#22 括号生成](https://leetcode.cn/problems/generate-parentheses/)（合法前缀约束）。
+- [#40 组合总和 II](https://leetcode.cn/problems/combination-sum-ii/)（同层去重）。
+- Hot 100 优先队列：[#79 单词搜索](https://leetcode.cn/problems/word-search/)（网格选择与撤销）。
 ### 深入迁移
 
 - 进阶延伸：[#51 N 皇后](https://leetcode.cn/problems/n-queens/)（约束集合）。
+- 进阶延伸：[#37 解数独](https://leetcode.cn/problems/sudoku-solver/)（候选约束传播）。
 
 ## 交付
 

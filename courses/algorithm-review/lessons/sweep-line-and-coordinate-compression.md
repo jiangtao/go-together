@@ -11,16 +11,21 @@
 ### 简单恢复
 
 - [#56 合并区间](https://leetcode.cn/problems/merge-intervals/)（排序后的区间边界）。
+- [#57 插入区间](https://leetcode.cn/problems/insert-interval/)（局部事件合并）。
 
 ### 经典模板（Hot 100 优先）
 
 - [#452 用最少数量的箭引爆气球](https://leetcode.cn/problems/minimum-number-of-arrows-to-burst-balloons/)（端点贪心）。
 - [#435 无重叠区间](https://leetcode.cn/problems/non-overlapping-intervals/)（事件顺序与选择）。
+- [#986 区间列表的交集](https://leetcode.cn/problems/interval-list-intersections/)（双事件流）。
+- [#729 我的日程安排表 I](https://leetcode.cn/problems/my-calendar-i/)（动态冲突检测）。
+- [#1288 删除被覆盖区间](https://leetcode.cn/problems/remove-covered-intervals/)（端点排序规则）。
 
 ### 深入迁移
 
 - [#218 天际线问题](https://leetcode.cn/problems/the-skyline-problem/)（事件与活跃高度）。
 - [#850 矩形面积 II](https://leetcode.cn/problems/rectangle-area-ii/)（扫描线与坐标离散化）。
+- [#732 我的日程安排表 III](https://leetcode.cn/problems/my-calendar-iii/)（差分事件与最大重叠）。
 
 ## 限时与复盘
 

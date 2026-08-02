@@ -11,16 +11,21 @@ TypeScript 使用数组保存父节点和大小，避免递归 `find` 过深；G
 ### 简单恢复
 
 - [#1971 寻找图中是否存在路径](https://leetcode.cn/problems/find-if-path-exists-in-graph/)（连通性查询）。
+- [#990 等式方程的可满足性](https://leetcode.cn/problems/satisfiability-of-equality-equations/)（等价关系基线）。
 
 ### 经典模板（Hot 100 优先）
 
 - [#200 岛屿数量](https://leetcode.cn/problems/number-of-islands/)（连通分量建模）。
 - [#547 省份数量](https://leetcode.cn/problems/number-of-provinces/)（矩阵中的合并关系）。
+- [#684 冗余连接](https://leetcode.cn/problems/redundant-connection/)（成环边定位）。
+- [#721 账户合并](https://leetcode.cn/problems/accounts-merge/)（跨字段分量聚合）。
+- [#959 由斜杠划分区域](https://leetcode.cn/problems/regions-cut-by-slashes/)（空间拆点）。
 
 ### 深入迁移
 
 - [#1202 交换字符串中的元素](https://leetcode.cn/problems/smallest-string-with-swaps/)（分量内重排）。
 - [#803 打砖块](https://leetcode.cn/problems/bricks-falling-when-hit/)（删除操作逆序离线化）。
+- [#1579 保证图可完全遍历](https://leetcode.cn/problems/remove-max-number-of-edges-to-keep-graph-fully-traversable/)（多角色连通与冗余边）。
 
 ## 限时与复盘
 

@@ -19,15 +19,20 @@
 ### 简单恢复
 
 - [#125 验证回文串](https://leetcode.cn/problems/valid-palindrome/)（相向扫描）。
+- [#344 反转字符串](https://leetcode.cn/problems/reverse-string/)（原地相向交换）。
 
 ### 经典模板（Hot 100 优先）
 
 - Hot 100 优先队列：[#11 盛最多水的容器](https://leetcode.cn/problems/container-with-most-water/)（短板淘汰）。
 - Hot 100 优先队列：[#15 三数之和](https://leetcode.cn/problems/3sum/)（排序与去重）。
 - Hot 100 优先队列：[#42 接雨水](https://leetcode.cn/problems/trapping-rain-water/)（双端最大值）。
+- [#167 两数之和 II - 输入有序数组](https://leetcode.cn/problems/two-sum-ii-input-array-is-sorted/)（有序相向收缩）。
+- [#26 删除有序数组中的重复项](https://leetcode.cn/problems/remove-duplicates-from-sorted-array/)（同向读写）。
+- Hot 100 优先队列：[#283 移动零](https://leetcode.cn/problems/move-zeroes/)（同向覆盖）。
 ### 深入迁移
 
 - 进阶延伸：[#881 救生艇](https://leetcode.cn/problems/boats-to-save-people/)（排序后的配对决策）。
+- 进阶延伸：[#16 最接近的三数之和](https://leetcode.cn/problems/3sum-closest/)（目标差值与剪枝）。
 
 ## 交付
 

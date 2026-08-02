@@ -19,15 +19,20 @@
 ### 简单恢复
 
 - [#392 判断子序列](https://leetcode.cn/problems/is-subsequence/)（序列关系）。
+- [#647 回文子串](https://leetcode.cn/problems/palindromic-substrings/)（区间扩展基线）。
 
 ### 经典模板（Hot 100 优先）
 
 - Hot 100 优先队列：[#1143 最长公共子序列](https://leetcode.cn/problems/longest-common-subsequence/)（双序列状态）。
 - Hot 100 优先队列：[#72 编辑距离](https://leetcode.cn/problems/edit-distance/)（操作转移）。
 - Hot 100 优先队列：[#337 打家劫舍 III](https://leetcode.cn/problems/house-robber-iii/)（树形状态）。
+- [#516 最长回文子序列](https://leetcode.cn/problems/longest-palindromic-subsequence/)（区间状态）。
+- [#96 不同的二叉搜索树](https://leetcode.cn/problems/unique-binary-search-trees/)（树结构计数）。
+- [#1039 多边形三角剖分的最低得分](https://leetcode.cn/problems/minimum-score-triangulation-of-polygon/)（区间切分）。
 ### 深入迁移
 
 - 进阶延伸：[#312 戳气球](https://leetcode.cn/problems/burst-balloons/)（区间最后一步）。
+- 进阶延伸：[#968 监控二叉树](https://leetcode.cn/problems/binary-tree-cameras/)（树形多状态决策）。
 
 ## 交付
 

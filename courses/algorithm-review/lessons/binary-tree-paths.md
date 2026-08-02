@@ -19,15 +19,20 @@
 ### 简单恢复
 
 - [#100 相同的树](https://leetcode.cn/problems/same-tree/)（双子树同步递归）。
+- [#112 路径总和](https://leetcode.cn/problems/path-sum/)（根到叶路径基线）。
 
 ### 经典模板（Hot 100 优先）
 
 - Hot 100 优先队列：[#543 二叉树的直径](https://leetcode.cn/problems/diameter-of-binary-tree/)（高度聚合）。
 - Hot 100 优先队列：[#124 二叉树中的最大路径和](https://leetcode.cn/problems/binary-tree-maximum-path-sum/)（负贡献截断）。
 - Hot 100 优先队列：[#236 二叉树的最近公共祖先](https://leetcode.cn/problems/lowest-common-ancestor-of-a-binary-tree/)（目标信号上返）。
+- [#257 二叉树的所有路径](https://leetcode.cn/problems/binary-tree-paths/)（路径选择与撤销）。
+- [#113 路径总和 II](https://leetcode.cn/problems/path-sum-ii/)（路径收集）。
+- [#129 求根节点到叶节点数字之和](https://leetcode.cn/problems/sum-root-to-leaf-numbers/)（路径状态压缩）。
 ### 深入迁移
 
 - 进阶延伸：[#437 路径总和 III](https://leetcode.cn/problems/path-sum-iii/)（树遍历与前缀状态组合）。
+- 进阶延伸：[#687 最长同值路径](https://leetcode.cn/problems/longest-univalue-path/)（向下贡献与全局答案）。
 
 ## 交付
 

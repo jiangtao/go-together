@@ -19,6 +19,7 @@
 ### 简单恢复
 
 - [#509 斐波那契数](https://leetcode.cn/problems/fibonacci-number/)（最小递推）。
+- [#53 最大子数组和](https://leetcode.cn/problems/maximum-subarray/)（一维最优前缀）。
 
 ### 经典模板（Hot 100 优先）
 
@@ -26,9 +27,12 @@
 - Hot 100 优先队列：[#198 打家劫舍](https://leetcode.cn/problems/house-robber/)（相邻互斥）。
 - Hot 100 优先队列：[#322 零钱兑换](https://leetcode.cn/problems/coin-change/)（最优化状态）。
 - Hot 100 优先队列：[#300 最长递增子序列](https://leetcode.cn/problems/longest-increasing-subsequence/)（状态与二分优化）。
+- Hot 100 优先队列：[#139 单词拆分](https://leetcode.cn/problems/word-break/)（可达前缀）。
+- [#213 打家劫舍 II](https://leetcode.cn/problems/house-robber-ii/)（环形边界拆分）。
 ### 深入迁移
 
 - 进阶延伸：[#416 分割等和子集](https://leetcode.cn/problems/partition-equal-subset-sum/)（容量状态与遍历方向）。
+- 进阶延伸：[#518 零钱兑换 II](https://leetcode.cn/problems/coin-change-ii/)（完全背包与组合顺序）。
 
 ## 交付
 

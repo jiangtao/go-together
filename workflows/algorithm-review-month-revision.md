@@ -48,5 +48,6 @@ AI 相关内容只教授算法映射，不把特定模型、框架或供应商 A
 - Course 保持 `courseId=algorithm-review`、Published + Unlisted；已有 20 个 Lesson ID 永久保留。
 - Day 覆盖 1–37，其中 Day 1–30 只属于经典算法主线，Day 31–37 才进入 Agent 映射；Track/Stage 顺序表达上表的依赖。
 - 所有 37 个 Lesson 都有“简单恢复 → 经典模板（Hot 100 优先）→ 深入迁移”的题组顺序、时限和复盘问题。
+- Day 1–30 每个经典算法分类至少引用 10 道不重复的 LeetCode CN 题目，且同一 Lesson 内不得重复链接。
 - 每个 AI Agent Lesson 先说明其经典算法基础与适用边界，再给出外部练习引用；不声称这是新的专有算法。
 - Release Progress 从私有目录重新派生；公开生成、确定性检查、审计、类型检查、单元测试、端到端预览和构建均通过。

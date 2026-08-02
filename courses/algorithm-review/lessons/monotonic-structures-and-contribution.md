@@ -11,16 +11,21 @@ TypeScript 中队列不要反复 `shift`；用数组加头尾下标。Go 可用�
 ### 简单恢复
 
 - [#496 下一个更大元素 I](https://leetcode.cn/problems/next-greater-element-i/)（最近边界）。
+- [#503 下一个更大元素 II](https://leetcode.cn/problems/next-greater-element-ii/)（循环数组单调栈）。
 
 ### 经典模板（Hot 100 优先）
 
 - [#739 每日温度](https://leetcode.cn/problems/daily-temperatures/)（单调栈）。
 - [#239 滑动窗口最大值](https://leetcode.cn/problems/sliding-window-maximum/)（单调队列）。
 - [#875 爱吃香蕉的珂珂](https://leetcode.cn/problems/koko-eating-bananas/)（可行性与答案二分）。
+- [#402 移掉 K 位数字](https://leetcode.cn/problems/remove-k-digits/)（单调选择）。
+- Hot 100 优先队列：[#84 柱状图中最大的矩形](https://leetcode.cn/problems/largest-rectangle-in-histogram/)（左右结算边界）。
+- [#1011 在 D 天内送达包裹的能力](https://leetcode.cn/problems/capacity-to-ship-packages-within-d-days/)（容量答案二分）。
 
 ### 深入迁移
 
 - [#907 子数组的最小值之和](https://leetcode.cn/problems/sum-of-subarray-minimums/)（贡献归属）。
+- [#85 最大矩形](https://leetcode.cn/problems/maximal-rectangle/)（二维转柱状图）。
 
 ## 限时与复盘
 

@@ -19,15 +19,20 @@
 ### 简单恢复
 
 - [#21 合并两个有序链表](https://leetcode.cn/problems/merge-two-sorted-lists/)（哨兵与尾指针）。
+- [#876 链表的中间结点](https://leetcode.cn/problems/middle-of-the-linked-list/)（快慢指针基线）。
 
 ### 经典模板（Hot 100 优先）
 
 - Hot 100 优先队列：[#206 反转链表](https://leetcode.cn/problems/reverse-linked-list/)（局部重连）。
 - Hot 100 优先队列：[#141 环形链表](https://leetcode.cn/problems/linked-list-cycle/)（快慢指针）。
 - Hot 100 优先队列：[#160 相交链表](https://leetcode.cn/problems/intersection-of-two-linked-lists/)（路径长度对齐）。
+- Hot 100 优先队列：[#234 回文链表](https://leetcode.cn/problems/palindrome-linked-list/)（中点、反转与恢复）。
+- Hot 100 优先队列：[#19 删除链表的倒数第 N 个结点](https://leetcode.cn/problems/remove-nth-node-from-end-of-list/)（固定间距）。
+- Hot 100 优先队列：[#142 环形链表 II](https://leetcode.cn/problems/linked-list-cycle-ii/)（入环点推导）。
 ### 深入迁移
 
 - 进阶延伸：[#25 K 个一组翻转链表](https://leetcode.cn/problems/reverse-nodes-in-k-group/)（分段边界）。
+- 进阶延伸：[#23 合并 K 个升序链表](https://leetcode.cn/problems/merge-k-sorted-lists/)（分治或受限堆）。
 
 ## 交付
 

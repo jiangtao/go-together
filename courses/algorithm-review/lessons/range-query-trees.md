@@ -11,15 +11,21 @@ TypeScript 的数组通常用一位偏移实现树状数组；Go 同理。不要
 ### 简单恢复
 
 - [#303 区域和检索：数组不可变](https://leetcode.cn/problems/range-sum-query-immutable/)（前缀摘要）。
+- [#304 二维区域和检索：矩阵不可变](https://leetcode.cn/problems/range-sum-query-2d-immutable/)（二维静态摘要）。
+- [#1109 航班预订统计](https://leetcode.cn/problems/corporate-flight-bookings/)（区间更新基线）。
 
 ### 经典模板（Hot 100 优先）
 
 - [#307 区域和检索：数组可修改](https://leetcode.cn/problems/range-sum-query-mutable/)（更新与查询）。
 - [#315 计算右侧小于当前元素的个数](https://leetcode.cn/problems/count-of-smaller-numbers-after-self/)（顺序统计）。
+- [#327 区间和的个数](https://leetcode.cn/problems/count-of-range-sum/)（前缀顺序统计）。
+- [#493 翻转对](https://leetcode.cn/problems/reverse-pairs/)（离线区间计数）。
+- [#1649 通过指令创建有序数组](https://leetcode.cn/problems/create-sorted-array-through-instructions/)（动态秩查询）。
 
 ### 深入迁移
 
 - [#699 掉落的方块](https://leetcode.cn/problems/falling-squares/)（区间赋值与最大值）。
+- [#715 Range 模块](https://leetcode.cn/problems/range-module/)（动态区间覆盖）。
 
 ## 限时与复盘
 

@@ -19,15 +19,20 @@
 ### 简单恢复
 
 - [#191 位 1 的个数](https://leetcode.cn/problems/number-of-1-bits/)（最低位消除）。
+- [#231 2 的幂](https://leetcode.cn/problems/power-of-two/)（单比特判定）。
 
 ### 经典模板（Hot 100 优先）
 
 - Hot 100 优先队列：[#136 只出现一次的数字](https://leetcode.cn/problems/single-number/)（异或抵消）。
 - Hot 100 优先队列：[#169 多数元素](https://leetcode.cn/problems/majority-element/)（投票不变量）。
 - Hot 100 优先队列：[#287 寻找重复数](https://leetcode.cn/problems/find-the-duplicate-number/)（映射与环模型）。
+- Hot 100 优先队列：[#338 比特位计数](https://leetcode.cn/problems/counting-bits/)（位级递推）。
+- [#461 汉明距离](https://leetcode.cn/problems/hamming-distance/)（异或差异）。
+- Hot 100 优先队列：[#202 快乐数](https://leetcode.cn/problems/happy-number/)（数位映射与环）。
 ### 深入迁移
 
 - 进阶延伸：[#470 用 Rand7() 实现 Rand10()](https://leetcode.cn/problems/implement-rand10-using-rand7/)（拒绝采样）。
+- 进阶延伸：[#50 Pow(x, n)](https://leetcode.cn/problems/powx-n/)（快速幂与指数边界）。
 
 ## 交付
 

@@ -19,15 +19,20 @@
 ### 简单恢复
 
 - [#303 区域和检索 - 数组不可变](https://leetcode.cn/problems/range-sum-query-immutable/)（静态前缀和）。
+- [#724 寻找数组的中心下标](https://leetcode.cn/problems/find-pivot-index/)（左右前缀关系）。
 
 ### 经典模板（Hot 100 优先）
 
 - Hot 100 优先队列：[#560 和为 K 的子数组](https://leetcode.cn/problems/subarray-sum-equals-k/)（前缀状态计数）。
 - Hot 100 优先队列：[#523 连续的子数组和](https://leetcode.cn/problems/continuous-subarray-sum/)（余数状态）。
 - Hot 100 优先队列：[#525 连续数组](https://leetcode.cn/problems/contiguous-array/)（差值前缀）。
+- [#304 二维区域和检索 - 矩阵不可变](https://leetcode.cn/problems/range-sum-query-2d-immutable/)（二维前缀和）。
+- [#974 和可被 K 整除的子数组](https://leetcode.cn/problems/subarray-sums-divisible-by-k/)（余数计数）。
+- [#930 和相同的二元子数组](https://leetcode.cn/problems/binary-subarrays-with-sum/)（前缀频次）。
 ### 深入迁移
 
 - 进阶延伸：[#1109 航班预订统计](https://leetcode.cn/problems/corporate-flight-bookings/)（差分恢复）。
+- 进阶延伸：[#1094 拼车](https://leetcode.cn/problems/car-pooling/)（事件差分与容量约束）。
 
 ## 交付
 

@@ -20,6 +20,8 @@ TypeScript 主实现优先使用 `Map`、`Set`、数组和显式的接口；Java
 ### 简单恢复
 
 - [#242 有效的字母异位词](https://leetcode.cn/problems/valid-anagram/)（频次摘要与线性扫描）。
+- [#1480 一维数组的动态和](https://leetcode.cn/problems/running-sum-of-1d-array/)（单次扫描与空间取舍）。
+- [#88 合并两个有序数组](https://leetcode.cn/problems/merge-sorted-array/)（输入规模与写入方向）。
 
 ### 经典模板（Hot 100 优先）
 
@@ -27,9 +29,13 @@ TypeScript 主实现优先使用 `Map`、`Set`、数组和显式的接口；Java
 
 - Hot 100 优先队列：[#1 两数之和](https://leetcode.cn/problems/two-sum/)（哈希补数）。
 - Hot 100 优先队列：[#217 存在重复元素](https://leetcode.cn/problems/contains-duplicate/)（集合与线性扫描）。
+- [#121 买卖股票的最佳时机](https://leetcode.cn/problems/best-time-to-buy-and-sell-stock/)（一次遍历维护最优前缀）。
+- [#349 两个数组的交集](https://leetcode.cn/problems/intersection-of-two-arrays/)（集合选择）。
+- [#36 有效的数独](https://leetcode.cn/problems/valid-sudoku/)（约束映射）。
 ### 深入迁移
 
 - 进阶延伸：[#128 最长连续序列](https://leetcode.cn/problems/longest-consecutive-sequence/)（只从序列起点扩展）。
+- 进阶延伸：[#49 字母异位词分组](https://leetcode.cn/problems/group-anagrams/)（规范化键与复杂度）。
 
 ## 交付
 

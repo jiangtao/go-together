@@ -69,6 +69,9 @@ describe("算法复习 37 天课程规格", () => {
           (match) => match[1]
         )
         expect(new Set(problems).size, lesson.lessonId).toBe(problems.length)
+        if (lesson.day !== null && lesson.day <= 30) {
+          expect(problems.length, lesson.lessonId).toBeGreaterThanOrEqual(10)
+        }
       })
     )
   })

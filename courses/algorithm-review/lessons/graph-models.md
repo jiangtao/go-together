@@ -19,12 +19,16 @@
 ### 简单恢复
 
 - [#1971 寻找图中是否存在路径](https://leetcode.cn/problems/find-if-path-exists-in-graph/)（无权可达性）。
+- [#133 克隆图](https://leetcode.cn/problems/clone-graph/)（图节点映射）。
 
 ### 经典模板（Hot 100 优先）
 
 - Hot 100 优先队列：[#207 课程表](https://leetcode.cn/problems/course-schedule/)（环检测）。
 - Hot 100 优先队列：[#210 课程表 II](https://leetcode.cn/problems/course-schedule-ii/)（拓扑序）。
 - Hot 100 优先队列：[#399 除法求值](https://leetcode.cn/problems/evaluate-division/)（带权可达性）。
+- [#785 判断二分图](https://leetcode.cn/problems/is-graph-bipartite/)（双色遍历）。
+- [#886 可能的二分法](https://leetcode.cn/problems/possible-bipartition/)（冲突图建模）。
+- [#990 等式方程的可满足性](https://leetcode.cn/problems/satisfiability-of-equality-equations/)（等价类与冲突）。
 ### 深入迁移
 
 - 进阶延伸：[#743 网络延迟时间](https://leetcode.cn/problems/network-delay-time/)（Dijkstra）。

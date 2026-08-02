@@ -19,15 +19,20 @@ TypeScript 不要对数组频繁 `shift` 来模拟大队列；用头下标或专
 ### 简单恢复
 
 - [#232 用栈实现队列](https://leetcode.cn/problems/implement-queue-using-stacks/)（双栈转移）。
+- [#225 用队列实现栈](https://leetcode.cn/problems/implement-stack-using-queues/)（访问顺序重排）。
 
 ### 经典模板（Hot 100 优先）
 
 - Hot 100 优先队列：[#20 有效的括号](https://leetcode.cn/problems/valid-parentheses/)（匹配栈）。
 - Hot 100 优先队列：[#739 每日温度](https://leetcode.cn/problems/daily-temperatures/)（单调栈）。
 - Hot 100 优先队列：[#155 最小栈](https://leetcode.cn/problems/min-stack/)（辅助状态）。
+- Hot 100 优先队列：[#394 字符串解码](https://leetcode.cn/problems/decode-string/)（嵌套状态栈）。
+- [#496 下一个更大元素 I](https://leetcode.cn/problems/next-greater-element-i/)（单调栈恢复）。
+- Hot 100 优先队列：[#239 滑动窗口最大值](https://leetcode.cn/problems/sliding-window-maximum/)（单调队列）。
 ### 深入迁移
 
 - 进阶延伸：[#84 柱状图中最大的矩形](https://leetcode.cn/problems/largest-rectangle-in-histogram/)（哨兵与边界结算）。
+- 进阶延伸：[#85 最大矩形](https://leetcode.cn/problems/maximal-rectangle/)（逐行柱状图转化）。
 
 ## 交付
 

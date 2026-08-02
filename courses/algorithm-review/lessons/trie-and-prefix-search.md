@@ -19,15 +19,20 @@ Trie 将公共前缀变成共享路径。节点至少需要子节点表和词尾
 ### 简单恢复
 
 - [#14 最长公共前缀](https://leetcode.cn/problems/longest-common-prefix/)（前缀关系）。
+- [#720 词典中最长的单词](https://leetcode.cn/problems/longest-word-in-dictionary/)（逐层前缀可达）。
 
 ### 经典模板（Hot 100 优先）
 
 - Hot 100 优先队列：[#208 实现 Trie（前缀树）](https://leetcode.cn/problems/implement-trie-prefix-tree/)（基础操作）。
 - Hot 100 优先队列：[#139 单词拆分](https://leetcode.cn/problems/word-break/)（前缀集合与状态）。
+- [#211 添加与搜索单词 - 数据结构设计](https://leetcode.cn/problems/design-add-and-search-words-data-structure/)（通配符分支）。
+- [#677 键值映射](https://leetcode.cn/problems/map-sum-pairs/)（前缀聚合）。
+- [#1268 搜索推荐系统](https://leetcode.cn/problems/search-suggestions-system/)（有序前缀候选）。
 ### 深入迁移
 
 - 进阶延伸：[#212 单词搜索 II](https://leetcode.cn/problems/word-search-ii/)（Trie 与网格 DFS）。
 - 进阶延伸：[#648 单词替换](https://leetcode.cn/problems/replace-words/)（最短前缀终止）。
+- 进阶延伸：[#421 数组中两个数的最大异或值](https://leetcode.cn/problems/maximum-xor-of-two-numbers-in-an-array/)（二进制 Trie）。
 
 ## 交付
 

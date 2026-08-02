@@ -11,15 +11,21 @@
 ### 简单恢复
 
 - [#384 打乱数组](https://leetcode.cn/problems/shuffle-an-array/)（均匀置换的状态隔离）。
+- [#382 链表随机节点](https://leetcode.cn/problems/linked-list-random-node/)（蓄水池抽样基线）。
 
 ### 经典模板（Hot 100 优先）
 
 - [#380 O(1) 时间插入、删除和获取随机元素](https://leetcode.cn/problems/insert-delete-getrandom-o1/)（均匀索引抽样）。
 - [#398 随机数索引](https://leetcode.cn/problems/random-pick-index/)（蓄水池抽样）。
+- [#470 用 Rand7() 实现 Rand10()](https://leetcode.cn/problems/implement-rand10-using-rand7/)（拒绝采样）。
+- [#497 非重叠矩形中的随机点](https://leetcode.cn/problems/random-point-in-non-overlapping-rectangles/)（面积权重）。
+- [#478 在圆内随机生成点](https://leetcode.cn/problems/generate-random-point-in-a-circle/)（连续空间抽样）。
 
 ### 深入迁移
 
 - [#528 按权重随机选择](https://leetcode.cn/problems/random-pick-with-weight/)（前缀权重与二分）。
+- [#710 黑名单中的随机数](https://leetcode.cn/problems/random-pick-with-blacklist/)（稀疏重映射）。
+- [#519 随机翻转矩阵](https://leetcode.cn/problems/random-flip-matrix/)（无放回抽样映射）。
 
 ## 限时与复盘
 

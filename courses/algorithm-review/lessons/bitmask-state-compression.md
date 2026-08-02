@@ -11,15 +11,21 @@
 ### 简单恢复
 
 - [#191 位 1 的个数](https://leetcode.cn/problems/number-of-1-bits/)（位状态观察）。
+- [#461 汉明距离](https://leetcode.cn/problems/hamming-distance/)（位差异计数）。
+- [#89 格雷编码](https://leetcode.cn/problems/gray-code/)（相邻状态变化）。
 
 ### 经典模板（Hot 100 优先）
 
 - [#78 子集](https://leetcode.cn/problems/subsets/)（枚举位集合）。
 - [#698 划分为 k 个相等的子集](https://leetcode.cn/problems/partition-to-k-equal-sum-subsets/)（状态与剪枝）。
+- [#318 最大单词长度乘积](https://leetcode.cn/problems/maximum-product-of-word-lengths/)（字符集合压缩）。
+- [#464 我能赢吗](https://leetcode.cn/problems/can-i-win/)（掩码记忆化）。
+- [#691 贴纸拼词](https://leetcode.cn/problems/stickers-to-spell-word/)（集合状态转移）。
 
 ### 深入迁移
 
 - [#847 访问所有节点的最短路径](https://leetcode.cn/problems/shortest-path-visiting-all-nodes/)（图搜索与掩码状态）。
+- [#1125 最小的必要团队](https://leetcode.cn/problems/smallest-sufficient-team/)（技能集合压缩）。
 
 ## 限时与复盘
 

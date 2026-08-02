@@ -19,15 +19,20 @@ BST 的性质是整棵子树的值域约束，不是只比较父子节点。验�
 ### 简单恢复
 
 - [#700 二叉搜索树中的搜索](https://leetcode.cn/problems/search-in-a-binary-search-tree/)（比较方向）。
+- [#701 二叉搜索树中的插入操作](https://leetcode.cn/problems/insert-into-a-binary-search-tree/)（插入位置）。
+- [#530 二叉搜索树的最小绝对差](https://leetcode.cn/problems/minimum-absolute-difference-in-bst/)（中序相邻值）。
 
 ### 经典模板（Hot 100 优先）
 
 - Hot 100 优先队列：[#98 验证二叉搜索树](https://leetcode.cn/problems/validate-binary-search-tree/)（全局值域）。
 - Hot 100 优先队列：[#230 二叉搜索树中第 K 小的元素](https://leetcode.cn/problems/kth-smallest-element-in-a-bst/)（中序顺序）。
 - Hot 100 优先队列：[#235 二叉搜索树的最近公共祖先](https://leetcode.cn/problems/lowest-common-ancestor-of-a-binary-search-tree/)（大小关系）。
+- [#501 二叉搜索树中的众数](https://leetcode.cn/problems/find-mode-in-binary-search-tree/)（中序游程计数）。
 ### 深入迁移
 
 - 进阶延伸：[#450 删除二叉搜索树中的节点](https://leetcode.cn/problems/delete-node-in-a-bst/)（后继替换）。
+- 进阶延伸：[#99 恢复二叉搜索树](https://leetcode.cn/problems/recover-binary-search-tree/)（逆序对定位）。
+- 进阶延伸：[#669 修剪二叉搜索树](https://leetcode.cn/problems/trim-a-binary-search-tree/)（值域裁剪）。
 
 ## 交付
 
