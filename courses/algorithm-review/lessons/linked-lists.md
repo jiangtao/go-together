@@ -12,11 +12,21 @@
 2. 删除或插入头节点时一律先考虑哨兵。
 3. 反转前先缓存 `next`，再改连接。
 
-## 练习入口
+## 阶梯题组
+
+按“简单恢复 → 经典模板 → 深入迁移”完成，先建立节点连接语义，再组合局部变换。
+
+### 简单恢复
+
+- [#21 合并两个有序链表](https://leetcode.cn/problems/merge-two-sorted-lists/)（哨兵与尾指针）。
+
+### 经典模板（Hot 100 优先）
 
 - Hot 100 优先队列：[#206 反转链表](https://leetcode.cn/problems/reverse-linked-list/)（局部重连）。
 - Hot 100 优先队列：[#141 环形链表](https://leetcode.cn/problems/linked-list-cycle/)（快慢指针）。
 - Hot 100 优先队列：[#160 相交链表](https://leetcode.cn/problems/intersection-of-two-linked-lists/)（路径长度对齐）。
+### 深入迁移
+
 - 进阶延伸：[#25 K 个一组翻转链表](https://leetcode.cn/problems/reverse-nodes-in-k-group/)（分段边界）。
 
 ## 交付

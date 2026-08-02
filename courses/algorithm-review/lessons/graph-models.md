@@ -12,11 +12,21 @@
 2. 拓扑题检查零入度队列是否耗尽。
 3. 最短路先确认边权是否允许 BFS。
 
-## 练习入口
+## 阶梯题组
+
+按“简单恢复 → 经典模板 → 深入迁移”完成，先确认可达性，再加入依赖、权重和生成结构。
+
+### 简单恢复
+
+- [#1971 寻找图中是否存在路径](https://leetcode.cn/problems/find-if-path-exists-in-graph/)（无权可达性）。
+
+### 经典模板（Hot 100 优先）
 
 - Hot 100 优先队列：[#207 课程表](https://leetcode.cn/problems/course-schedule/)（环检测）。
 - Hot 100 优先队列：[#210 课程表 II](https://leetcode.cn/problems/course-schedule-ii/)（拓扑序）。
 - Hot 100 优先队列：[#399 除法求值](https://leetcode.cn/problems/evaluate-division/)（带权可达性）。
+### 深入迁移
+
 - 进阶延伸：[#743 网络延迟时间](https://leetcode.cn/problems/network-delay-time/)（Dijkstra）。
 - 进阶延伸：[#1584 连接所有点的最小费用](https://leetcode.cn/problems/min-cost-to-connect-all-points/)（最小生成树）。
 

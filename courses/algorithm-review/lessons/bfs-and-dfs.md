@@ -12,11 +12,21 @@ BFS 保证第一次到达节点时的边数最小，适合无权最短步数；D
 2. BFS 每层开始前固定当前队列长度。
 3. 网格恢复现场时区分是否允许修改原数组。
 
-## 练习入口
+## 阶梯题组
+
+按“简单恢复 → 经典模板 → 深入迁移”完成，先建立网格访问，再处理多源与隐式图最短路。
+
+### 简单恢复
+
+- [#733 图像渲染](https://leetcode.cn/problems/flood-fill/)（网格访问标记）。
+
+### 经典模板（Hot 100 优先）
 
 - Hot 100 优先队列：[#200 岛屿数量](https://leetcode.cn/problems/number-of-islands/)（连通分量）。
 - Hot 100 优先队列：[#994 腐烂的橘子](https://leetcode.cn/problems/rotting-oranges/)（多源 BFS）。
 - Hot 100 优先队列：[#207 课程表](https://leetcode.cn/problems/course-schedule/)（依赖图可达性）。
+### 深入迁移
+
 - 进阶延伸：[#127 单词接龙](https://leetcode.cn/problems/word-ladder/)（隐式图最短路）。
 
 ## 交付

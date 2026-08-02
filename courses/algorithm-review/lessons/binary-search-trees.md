@@ -12,11 +12,21 @@ BST 的性质是整棵子树的值域约束，不是只比较父子节点。验�
 2. 中序状态若只需要第 k 个，可以提前结束。
 3. 对极小值、极大值、只有左链或右链的树验证。
 
-## 练习入口
+## 阶梯题组
+
+按“简单恢复 → 经典模板 → 深入迁移”完成，先恢复有序搜索，再处理全局值域与结构修改。
+
+### 简单恢复
+
+- [#700 二叉搜索树中的搜索](https://leetcode.cn/problems/search-in-a-binary-search-tree/)（比较方向）。
+
+### 经典模板（Hot 100 优先）
 
 - Hot 100 优先队列：[#98 验证二叉搜索树](https://leetcode.cn/problems/validate-binary-search-tree/)（全局值域）。
 - Hot 100 优先队列：[#230 二叉搜索树中第 K 小的元素](https://leetcode.cn/problems/kth-smallest-element-in-a-bst/)（中序顺序）。
 - Hot 100 优先队列：[#235 二叉搜索树的最近公共祖先](https://leetcode.cn/problems/lowest-common-ancestor-of-a-binary-search-tree/)（大小关系）。
+### 深入迁移
+
 - 进阶延伸：[#450 删除二叉搜索树中的节点](https://leetcode.cn/problems/delete-node-in-a-bst/)（后继替换）。
 
 ## 交付

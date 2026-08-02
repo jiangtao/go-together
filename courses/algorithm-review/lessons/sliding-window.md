@@ -12,11 +12,21 @@
 2. 用 `valid` 计数时，注明它代表满足了多少种约束。
 3. 对空窗口、重复字符、条件从未满足做测试。
 
-## 练习入口
+## 阶梯题组
+
+按“简单恢复 → 经典模板 → 深入迁移”完成，先维护固定窗口，再处理满足条件后的收缩。
+
+### 简单恢复
+
+- [#219 存在重复元素 II](https://leetcode.cn/problems/contains-duplicate-ii/)（固定范围窗口）。
+
+### 经典模板（Hot 100 优先）
 
 - Hot 100 优先队列：[#3 无重复字符的最长子串](https://leetcode.cn/problems/longest-substring-without-repeating-characters/)（重复约束）。
 - Hot 100 优先队列：[#438 找到字符串中所有字母异位词](https://leetcode.cn/problems/find-all-anagrams-in-a-string/)（固定窗口频次）。
 - Hot 100 优先队列：[#76 最小覆盖子串](https://leetcode.cn/problems/minimum-window-substring/)（满足后收缩）。
+### 深入迁移
+
 - 进阶延伸：[#480 滑动窗口中位数](https://leetcode.cn/problems/sliding-window-median/)（窗口与双堆）。
 
 ## 交付

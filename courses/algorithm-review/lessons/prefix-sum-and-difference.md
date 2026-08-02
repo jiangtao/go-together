@@ -12,11 +12,21 @@
 2. 历史前缀先查询再更新，避免把当前元素重复计入。
 3. 计数可能大于 32 位时，TypeScript 与 Go 都要检查数值范围。
 
-## 练习入口
+## 阶梯题组
+
+按“简单恢复 → 经典模板 → 深入迁移”完成，先写出端点关系，再推广到计数和批量更新。
+
+### 简单恢复
+
+- [#303 区域和检索 - 数组不可变](https://leetcode.cn/problems/range-sum-query-immutable/)（静态前缀和）。
+
+### 经典模板（Hot 100 优先）
 
 - Hot 100 优先队列：[#560 和为 K 的子数组](https://leetcode.cn/problems/subarray-sum-equals-k/)（前缀状态计数）。
 - Hot 100 优先队列：[#523 连续的子数组和](https://leetcode.cn/problems/continuous-subarray-sum/)（余数状态）。
 - Hot 100 优先队列：[#525 连续数组](https://leetcode.cn/problems/contiguous-array/)（差值前缀）。
+### 深入迁移
+
 - 进阶延伸：[#1109 航班预订统计](https://leetcode.cn/problems/corporate-flight-bookings/)（差分恢复）。
 
 ## 交付

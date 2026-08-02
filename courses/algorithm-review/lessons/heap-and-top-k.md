@@ -12,11 +12,21 @@ TypeScript 需要自己封装二叉堆或使用受控实现，比较器必须稳
 2. 每次插入后判断是否需要弹出。
 3. 检查 `k=0`、`k` 等于元素数、重复频次的情况。
 
-## 练习入口
+## 阶梯题组
+
+按“简单恢复 → 经典模板 → 深入迁移”完成，先保持单个堆，再协调多个动态有序结构。
+
+### 简单恢复
+
+- [#703 数据流中的第 K 大元素](https://leetcode.cn/problems/kth-largest-element-in-a-stream/)（受限最小堆）。
+
+### 经典模板（Hot 100 优先）
 
 - Hot 100 优先队列：[#215 数组中的第 K 个最大元素](https://leetcode.cn/problems/kth-largest-element-in-an-array/)（受限堆）。
 - Hot 100 优先队列：[#347 前 K 个高频元素](https://leetcode.cn/problems/top-k-frequent-elements/)（频次与堆）。
 - Hot 100 优先队列：[#295 数据流的中位数](https://leetcode.cn/problems/find-median-from-data-stream/)（双堆平衡）。
+### 深入迁移
+
 - 进阶延伸：[#502 IPO](https://leetcode.cn/problems/ipo/)（双堆与可达项目）。
 
 ## 交付

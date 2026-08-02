@@ -12,11 +12,21 @@ TypeScript 的中点用 `left + Math.floor((right - left) / 2)`，Go 使用同�
 2. 判定函数要独立测试临界真值。
 3. 最后检查循环结束后返回的是候选、插入点还是边界外位置。
 
-## 练习入口
+## 阶梯题组
+
+按“简单恢复 → 经典模板 → 深入迁移”完成，先稳定区间约定，再提升到复杂分割。
+
+### 简单恢复
+
+- [#704 二分查找](https://leetcode.cn/problems/binary-search/)（基础区间不变量）。
+
+### 经典模板（Hot 100 优先）
 
 - Hot 100 优先队列：[#33 搜索旋转排序数组](https://leetcode.cn/problems/search-in-rotated-sorted-array/)（分段有序）。
 - Hot 100 优先队列：[#34 在排序数组中查找元素的第一个和最后一个位置](https://leetcode.cn/problems/find-first-and-last-position-of-element-in-sorted-array/)（双边界）。
 - Hot 100 优先队列：[#153 寻找旋转排序数组中的最小值](https://leetcode.cn/problems/find-minimum-in-rotated-sorted-array/)（比较右界）。
+### 深入迁移
+
 - 进阶延伸：[#4 寻找两个正序数组的中位数](https://leetcode.cn/problems/median-of-two-sorted-arrays/)（分割线二分）。
 
 ## 交付

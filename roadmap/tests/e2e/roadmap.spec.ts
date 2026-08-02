@@ -590,17 +590,27 @@ test("真实 Unlisted 算法课程可手动直达且不加入选择器", async (
   await page.goto("/courses/algorithm-review")
   await expect(page).toHaveURL(/\/courses\/algorithm-review$/)
   await expect(page.getByTestId("course-heading")).toHaveText(
-    "算法复习路径：Hot 100 速刷与进阶"
+    "算法复习路径：30 天核心 + 7 天 Agent 进阶"
   )
   await expect(page.getByTestId("active-course-static")).toHaveText(
-    "算法复习路径：Hot 100 速刷与进阶"
+    "算法复习路径：30 天核心 + 7 天 Agent 进阶"
   )
   await expect(page.getByTestId("course-select-trigger")).toHaveCount(0)
+  await expect(
+    page.getByRole("group", {
+      name: /Day 30 树上查询与算法综合，状态 未开始/,
+    })
+  ).toBeVisible()
+  await expect(
+    page.getByRole("group", {
+      name: /Day 37 Agent 算法综合：可解释任务执行，状态 未开始/,
+    })
+  ).toBeVisible()
 
   await page.goto("/")
   await page.getByTestId("course-select-trigger").click()
   await expect(
-    page.getByRole("option", { name: "TypeScript · 算法复习路径：Hot 100 速刷与进阶" })
+    page.getByRole("option", { name: "TypeScript · 算法复习路径：30 天核心 + 7 天 Agent 进阶" })
   ).toHaveCount(0)
   expectNoRuntimeErrors()
 })

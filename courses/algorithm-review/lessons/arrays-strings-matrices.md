@@ -12,11 +12,21 @@
 2. 若有两层循环，判断内层总次数是否仍为线性。
 3. 矩阵循环先用 `top/right/bottom/left` 写出边界更新顺序。
 
-## 练习入口
+## 阶梯题组
+
+按“简单恢复 → 经典模板 → 深入迁移”完成，先固定读写边界，再处理多维变换。
+
+### 简单恢复
+
+- [#283 移动零](https://leetcode.cn/problems/move-zeroes/)（读写指针）。
+
+### 经典模板（Hot 100 优先）
 
 - Hot 100 优先队列：[#238 除自身以外数组的乘积](https://leetcode.cn/problems/product-of-array-except-self/)（前后缀分解）。
 - Hot 100 优先队列：[#73 矩阵置零](https://leetcode.cn/problems/set-matrix-zeroes/)（原地标记）。
 - Hot 100 优先队列：[#48 旋转图像](https://leetcode.cn/problems/rotate-image/)（分层交换）。
+### 深入迁移
+
 - 进阶延伸：[#41 缺失的第一个正数](https://leetcode.cn/problems/first-missing-positive/)（索引定位与受限空间）。
 
 ## 交付

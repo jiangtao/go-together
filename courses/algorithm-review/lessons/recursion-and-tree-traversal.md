@@ -12,11 +12,21 @@ TypeScript 的递归树节点接口应允许空子节点；Go 用指针表达空
 2. 标注处理逻辑位于前、中、后哪个位置。
 3. 迭代版本先定义栈内元素携带什么上下文。
 
-## 练习入口
+## 阶梯题组
+
+按“简单恢复 → 经典模板 → 深入迁移”完成，先定义单个子树，再恢复遍历与结构编码。
+
+### 简单恢复
+
+- [#226 翻转二叉树](https://leetcode.cn/problems/invert-binary-tree/)（递归子树）。
+
+### 经典模板（Hot 100 优先）
 
 - Hot 100 优先队列：[#94 二叉树的中序遍历](https://leetcode.cn/problems/binary-tree-inorder-traversal/)（显式栈）。
 - Hot 100 优先队列：[#102 二叉树的层序遍历](https://leetcode.cn/problems/binary-tree-level-order-traversal/)（按层队列）。
 - Hot 100 优先队列：[#104 二叉树的最大深度](https://leetcode.cn/problems/maximum-depth-of-binary-tree/)（递归语义）。
+### 深入迁移
+
 - 进阶延伸：[#297 二叉树的序列化与反序列化](https://leetcode.cn/problems/serialize-and-deserialize-binary-tree/)（结构编码）。
 
 ## 交付

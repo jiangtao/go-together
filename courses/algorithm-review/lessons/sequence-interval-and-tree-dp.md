@@ -12,11 +12,21 @@
 2. 标出基础行、基础列或长度为一的区间。
 3. 树形 DP 写出子节点返回结构。
 
-## 练习入口
+## 阶梯题组
+
+按“简单恢复 → 经典模板 → 深入迁移”完成，先比较单一序列关系，再扩展到二维、树和区间状态。
+
+### 简单恢复
+
+- [#392 判断子序列](https://leetcode.cn/problems/is-subsequence/)（序列关系）。
+
+### 经典模板（Hot 100 优先）
 
 - Hot 100 优先队列：[#1143 最长公共子序列](https://leetcode.cn/problems/longest-common-subsequence/)（双序列状态）。
 - Hot 100 优先队列：[#72 编辑距离](https://leetcode.cn/problems/edit-distance/)（操作转移）。
 - Hot 100 优先队列：[#337 打家劫舍 III](https://leetcode.cn/problems/house-robber-iii/)（树形状态）。
+### 深入迁移
+
 - 进阶延伸：[#312 戳气球](https://leetcode.cn/problems/burst-balloons/)（区间最后一步）。
 
 ## 交付

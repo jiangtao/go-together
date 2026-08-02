@@ -12,11 +12,21 @@
 2. 排序是否会改变题意，先在纸上确认。
 3. 对重复值分别测试全相同、无重复、目标恰好命中边界。
 
-## 练习入口
+## 阶梯题组
+
+按“简单恢复 → 经典模板 → 深入迁移”完成，先证明一次移动安全，再处理多候选剪枝。
+
+### 简单恢复
+
+- [#125 验证回文串](https://leetcode.cn/problems/valid-palindrome/)（相向扫描）。
+
+### 经典模板（Hot 100 优先）
 
 - Hot 100 优先队列：[#11 盛最多水的容器](https://leetcode.cn/problems/container-with-most-water/)（短板淘汰）。
 - Hot 100 优先队列：[#15 三数之和](https://leetcode.cn/problems/3sum/)（排序与去重）。
 - Hot 100 优先队列：[#42 接雨水](https://leetcode.cn/problems/trapping-rain-water/)（双端最大值）。
+### 深入迁移
+
 - 进阶延伸：[#881 救生艇](https://leetcode.cn/problems/boats-to-save-people/)（排序后的配对决策）。
 
 ## 交付

@@ -12,10 +12,20 @@ Trie 将公共前缀变成共享路径。节点至少需要子节点表和词尾
 2. 插入、查询、前缀查询分别写成独立操作。
 3. 组合搜索时，让 Trie 失败尽早剪掉分支。
 
-## 练习入口
+## 阶梯题组
+
+按“简单恢复 → 经典模板 → 深入迁移”完成，先确认公共前缀，再把节点状态接入搜索。
+
+### 简单恢复
+
+- [#14 最长公共前缀](https://leetcode.cn/problems/longest-common-prefix/)（前缀关系）。
+
+### 经典模板（Hot 100 优先）
 
 - Hot 100 优先队列：[#208 实现 Trie（前缀树）](https://leetcode.cn/problems/implement-trie-prefix-tree/)（基础操作）。
 - Hot 100 优先队列：[#139 单词拆分](https://leetcode.cn/problems/word-break/)（前缀集合与状态）。
+### 深入迁移
+
 - 进阶延伸：[#212 单词搜索 II](https://leetcode.cn/problems/word-search-ii/)（Trie 与网格 DFS）。
 - 进阶延伸：[#648 单词替换](https://leetcode.cn/problems/replace-words/)（最短前缀终止）。
 

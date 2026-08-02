@@ -13,12 +13,22 @@ TypeScript 主实现优先使用 `Map`、`Set`、数组和显式的接口；Java
 3. 用三个自拟小例验证不变量；不要依赖平台样例。
 4. 完成后记录“为什么这个模型可行”，而非只记录通过状态。
 
-## 练习入口
+## 阶梯题组
+
+按“简单恢复 → 经典模板 → 深入迁移”完成，先让容器选择和复杂度表达恢复稳定。
+
+### 简单恢复
+
+- [#217 存在重复元素](https://leetcode.cn/problems/contains-duplicate/)（集合与线性扫描）。
+
+### 经典模板（Hot 100 优先）
 
 本节先做两道结构热身：
 
 - Hot 100 优先队列：[#1 两数之和](https://leetcode.cn/problems/two-sum/)（哈希补数）。
 - Hot 100 优先队列：[#217 存在重复元素](https://leetcode.cn/problems/contains-duplicate/)（集合与线性扫描）。
+### 深入迁移
+
 - 进阶延伸：[#128 最长连续序列](https://leetcode.cn/problems/longest-consecutive-sequence/)（只从序列起点扩展）。
 
 ## 交付

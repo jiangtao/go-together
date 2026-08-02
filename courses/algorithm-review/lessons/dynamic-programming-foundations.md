@@ -12,12 +12,22 @@
 2. 先写最小规模输入的初始状态。
 3. 用两个相邻状态手算一次转移。
 
-## 练习入口
+## 阶梯题组
+
+按“简单恢复 → 经典模板 → 深入迁移”完成，先手算线性递推，再引入容量和二分优化。
+
+### 简单恢复
+
+- [#509 斐波那契数](https://leetcode.cn/problems/fibonacci-number/)（最小递推）。
+
+### 经典模板（Hot 100 优先）
 
 - Hot 100 优先队列：[#70 爬楼梯](https://leetcode.cn/problems/climbing-stairs/)（线性递推）。
 - Hot 100 优先队列：[#198 打家劫舍](https://leetcode.cn/problems/house-robber/)（相邻互斥）。
 - Hot 100 优先队列：[#322 零钱兑换](https://leetcode.cn/problems/coin-change/)（最优化状态）。
 - Hot 100 优先队列：[#300 最长递增子序列](https://leetcode.cn/problems/longest-increasing-subsequence/)（状态与二分优化）。
+### 深入迁移
+
 - 进阶延伸：[#416 分割等和子集](https://leetcode.cn/problems/partition-equal-subset-sum/)（容量状态与遍历方向）。
 
 ## 交付

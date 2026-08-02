@@ -12,12 +12,22 @@
 2. 给掩码每个二进制位标注现实含义。
 3. 对零、负数、重复值和最大位宽进行推导。
 
-## 练习入口
+## 阶梯题组
+
+按“简单恢复 → 经典模板 → 深入迁移”完成，先验证单个位级关系，再组合数论与随机映射。
+
+### 简单恢复
+
+- [#191 位 1 的个数](https://leetcode.cn/problems/number-of-1-bits/)（最低位消除）。
+
+### 经典模板（Hot 100 优先）
 
 - Hot 100 优先队列：[#136 只出现一次的数字](https://leetcode.cn/problems/single-number/)（异或抵消）。
 - Hot 100 优先队列：[#169 多数元素](https://leetcode.cn/problems/majority-element/)（投票不变量）。
 - Hot 100 优先队列：[#287 寻找重复数](https://leetcode.cn/problems/find-the-duplicate-number/)（映射与环模型）。
-- 进阶延伸：[#191 位 1 的个数](https://leetcode.cn/problems/number-of-1-bits/)（最低位清除）。
+### 深入迁移
+
+- 进阶延伸：[#470 用 Rand7() 实现 Rand10()](https://leetcode.cn/problems/implement-rand10-using-rand7/)（拒绝采样）。
 - 进阶延伸：[#470 用 Rand7() 实现 Rand10()](https://leetcode.cn/problems/implement-rand10-using-rand7/)（拒绝采样）。
 
 ## 交付

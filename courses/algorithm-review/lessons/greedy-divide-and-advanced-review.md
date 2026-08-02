@@ -12,12 +12,22 @@
 2. 为分治写出递推式和合并成本。
 3. 综合题先拆成子模型，再决定接口数据结构。
 
-## 练习入口
+## 阶梯题组
+
+按“简单恢复 → 经典模板 → 深入迁移”完成，先验证局部选择，再叠加区间和组合约束。
+
+### 简单恢复
+
+- [#455 分发饼干](https://leetcode.cn/problems/assign-cookies/)（排序后的局部选择）。
+
+### 经典模板（Hot 100 优先）
 
 - Hot 100 优先队列：[#55 跳跃游戏](https://leetcode.cn/problems/jump-game/)（可达最远边界）。
 - Hot 100 优先队列：[#45 跳跃游戏 II](https://leetcode.cn/problems/jump-game-ii/)（分层贪心）。
 - Hot 100 优先队列：[#56 合并区间](https://leetcode.cn/problems/merge-intervals/)（排序后合并）。
 - Hot 100 优先队列：[#763 划分字母区间](https://leetcode.cn/problems/partition-labels/)（最后出现位置）。
+### 深入迁移
+
 - 进阶延伸：[#239 滑动窗口最大值](https://leetcode.cn/problems/sliding-window-maximum/)（窗口与单调队列）。
 - 进阶延伸：[#10 正则表达式匹配](https://leetcode.cn/problems/regular-expression-matching/)（高耦合状态设计）。
 

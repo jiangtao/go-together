@@ -12,11 +12,21 @@
 2. 明确全局变量何时更新。
 3. 对单链树、根即目标、左右各命中一个目标验证。
 
-## 练习入口
+## 阶梯题组
+
+按“简单恢复 → 经典模板 → 深入迁移”完成，先比较局部结构，再聚合跨子树路径信息。
+
+### 简单恢复
+
+- [#100 相同的树](https://leetcode.cn/problems/same-tree/)（双子树同步递归）。
+
+### 经典模板（Hot 100 优先）
 
 - Hot 100 优先队列：[#543 二叉树的直径](https://leetcode.cn/problems/diameter-of-binary-tree/)（高度聚合）。
 - Hot 100 优先队列：[#124 二叉树中的最大路径和](https://leetcode.cn/problems/binary-tree-maximum-path-sum/)（负贡献截断）。
 - Hot 100 优先队列：[#236 二叉树的最近公共祖先](https://leetcode.cn/problems/lowest-common-ancestor-of-a-binary-tree/)（目标信号上返）。
+### 深入迁移
+
 - 进阶延伸：[#437 路径总和 III](https://leetcode.cn/problems/path-sum-iii/)（树遍历与前缀状态组合）。
 
 ## 交付

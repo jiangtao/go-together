@@ -12,11 +12,21 @@
 2. 明确路径是复制传递还是原地 push/pop。
 3. 对空候选、重复候选、最深叶子验证撤销对称性。
 
-## 练习入口
+## 阶梯题组
+
+按“简单恢复 → 经典模板 → 深入迁移”完成，先枚举受限组合，再增加剪枝与约束集合。
+
+### 简单恢复
+
+- [#77 组合](https://leetcode.cn/problems/combinations/)（起始下标）。
+
+### 经典模板（Hot 100 优先）
 
 - Hot 100 优先队列：[#46 全排列](https://leetcode.cn/problems/permutations/)（已选集合）。
 - Hot 100 优先队列：[#78 子集](https://leetcode.cn/problems/subsets/)（选择或跳过）。
 - Hot 100 优先队列：[#39 组合总和](https://leetcode.cn/problems/combination-sum/)（起始下标与剪枝）。
+### 深入迁移
+
 - 进阶延伸：[#51 N 皇后](https://leetcode.cn/problems/n-queens/)（约束集合）。
 
 ## 交付

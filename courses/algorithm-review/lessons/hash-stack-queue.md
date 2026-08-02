@@ -12,11 +12,21 @@ TypeScript 不要对数组频繁 `shift` 来模拟大队列；用头下标或专
 2. 为每个出栈动作说明它结算了哪一个问题。
 3. 队列标记访问状态的时机固定为入队时。
 
-## 练习入口
+## 阶梯题组
+
+按“简单恢复 → 经典模板 → 深入迁移”完成，先确定访问时序，再维护单调约束。
+
+### 简单恢复
+
+- [#20 有效的括号](https://leetcode.cn/problems/valid-parentheses/)（匹配栈）。
+
+### 经典模板（Hot 100 优先）
 
 - Hot 100 优先队列：[#20 有效的括号](https://leetcode.cn/problems/valid-parentheses/)（匹配栈）。
 - Hot 100 优先队列：[#739 每日温度](https://leetcode.cn/problems/daily-temperatures/)（单调栈）。
 - Hot 100 优先队列：[#155 最小栈](https://leetcode.cn/problems/min-stack/)（辅助状态）。
+### 深入迁移
+
 - 进阶延伸：[#84 柱状图中最大的矩形](https://leetcode.cn/problems/largest-rectangle-in-histogram/)（哨兵与边界结算）。
 
 ## 交付
