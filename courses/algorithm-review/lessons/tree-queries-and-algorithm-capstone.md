@@ -20,6 +20,7 @@ TypeScript 与 Go 都应避免把节点值误当节点身份；存在重复值�
 ### 深入迁移
 
 - [#968 监控二叉树](https://leetcode.cn/problems/binary-tree-cameras/)（树形状态决策）。
+- [#1483 树节点的第 K 个祖先](https://leetcode.cn/problems/kth-ancestor-of-a-tree-node/)（倍增预处理与多次查询）。
 
 ## 限时与复盘
 

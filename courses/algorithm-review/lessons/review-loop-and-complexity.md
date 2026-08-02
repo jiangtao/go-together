@@ -19,7 +19,7 @@ TypeScript 主实现优先使用 `Map`、`Set`、数组和显式的接口；Java
 
 ### 简单恢复
 
-- [#217 存在重复元素](https://leetcode.cn/problems/contains-duplicate/)（集合与线性扫描）。
+- [#242 有效的字母异位词](https://leetcode.cn/problems/valid-anagram/)（频次摘要与线性扫描）。
 
 ### 经典模板（Hot 100 优先）
 

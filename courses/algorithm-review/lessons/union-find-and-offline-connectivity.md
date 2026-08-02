@@ -20,6 +20,7 @@ TypeScript 使用数组保存父节点和大小，避免递归 `find` 过深；G
 ### 深入迁移
 
 - [#1202 交换字符串中的元素](https://leetcode.cn/problems/smallest-string-with-swaps/)（分量内重排）。
+- [#803 打砖块](https://leetcode.cn/problems/bricks-falling-when-hit/)（删除操作逆序离线化）。
 
 ## 限时与复盘
 

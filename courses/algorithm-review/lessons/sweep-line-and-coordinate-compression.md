@@ -20,6 +20,7 @@
 ### 深入迁移
 
 - [#218 天际线问题](https://leetcode.cn/problems/the-skyline-problem/)（事件与活跃高度）。
+- [#850 矩形面积 II](https://leetcode.cn/problems/rectangle-area-ii/)（扫描线与坐标离散化）。
 
 ## 限时与复盘
 

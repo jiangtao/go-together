@@ -28,7 +28,6 @@
 ### 深入迁移
 
 - 进阶延伸：[#470 用 Rand7() 实现 Rand10()](https://leetcode.cn/problems/implement-rand10-using-rand7/)（拒绝采样）。
-- 进阶延伸：[#470 用 Rand7() 实现 Rand10()](https://leetcode.cn/problems/implement-rand10-using-rand7/)（拒绝采样）。
 
 ## 交付
 

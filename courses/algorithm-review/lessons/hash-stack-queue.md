@@ -18,7 +18,7 @@ TypeScript 不要对数组频繁 `shift` 来模拟大队列；用头下标或专
 
 ### 简单恢复
 
-- [#20 有效的括号](https://leetcode.cn/problems/valid-parentheses/)（匹配栈）。
+- [#232 用栈实现队列](https://leetcode.cn/problems/implement-queue-using-stacks/)（双栈转移）。
 
 ### 经典模板（Hot 100 优先）
 

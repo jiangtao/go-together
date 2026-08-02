@@ -16,6 +16,7 @@ TypeScript 中队列不要反复 `shift`；用数组加头尾下标。Go 可用�
 
 - [#739 每日温度](https://leetcode.cn/problems/daily-temperatures/)（单调栈）。
 - [#239 滑动窗口最大值](https://leetcode.cn/problems/sliding-window-maximum/)（单调队列）。
+- [#875 爱吃香蕉的珂珂](https://leetcode.cn/problems/koko-eating-bananas/)（可行性与答案二分）。
 
 ### 深入迁移
 
