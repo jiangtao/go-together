@@ -10,6 +10,7 @@
         "label": "Go"
       },
       "lifecycle": "published",
+      "visibility": "listed",
       "replacementCourseId": null,
       "manifestPath": "courses/go-backend/course.json"
     },
@@ -21,8 +22,21 @@
         "label": "TypeScript"
       },
       "lifecycle": "published",
+      "visibility": "listed",
       "replacementCourseId": null,
       "manifestPath": "courses/editor-engineering/course.json"
+    },
+    {
+      "courseId": "algorithm-review",
+      "title": "算法复习路径：Hot 100 速刷与进阶",
+      "language": {
+        "id": "typescript",
+        "label": "TypeScript"
+      },
+      "lifecycle": "published",
+      "visibility": "unlisted",
+      "replacementCourseId": null,
+      "manifestPath": "courses/algorithm-review/course.json"
     }
   ]
 }

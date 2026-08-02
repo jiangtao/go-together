@@ -90,6 +90,7 @@ async function makeFixture(
     )
   }
   await git(workspace, "init", "-q")
+  await git(workspace, "config", "core.excludesfile", "/dev/null")
   await git(workspace, "config", "user.name", "Migration Test")
   await git(workspace, "config", "user.email", "migration@example.test")
   await git(

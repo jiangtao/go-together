@@ -25,6 +25,7 @@ function invalidFixtures() {
         description: "Go backend course",
         language: { id: "go", label: "Go" },
         lifecycle: "published",
+        visibility: "listed",
         replacementCourseId: "go-next",
         pageHref: "/courses/go-backend",
         courseHref: "/courses/go-backend/course.json",
@@ -40,6 +41,7 @@ function invalidFixtures() {
     description: "Go backend course",
     language: { id: "go", label: "Go" },
     lifecycle: "published",
+    visibility: "listed",
     replacementCourseId: "go-next",
     tracks: [
       {

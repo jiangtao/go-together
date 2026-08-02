@@ -36,6 +36,7 @@ function sourceCourse(
     description: `${courseId} description`,
     language: { id: courseId.startsWith("go") ? "go" : "python", label: courseId.startsWith("go") ? "Go" : "Python" },
     lifecycle,
+    visibility: "listed",
     replacementCourseId: null,
     evaluationPolicyPath: "evaluation/policy.md",
     commandProfilePath: "evaluation/command-profile.json",
@@ -108,6 +109,7 @@ function catalog(courses: SourceCourse[]): SourceCatalog {
       title: course.title,
       language: course.language,
       lifecycle: course.lifecycle,
+      visibility: course.visibility,
       replacementCourseId: course.replacementCourseId,
       manifestPath: `courses/${course.courseId}/course.json`,
     })),
@@ -148,6 +150,72 @@ afterEach(async () => {
 })
 
 describe("Catalog-driven public projection", () => {
+  it("projects an Unlisted Published Course for direct access without dropping its practice assets", async () => {
+    const root = await mkdtemp(path.join(os.tmpdir(), "multi-course-public-"))
+    temporaryDirectories.push(root)
+    const outputDirectory = path.join(root, "public")
+    const listed = sourceCourse("go-backend")
+    const unlisted = {
+      ...sourceCourse("algorithm-review"),
+      visibility: "unlisted",
+    } as SourceCourse
+    const unlistedCatalog = {
+      ...catalog([listed, unlisted]),
+      courses: [
+        {
+          courseId: listed.courseId,
+          title: listed.title,
+          language: listed.language,
+          lifecycle: listed.lifecycle,
+          visibility: "listed",
+          replacementCourseId: listed.replacementCourseId,
+          manifestPath: "courses/go-backend/course.json",
+        },
+        {
+          courseId: unlisted.courseId,
+          title: unlisted.title,
+          language: unlisted.language,
+          lifecycle: unlisted.lifecycle,
+          visibility: "unlisted",
+          replacementCourseId: unlisted.replacementCourseId,
+          manifestPath: "courses/algorithm-review/course.json",
+        },
+      ],
+    } as SourceCatalog
+
+    await buildMultiCoursePublicArtifacts({
+      sourceCatalog: unlistedCatalog,
+      courses: [projection(listed), projection(unlisted)],
+      outputDirectory,
+    })
+
+    const publicCatalog = JSON.parse(
+      await readFile(path.join(outputDirectory, "courses/catalog.json"), "utf8")
+    ) as { courses: Array<{ courseId: string; visibility: string }> }
+    const publicCourse = JSON.parse(
+      await readFile(
+        path.join(outputDirectory, "courses/algorithm-review/course.json"),
+        "utf8"
+      )
+    ) as { visibility: string }
+
+    expect(
+      publicCatalog.courses.find(
+        (course) => course.courseId === "algorithm-review"
+      )?.visibility
+    ).toBe("unlisted")
+    expect(publicCourse.visibility).toBe("unlisted")
+    await expect(
+      readFile(
+        path.join(
+          outputDirectory,
+          "courses/algorithm-review/sources/lessons/first-lesson.md"
+        ),
+        "utf8"
+      )
+    ).resolves.toContain("Safe content.")
+  })
+
   it("publishes only Published/Retired courses with exact v1 data and safe resources", async () => {
     const root = await mkdtemp(path.join(os.tmpdir(), "multi-course-public-"))
     temporaryDirectories.push(root)

@@ -8,6 +8,7 @@
     "label": "TypeScript"
   },
   "lifecycle": "published",
+  "visibility": "listed",
   "replacementCourseId": null,
   "evaluationPolicyPath": "evaluation/policy.md",
   "commandProfilePath": "evaluation/command-profile.json",

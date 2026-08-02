@@ -16,7 +16,8 @@ const MULTI_CONTENT_REVISION = `sha256:${"5".repeat(64)}`
 
 function secondaryCourse(
   courseId: "python-core" | "go-legacy",
-  lifecycle: "published" | "retired"
+  lifecycle: "published" | "retired",
+  visibility: "listed" | "unlisted" = "listed"
 ) {
   const language =
     courseId === "python-core"
@@ -36,6 +37,7 @@ function secondaryCourse(
           : "已退役的 Go 基础课程",
       language,
       lifecycle,
+      visibility,
       replacementCourseId: lifecycle === "retired" ? "go-backend" : null,
       tracks: [
         {
@@ -82,6 +84,7 @@ function secondaryCourse(
           : "已退役的 Go 基础课程",
       language,
       lifecycle,
+      visibility,
       replacementCourseId: lifecycle === "retired" ? "go-backend" : null,
       pageHref: `/courses/${courseId}`,
       courseHref: `/courses/${courseId}/course.json`,
@@ -92,9 +95,16 @@ function secondaryCourse(
 
 async function mockMultiCourseProjection(
   page: Page,
-  options: { pythonDelayMs?: number } = {}
+  options: {
+    pythonDelayMs?: number
+    pythonVisibility?: "listed" | "unlisted"
+  } = {}
 ) {
-  const python = secondaryCourse("python-core", "published")
+  const python = secondaryCourse(
+    "python-core",
+    "published",
+    options.pythonVisibility
+  )
   const retired = secondaryCourse("go-legacy", "retired")
   await page.route("**/courses/catalog.json", async (route) => {
     const response = await route.fetch()
@@ -572,6 +582,47 @@ test("真实 Published Course Select 恰有两门并在刷新后保持显式 URL
     .getByRole("option", { name: "Go · Go 36 天学习路线图" })
     .click()
   await expect(page).toHaveURL(/\/courses\/go-backend$/)
+  expectNoRuntimeErrors()
+})
+
+test("真实 Unlisted 算法课程可手动直达且不加入选择器", async ({ page }) => {
+  const expectNoRuntimeErrors = watchRuntimeErrors(page)
+  await page.goto("/courses/algorithm-review")
+  await expect(page).toHaveURL(/\/courses\/algorithm-review$/)
+  await expect(page.getByTestId("course-heading")).toHaveText(
+    "算法复习路径：Hot 100 速刷与进阶"
+  )
+  await expect(page.getByTestId("active-course-static")).toHaveText(
+    "算法复习路径：Hot 100 速刷与进阶"
+  )
+  await expect(page.getByTestId("course-select-trigger")).toHaveCount(0)
+
+  await page.goto("/")
+  await page.getByTestId("course-select-trigger").click()
+  await expect(
+    page.getByRole("option", { name: "TypeScript · 算法复习路径：Hot 100 速刷与进阶" })
+  ).toHaveCount(0)
+  expectNoRuntimeErrors()
+})
+
+test("Unlisted Published Course 可由稳定 URL 直达，但不出现在课程选择器", async ({
+  page,
+}) => {
+  const expectNoRuntimeErrors = watchRuntimeErrors(page)
+  await mockMultiCourseProjection(page, { pythonVisibility: "unlisted" })
+
+  await page.goto("/courses/python-core")
+  await expect(page).toHaveURL(/\/courses\/python-core$/)
+  await expect(page.getByTestId("course-heading")).toHaveText("Python Core")
+  await expect(page.getByTestId("active-course-static")).toHaveText("Python Core")
+  await expect(page.getByTestId("course-select-trigger")).toHaveCount(0)
+
+  await page.goto("/")
+  await expect(page).toHaveURL(/\/courses\/go-backend$/)
+  await page.getByTestId("course-select-trigger").click()
+  await expect(
+    page.getByRole("option", { name: "Python · Python Core" })
+  ).toHaveCount(0)
   expectNoRuntimeErrors()
 })
 

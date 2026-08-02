@@ -56,6 +56,7 @@ function catalogEntry(course: SourceCourse): SourceCatalogCourse {
     title: course.title,
     language: course.language,
     lifecycle: course.lifecycle,
+    visibility: course.visibility,
     replacementCourseId: course.replacementCourseId,
     manifestPath: `courses/${course.courseId}/course.json`,
   }

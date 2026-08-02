@@ -1,0 +1,329 @@
+{
+  "schemaVersion": 1,
+  "courseId": "algorithm-review",
+  "title": "算法复习路径：Hot 100 速刷与进阶",
+  "description": "以题型建模为主线，用 TypeScript 建立主实现，并以 JavaScript 运行时特性和 Go 对照巩固算法复习。",
+  "language": {
+    "id": "typescript",
+    "label": "TypeScript"
+  },
+  "lifecycle": "published",
+  "visibility": "unlisted",
+  "replacementCourseId": null,
+  "evaluationPolicyPath": "evaluation/policy.md",
+  "commandProfilePath": "evaluation/command-profile.json",
+  "publicResources": [
+    {
+      "resourceId": "learning-protocol",
+      "label": "速刷学习协议",
+      "path": "resources/public/learning-protocol.md"
+    }
+  ],
+  "internalResources": [],
+  "tracks": [
+    {
+      "trackId": "linear-patterns",
+      "title": "线性结构与区间建模",
+      "description": "先把数组、链表、前缀结构和单调结构压缩为可复用的不变量。",
+      "stages": [
+        {
+          "stageId": "warmup-and-arrays",
+          "title": "复习系统与数组矩阵",
+          "description": "建立速刷循环，并处理最常出现的顺序扫描与原地变换。",
+          "lessons": [
+            {
+              "lessonId": "review-loop-and-complexity",
+              "lifecycle": "active",
+              "day": 1,
+              "title": "复习循环、复杂度与语言基线",
+              "objective": "把每道题固定为建模、实现、验证、复盘四步，并建立 TypeScript 与 Go 的统一复杂度表达。",
+              "goals": ["写出可检查的不变量", "区分时间与空间复杂度", "说明 TypeScript 与 Go 的容器取舍"],
+              "contentPath": "lessons/review-loop-and-complexity.md",
+              "exerciseTemplatePath": null,
+              "evaluation": {"competencies": [{"competencyId": "model-problem", "title": "建模与实现"}], "requiredEvidence": ["推导记录", "本地测试记录"], "scoringBasis": ["边界覆盖", "复杂度正确", "表达清晰"]}
+            },
+            {
+              "lessonId": "arrays-strings-matrices",
+              "lifecycle": "active",
+              "day": 2,
+              "title": "数组、字符串与矩阵原地变换",
+              "objective": "用扫描方向、读写边界与状态压缩处理线性容器和二维矩阵。",
+              "goals": ["选择正确扫描方向", "维护原地写入边界", "处理矩阵坐标映射"],
+              "contentPath": "lessons/arrays-strings-matrices.md",
+              "exerciseTemplatePath": null,
+              "evaluation": {"competencies": [{"competencyId": "model-problem", "title": "建模与实现"}], "requiredEvidence": ["推导记录", "本地测试记录"], "scoringBasis": ["边界覆盖", "复杂度正确", "表达清晰"]}
+            },
+            {
+              "lessonId": "linked-lists",
+              "lifecycle": "active",
+              "day": 3,
+              "title": "链表指针重连",
+              "objective": "用哨兵、快慢指针和局部反转模板降低链表边界风险。",
+              "goals": ["使用哨兵统一头部边界", "证明快慢指针相遇条件", "拆分并重连局部区间"],
+              "contentPath": "lessons/linked-lists.md",
+              "exerciseTemplatePath": null,
+              "evaluation": {"competencies": [{"competencyId": "model-problem", "title": "建模与实现"}], "requiredEvidence": ["推导记录", "本地测试记录"], "scoringBasis": ["边界覆盖", "复杂度正确", "表达清晰"]}
+            }
+          ]
+        },
+        {
+          "stageId": "range-and-monotonic-structures",
+          "title": "区间统计与单调结构",
+          "description": "将反复查询转为预处理，将最近更大/更小关系转为单调栈。",
+          "lessons": [
+            {
+              "lessonId": "prefix-sum-and-difference",
+              "lifecycle": "active",
+              "day": 4,
+              "title": "前缀和、差分与区间计数",
+              "objective": "在静态区间和、子数组计数和批量区间更新之间选择正确的预处理。",
+              "goals": ["推导前缀公式", "用哈希记录历史状态", "还原差分数组"],
+              "contentPath": "lessons/prefix-sum-and-difference.md",
+              "exerciseTemplatePath": null,
+              "evaluation": {"competencies": [{"competencyId": "model-problem", "title": "建模与实现"}], "requiredEvidence": ["推导记录", "本地测试记录"], "scoringBasis": ["边界覆盖", "复杂度正确", "表达清晰"]}
+            },
+            {
+              "lessonId": "hash-stack-queue",
+              "lifecycle": "active",
+              "day": 5,
+              "title": "哈希、栈、队列与单调栈",
+              "objective": "按访问模式选择哈希表、栈、队列或单调栈，并明确每个元素的入栈出栈次数。",
+              "goals": ["写出单调栈不变量", "识别先进后出与先进先出", "估算摊还复杂度"],
+              "contentPath": "lessons/hash-stack-queue.md",
+              "exerciseTemplatePath": null,
+              "evaluation": {"competencies": [{"competencyId": "model-problem", "title": "建模与实现"}], "requiredEvidence": ["推导记录", "本地测试记录"], "scoringBasis": ["边界覆盖", "复杂度正确", "表达清晰"]}
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "trackId": "lookup-and-order",
+      "title": "查找、窗口与顺序",
+      "description": "把双指针、滑动窗口、二分和排序统一为单调性与候选区间的管理。",
+      "stages": [
+        {
+          "stageId": "pointers-and-windows",
+          "title": "双指针与滑动窗口",
+          "description": "从两端夹逼到可变窗口，练习状态进入、离开和收缩时机。",
+          "lessons": [
+            {
+              "lessonId": "two-pointers",
+              "lifecycle": "active",
+              "day": 6,
+              "title": "双指针与相向扫描",
+              "objective": "为左右指针定义移动理由，避免只凭样例移动指针。",
+              "goals": ["证明剪枝安全", "处理重复元素", "区分同向与相向指针"],
+              "contentPath": "lessons/two-pointers.md",
+              "exerciseTemplatePath": null,
+              "evaluation": {"competencies": [{"competencyId": "model-problem", "title": "建模与实现"}], "requiredEvidence": ["推导记录", "本地测试记录"], "scoringBasis": ["边界覆盖", "复杂度正确", "表达清晰"]}
+            },
+            {
+              "lessonId": "sliding-window",
+              "lifecycle": "active",
+              "day": 7,
+              "title": "滑动窗口与频次状态",
+              "objective": "用窗口状态、有效条件和收缩规则解决子串与子数组问题。",
+              "goals": ["定义窗口状态", "实现扩张与收缩", "识别固定与可变窗口"],
+              "contentPath": "lessons/sliding-window.md",
+              "exerciseTemplatePath": null,
+              "evaluation": {"competencies": [{"competencyId": "model-problem", "title": "建模与实现"}], "requiredEvidence": ["推导记录", "本地测试记录"], "scoringBasis": ["边界覆盖", "复杂度正确", "表达清晰"]}
+            }
+          ]
+        },
+        {
+          "stageId": "binary-search-and-ordering",
+          "title": "二分与排序边界",
+          "description": "通过单调判定函数和开闭区间约定避免二分的边界漂移。",
+          "lessons": [
+            {
+              "lessonId": "binary-search",
+              "lifecycle": "active",
+              "day": 8,
+              "title": "二分搜索与答案空间",
+              "objective": "同时掌握索引二分和答案二分，明确循环不变量与终止条件。",
+              "goals": ["选择区间表示", "构造单调判定", "处理首尾边界"],
+              "contentPath": "lessons/binary-search.md",
+              "exerciseTemplatePath": null,
+              "evaluation": {"competencies": [{"competencyId": "model-problem", "title": "建模与实现"}], "requiredEvidence": ["推导记录", "本地测试记录"], "scoringBasis": ["边界覆盖", "复杂度正确", "表达清晰"]}
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "trackId": "recursive-structures",
+      "title": "递归、树与优先结构",
+      "description": "先定义子问题和返回值，再处理树、二叉搜索树、堆与字典树。",
+      "stages": [
+        {
+          "stageId": "recursion-and-trees",
+          "title": "递归语义与二叉树",
+          "description": "让函数语义先于遍历代码，借由后序信息完成树形计算。",
+          "lessons": [
+            {
+              "lessonId": "recursion-and-tree-traversal",
+              "lifecycle": "active",
+              "day": 9,
+              "title": "递归语义与树遍历",
+              "objective": "从函数含义推导前中后序和层序遍历，而不是背诵模板。",
+              "goals": ["定义递归返回值", "区分遍历位置", "控制递归深度"],
+              "contentPath": "lessons/recursion-and-tree-traversal.md",
+              "exerciseTemplatePath": null,
+              "evaluation": {"competencies": [{"competencyId": "model-problem", "title": "建模与实现"}], "requiredEvidence": ["推导记录", "本地测试记录"], "scoringBasis": ["边界覆盖", "复杂度正确", "表达清晰"]}
+            },
+            {
+              "lessonId": "binary-tree-paths",
+              "lifecycle": "active",
+              "day": 10,
+              "title": "二叉树路径、直径与公共祖先",
+              "objective": "在节点回溯处聚合路径信息，解决深度、路径和与最近公共祖先。",
+              "goals": ["设计子树信息", "在回溯位置合并", "处理空节点基线"],
+              "contentPath": "lessons/binary-tree-paths.md",
+              "exerciseTemplatePath": null,
+              "evaluation": {"competencies": [{"competencyId": "model-problem", "title": "建模与实现"}], "requiredEvidence": ["推导记录", "本地测试记录"], "scoringBasis": ["边界覆盖", "复杂度正确", "表达清晰"]}
+            },
+            {
+              "lessonId": "binary-search-trees",
+              "lifecycle": "active",
+              "day": 11,
+              "title": "二叉搜索树的顺序约束",
+              "objective": "把 BST 的局部比较提升为值域约束，并利用中序有序性做查询。",
+              "goals": ["传递合法值域", "维护中序顺序", "处理删除与后继"],
+              "contentPath": "lessons/binary-search-trees.md",
+              "exerciseTemplatePath": null,
+              "evaluation": {"competencies": [{"competencyId": "model-problem", "title": "建模与实现"}], "requiredEvidence": ["推导记录", "本地测试记录"], "scoringBasis": ["边界覆盖", "复杂度正确", "表达清晰"]}
+            }
+          ]
+        },
+        {
+          "stageId": "heaps-and-tries",
+          "title": "堆与字典树",
+          "description": "在动态 Top K、中位数和前缀匹配中使用受限的有序性。",
+          "lessons": [
+            {
+              "lessonId": "heap-and-top-k",
+              "lifecycle": "active",
+              "day": 12,
+              "title": "堆、优先队列与 Top K",
+              "objective": "比较堆、排序和桶计数的边界，并实现持续维护 Top K 的策略。",
+              "goals": ["选择最小堆或最大堆", "维护堆大小", "分析流式复杂度"],
+              "contentPath": "lessons/heap-and-top-k.md",
+              "exerciseTemplatePath": null,
+              "evaluation": {"competencies": [{"competencyId": "model-problem", "title": "建模与实现"}], "requiredEvidence": ["推导记录", "本地测试记录"], "scoringBasis": ["边界覆盖", "复杂度正确", "表达清晰"]}
+            },
+            {
+              "lessonId": "trie-and-prefix-search",
+              "lifecycle": "active",
+              "day": 13,
+              "title": "字典树与前缀状态",
+              "objective": "把字符串集合转化为共享前缀节点，并和 DFS 搜索组合。",
+              "goals": ["设计节点字段", "标记词尾", "控制搜索剪枝"],
+              "contentPath": "lessons/trie-and-prefix-search.md",
+              "exerciseTemplatePath": null,
+              "evaluation": {"competencies": [{"competencyId": "model-problem", "title": "建模与实现"}], "requiredEvidence": ["推导记录", "本地测试记录"], "scoringBasis": ["边界覆盖", "复杂度正确", "表达清晰"]}
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "trackId": "search-optimization",
+      "title": "状态空间搜索与优化",
+      "description": "用决策树、图遍历和动态规划把指数搜索压缩为可管理的状态。",
+      "stages": [
+        {
+          "stageId": "state-space-and-graphs",
+          "title": "回溯、遍历与图",
+          "description": "区分枚举、可达性、最短步数与有向依赖。",
+          "lessons": [
+            {
+              "lessonId": "backtracking",
+              "lifecycle": "active",
+              "day": 14,
+              "title": "回溯与组合枚举",
+              "objective": "用选择、递归、撤销三段式枚举组合、排列和分割。",
+              "goals": ["维护路径状态", "去重与剪枝", "估算搜索树规模"],
+              "contentPath": "lessons/backtracking.md",
+              "exerciseTemplatePath": null,
+              "evaluation": {"competencies": [{"competencyId": "model-problem", "title": "建模与实现"}], "requiredEvidence": ["推导记录", "本地测试记录"], "scoringBasis": ["边界覆盖", "复杂度正确", "表达清晰"]}
+            },
+            {
+              "lessonId": "bfs-and-dfs",
+              "lifecycle": "active",
+              "day": 15,
+              "title": "BFS、DFS 与网格搜索",
+              "objective": "根据最短步数、连通分量和遍历需求选择 BFS 或 DFS。",
+              "goals": ["定义 visited 时机", "按层推进 BFS", "处理网格边界"],
+              "contentPath": "lessons/bfs-and-dfs.md",
+              "exerciseTemplatePath": null,
+              "evaluation": {"competencies": [{"competencyId": "model-problem", "title": "建模与实现"}], "requiredEvidence": ["推导记录", "本地测试记录"], "scoringBasis": ["边界覆盖", "复杂度正确", "表达清晰"]}
+            },
+            {
+              "lessonId": "graph-models",
+              "lifecycle": "active",
+              "day": 16,
+              "title": "有向图、拓扑与最短路",
+              "objective": "将依赖、权重和可达性映射为图，并选取拓扑排序、并查集或最短路。",
+              "goals": ["构建邻接表", "检测环", "区分 BFS 与带权最短路"],
+              "contentPath": "lessons/graph-models.md",
+              "exerciseTemplatePath": null,
+              "evaluation": {"competencies": [{"competencyId": "model-problem", "title": "建模与实现"}], "requiredEvidence": ["推导记录", "本地测试记录"], "scoringBasis": ["边界覆盖", "复杂度正确", "表达清晰"]}
+            }
+          ]
+        },
+        {
+          "stageId": "dynamic-programming-and-review",
+          "title": "动态规划、贪心与综合回炉",
+          "description": "完成状态定义、转移、遍历顺序和空间压缩，并用综合题检验模型迁移。",
+          "lessons": [
+            {
+              "lessonId": "dynamic-programming-foundations",
+              "lifecycle": "active",
+              "day": 17,
+              "title": "动态规划：状态、转移与初始化",
+              "objective": "从暴力递归中识别重叠子问题，写出状态定义和最小可行初始化。",
+              "goals": ["定义状态维度", "写出转移", "选择遍历顺序"],
+              "contentPath": "lessons/dynamic-programming-foundations.md",
+              "exerciseTemplatePath": null,
+              "evaluation": {"competencies": [{"competencyId": "model-problem", "title": "建模与实现"}], "requiredEvidence": ["推导记录", "本地测试记录"], "scoringBasis": ["边界覆盖", "复杂度正确", "表达清晰"]}
+            },
+            {
+              "lessonId": "sequence-interval-and-tree-dp",
+              "lifecycle": "active",
+              "day": 18,
+              "title": "序列、区间与树形动态规划",
+              "objective": "把线性状态扩展到双序列、区间和树，识别何时不能做错误的空间压缩。",
+              "goals": ["区分子序列和子串", "建立区间边界", "设计树形返回值"],
+              "contentPath": "lessons/sequence-interval-and-tree-dp.md",
+              "exerciseTemplatePath": null,
+              "evaluation": {"competencies": [{"competencyId": "model-problem", "title": "建模与实现"}], "requiredEvidence": ["推导记录", "本地测试记录"], "scoringBasis": ["边界覆盖", "复杂度正确", "表达清晰"]}
+            },
+            {
+              "lessonId": "greedy-divide-and-advanced-review",
+              "lifecycle": "active",
+              "day": 19,
+              "title": "贪心、分治与进阶综合",
+              "objective": "用交换论证验证贪心选择，并用高耦合题检验多模型拆分能力。",
+              "goals": ["写出贪心正确性理由", "识别分治合并步骤", "复盘跨题型失误"],
+              "contentPath": "lessons/greedy-divide-and-advanced-review.md",
+              "exerciseTemplatePath": null,
+              "evaluation": {"competencies": [{"competencyId": "model-problem", "title": "建模与实现"}], "requiredEvidence": ["推导记录", "本地测试记录"], "scoringBasis": ["边界覆盖", "复杂度正确", "表达清晰"]}
+            },
+            {
+              "lessonId": "math-and-bit-models",
+              "lifecycle": "active",
+              "day": 20,
+              "title": "数学、位运算与随机化边界",
+              "objective": "把整除、余数、异或和位掩码视为状态压缩工具，并理解随机化算法的适用前提。",
+              "goals": ["识别可用的数论不变量", "推导异或抵消关系", "说明随机化的概率边界"],
+              "contentPath": "lessons/math-and-bit-models.md",
+              "exerciseTemplatePath": null,
+              "evaluation": {"competencies": [{"competencyId": "model-problem", "title": "建模与实现"}], "requiredEvidence": ["推导记录", "本地测试记录"], "scoringBasis": ["边界覆盖", "复杂度正确", "表达清晰"]}
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}

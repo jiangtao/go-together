@@ -95,7 +95,7 @@ async function loadPublicCourse(
 
 function firstPublishedCourse(catalog: PublicCatalog): PublicCatalogCourse {
   const first = catalog.courses.find(
-    (course) => course.lifecycle === "published"
+    (course) => course.lifecycle === "published" && course.visibility === "listed"
   )
   if (!first) {
     throw new NoPublishedCoursesError()

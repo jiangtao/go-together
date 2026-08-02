@@ -4,7 +4,7 @@
 
 ## 1. 创建 Draft Course
 
-维护者必须一次提供：唯一 kebab-case `courseId`、标题、描述、语言 `id/label`、初始 Track 与 Stage、至少一个 Lesson，以及课程的评测政策和命令配置。每个初始 Lesson 都要给出唯一 `lessonId`、Day（没有则明确为 `null`）、标题、目标、Goals、正文和评测能力项。
+维护者必须一次提供：唯一 kebab-case `courseId`、标题、描述、语言 `id/label`、初始 Track 与 Stage、至少一个 Lesson，以及课程的评测政策和命令配置。每个初始 Lesson 都要给出唯一 `lessonId`、Day（没有则明确为 `null`）、标题、目标、Goals、正文和评测能力项。课程的 `visibility` 只能是 `listed` 或 `unlisted`；Draft 不生成公开投影。
 
 复制并补全：
 
@@ -51,11 +51,12 @@ Goals=<goals>
 
 ```text
 请用 $course-authoring 验证并发布 courseId=<course-id>：
+visibility=<listed 或 unlisted>
 仅在 Draft→Published 合法、课程契约完整、Release Progress 可由私有 Evaluation 派生，且公开生成、确定性检查、审计与 hosting build 全部通过时发布。
 请报告公开投影与 prebuilt 审计结果；任何失败都保持 Draft，不公开、不覆盖内容。
 ```
 
-只有 `courses/catalog.json` 中为 `published`，且上述门禁全部通过的课程，才会进入 Roadmap 课程选择器。Draft 永远不可见。
+只有 `courses/catalog.json` 中为 `published` 且 `visibility: "listed"`，并通过上述门禁的课程，才会进入 Roadmap 课程选择器。`published + unlisted` 仍会生成规范 `/courses/<courseId>` 路由，供知道稳定 URL 的人手动访问，但不属于访问控制；Draft 永远不可见。
 
 ## 4. 学习与评测已发布课程
 
@@ -81,3 +82,4 @@ Notes 和 Evaluation 仅写入当前 Lesson 的私有学习记录，不进入 Gi
 - ID、路径或资源已存在时，不能重复或覆盖。
 - Lesson 只能添加到 Draft；Published/Retired 身份不能任意改写。
 - Contract、Release Progress、公开生成或审计失败时，课程保持 Draft，Roadmap 不显示它。
+- `unlisted` 不能替代登录、授权或保密控制；它只移除选择器发现入口。

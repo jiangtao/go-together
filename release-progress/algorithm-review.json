@@ -1,116 +1,106 @@
 {
   "schemaVersion": 1,
-  "courseId": "editor-engineering",
-  "courseRevision": "sha256:2c535128652cd4cbc60ed13f96776fbb24e64f85779db061080b21d6bee70f1c",
-  "privateInputDigest": "sha256:48032223d02ee140acd3d7876a4033252ea05a5b3728a1d85b68cf63e45db52e",
+  "courseId": "algorithm-review",
+  "courseRevision": "sha256:45a698fc0fbbd2c153019aa71f7f952e859ae6d65596c994e2e80173af61487f",
+  "privateInputDigest": "sha256:d716d232063dcc09af8bfb26b35f276ac2fec3ecf12e2c5aff8acf9ddac493e6",
   "lessons": [
     {
-      "lessonId": "why-editor-engineering",
+      "lessonId": "review-loop-and-complexity",
       "status": "未开始",
       "referenceScore": null
     },
     {
-      "lessonId": "browser-editing-boundaries",
+      "lessonId": "arrays-strings-matrices",
       "status": "未开始",
       "referenceScore": null
     },
     {
-      "lessonId": "document-model-and-schema",
+      "lessonId": "linked-lists",
       "status": "未开始",
       "referenceScore": null
     },
     {
-      "lessonId": "state-view-and-transaction",
+      "lessonId": "prefix-sum-and-difference",
       "status": "未开始",
       "referenceScore": null
     },
     {
-      "lessonId": "selection-cursor-and-mapping",
+      "lessonId": "hash-stack-queue",
       "status": "未开始",
       "referenceScore": null
     },
     {
-      "lessonId": "commands-keymaps-and-plugins",
+      "lessonId": "two-pointers",
       "status": "未开始",
       "referenceScore": null
     },
     {
-      "lessonId": "input-ime-and-paste",
+      "lessonId": "sliding-window",
       "status": "未开始",
       "referenceScore": null
     },
     {
-      "lessonId": "react-integration-and-node-views",
+      "lessonId": "binary-search",
       "status": "未开始",
       "referenceScore": null
     },
     {
-      "lessonId": "history-undo-and-redo",
+      "lessonId": "recursion-and-tree-traversal",
       "status": "未开始",
       "referenceScore": null
     },
     {
-      "lessonId": "serialization-and-migrations",
+      "lessonId": "binary-tree-paths",
       "status": "未开始",
       "referenceScore": null
     },
     {
-      "lessonId": "document-crud-and-api",
+      "lessonId": "binary-search-trees",
       "status": "未开始",
       "referenceScore": null
     },
     {
-      "lessonId": "autosave-persistence-and-versions",
+      "lessonId": "heap-and-top-k",
       "status": "未开始",
       "referenceScore": null
     },
     {
-      "lessonId": "local-offline-recovery",
+      "lessonId": "trie-and-prefix-search",
       "status": "未开始",
       "referenceScore": null
     },
     {
-      "lessonId": "yjs-collaboration-foundations",
+      "lessonId": "backtracking",
       "status": "未开始",
       "referenceScore": null
     },
     {
-      "lessonId": "presence-cursors-and-sync",
+      "lessonId": "bfs-and-dfs",
       "status": "未开始",
       "referenceScore": null
     },
     {
-      "lessonId": "conflicts-offline-and-collab-history",
+      "lessonId": "graph-models",
       "status": "未开始",
       "referenceScore": null
     },
     {
-      "lessonId": "editor-testing-strategy",
+      "lessonId": "dynamic-programming-foundations",
       "status": "未开始",
       "referenceScore": null
     },
     {
-      "lessonId": "performance-and-large-documents",
+      "lessonId": "sequence-interval-and-tree-dp",
       "status": "未开始",
       "referenceScore": null
     },
     {
-      "lessonId": "observability-security-and-deployment",
+      "lessonId": "greedy-divide-and-advanced-review",
       "status": "未开始",
       "referenceScore": null
     },
     {
-      "lessonId": "independent-architecture-design",
-      "status": "未开始",
-      "referenceScore": null
-    },
-    {
-      "lessonId": "independent-integration-build",
-      "status": "未开始",
-      "referenceScore": null
-    },
-    {
-      "lessonId": "production-readiness-review",
+      "lessonId": "math-and-bit-models",
       "status": "未开始",
       "referenceScore": null
     }

@@ -48,6 +48,7 @@ function sourceCourse(
     description: "从语言基础到可运行服务。",
     language: { id: "go", label: "Go" },
     lifecycle: "published",
+    visibility: "listed",
     replacementCourseId: null,
     evaluationPolicyPath: "evaluation/policy.md",
     commandProfilePath: "evaluation/command-profile.json",
@@ -167,6 +168,7 @@ function sourceCatalog(
         title: "Go 后端工程课程",
         language: { id: "go", label: "Go" },
         lifecycle: "published",
+        visibility: "listed",
         replacementCourseId: null,
         manifestPath: "courses/go-backend/course.json",
       },
@@ -243,6 +245,7 @@ function publicCourse(compiled = compileCourseContract(sourceCourse(), authoring
     description: compiled.course.description,
     language: compiled.course.language,
     lifecycle: "published",
+    visibility: compiled.course.visibility,
     replacementCourseId: null,
     tracks: compiled.course.tracks.map((track) => ({
       trackId: track.trackId,
@@ -312,6 +315,7 @@ describe("multi-course domain contracts", () => {
           description: "从语言基础到可运行服务。",
           language: { id: "go", label: "Go" },
           lifecycle: "published",
+          visibility: "listed",
           replacementCourseId: null,
           pageHref: "/courses/go-backend",
           courseHref: "/courses/go-backend/course.json",
@@ -353,6 +357,7 @@ describe("multi-course domain contracts", () => {
       title: "Go 基础旧课",
       language: { id: "go", label: "Go" },
       lifecycle: "retired" as const,
+      visibility: "listed" as const,
       replacementCourseId: "go-backend",
       manifestPath: "courses/go-foundations/course.json",
     }
@@ -370,7 +375,7 @@ describe("multi-course domain contracts", () => {
           { ...sourceCatalog().courses[0], lifecycle: "draft" },
         ],
       })
-    ).toThrow("Default Course 必须 Published")
+    ).toThrow("Default Course 必须是 Listed Published")
     expect(() =>
       parseSourceCatalog({
         ...sourceCatalog(),
@@ -471,7 +476,7 @@ describe("multi-course domain contracts", () => {
         ...published,
         courses: [{ ...published.courses[0], lifecycle: "draft" }],
       })
-    ).toThrow("Default Course 必须 Published")
+    ).toThrow("Default Course 必须是 Listed Published")
     expect(() =>
       validateSourceCatalogTransition(published, {
         ...published,
@@ -900,6 +905,7 @@ describe("multi-course domain contracts", () => {
           description: course.description,
           language: course.language,
           lifecycle: course.lifecycle,
+          visibility: course.visibility,
           replacementCourseId: course.replacementCourseId,
           pageHref: `/courses/${course.courseId}`,
           courseHref: `/courses/${course.courseId}/course.json`,

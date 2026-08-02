@@ -7,6 +7,8 @@ export interface PublicLanguage {
   label: string
 }
 
+export type CourseVisibility = "listed" | "unlisted"
+
 export interface PublicCatalogCourse {
   courseId: string
   courseRevision: string
@@ -14,6 +16,7 @@ export interface PublicCatalogCourse {
   description: string
   language: PublicLanguage
   lifecycle: "published" | "retired"
+  visibility: CourseVisibility
   replacementCourseId: string | null
   pageHref: string
   courseHref: string
@@ -59,6 +62,7 @@ export interface PublicCourse {
   description: string
   language: PublicLanguage
   lifecycle: "published" | "retired"
+  visibility: CourseVisibility
   replacementCourseId: string | null
   tracks: PublicTrack[]
 }
@@ -86,6 +90,7 @@ const CATALOG_COURSE_KEYS = [
   "description",
   "language",
   "lifecycle",
+  "visibility",
   "replacementCourseId",
   "pageHref",
   "courseHref",
@@ -100,6 +105,7 @@ const COURSE_KEYS = [
   "description",
   "language",
   "lifecycle",
+  "visibility",
   "replacementCourseId",
   "tracks",
 ] as const
@@ -174,6 +180,13 @@ function lifecycle(value: unknown, context: string): "published" | "retired" {
   return value
 }
 
+function visibility(value: unknown, context: string): CourseVisibility {
+  if (value !== "listed" && value !== "unlisted") {
+    throw new Error(`${context} 只允许 listed 或 unlisted`)
+  }
+  return value
+}
+
 function unique(values: string[], context: string): void {
   if (new Set(values).size !== values.length) throw new Error(`${context} 包含重复值`)
 }
@@ -186,9 +199,11 @@ function validateCatalogRelationships(
   const defaultCourse = byId.get(defaultCourseId)
   if (
     courses.some((course) => course.lifecycle === "published") &&
-    (!defaultCourse || defaultCourse.lifecycle !== "published")
+    (!defaultCourse ||
+      defaultCourse.lifecycle !== "published" ||
+      defaultCourse.visibility !== "listed")
   ) {
-    throw new Error("Default Course 必须 Published")
+    throw new Error("Default Course 必须是 Listed Published")
   }
   const languageLabels = new Map<string, string>()
   for (const course of courses) {
@@ -241,6 +256,7 @@ export function parsePublicCatalog(value: unknown): PublicCatalog {
     nonempty(course.description, `${context}.description`)
     const parsedLanguage = language(course.language, `${context}.language`)
     const parsedLifecycle = lifecycle(course.lifecycle, `${context}.lifecycle`)
+    const parsedVisibility = visibility(course.visibility, `${context}.visibility`)
     const replacementCourseId = nullableId(
       course.replacementCourseId,
       `${context}.replacementCourseId`
@@ -262,6 +278,7 @@ export function parsePublicCatalog(value: unknown): PublicCatalog {
       description: course.description,
       language: parsedLanguage,
       lifecycle: parsedLifecycle,
+      visibility: parsedVisibility,
       replacementCourseId,
       pageHref: course.pageHref,
       courseHref: course.courseHref,
@@ -285,6 +302,7 @@ export function parsePublicCourse(value: unknown): PublicCourse {
   nonempty(course.description, "publicCourse.description")
   const parsedLanguage = language(course.language, "publicCourse.language")
   const parsedLifecycle = lifecycle(course.lifecycle, "publicCourse.lifecycle")
+  const parsedVisibility = visibility(course.visibility, "publicCourse.visibility")
   const replacementCourseId = nullableId(
     course.replacementCourseId,
     "publicCourse.replacementCourseId"
@@ -399,6 +417,7 @@ export function parsePublicCourse(value: unknown): PublicCourse {
     description: course.description,
     language: parsedLanguage,
     lifecycle: parsedLifecycle,
+    visibility: parsedVisibility,
     replacementCourseId,
     tracks,
   }
@@ -465,6 +484,7 @@ export function validatePublicCatalogCoursePair(
     declaration.language.id !== course.language.id ||
     declaration.language.label !== course.language.label ||
     declaration.lifecycle !== course.lifecycle ||
+    declaration.visibility !== course.visibility ||
     declaration.replacementCourseId !== course.replacementCourseId
   ) {
     throw new Error("Public Catalog 与 Public Course 声明不一致")

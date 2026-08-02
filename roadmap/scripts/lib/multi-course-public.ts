@@ -210,6 +210,7 @@ function sourceCourseMatchesCatalog(
     course.language.id === catalogCourse.language.id &&
     course.language.label === catalogCourse.language.label &&
     course.lifecycle === catalogCourse.lifecycle &&
+    course.visibility === catalogCourse.visibility &&
     course.replacementCourseId === catalogCourse.replacementCourseId
   )
 }
@@ -247,6 +248,7 @@ function publicCourseFromSource(
     description: source.description,
     language: source.language,
     lifecycle: source.lifecycle,
+    visibility: source.visibility,
     replacementCourseId: source.replacementCourseId,
     tracks: source.tracks.map((track) => ({
       trackId: track.trackId,
@@ -491,6 +493,7 @@ export async function buildMultiCoursePublicArtifacts(
         description: source.description,
         language: source.language,
         lifecycle: source.lifecycle,
+        visibility: source.visibility,
         replacementCourseId: source.replacementCourseId,
         pageHref: `/courses/${source.courseId}`,
         courseHref: `/courses/${source.courseId}/course.json`,
