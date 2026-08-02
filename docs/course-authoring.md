@@ -76,6 +76,10 @@ visibility=<listed 或 unlisted>
 
 Notes 和 Evaluation 仅写入当前 Lesson 的私有学习记录，不进入 Git 或公开站点；评测不会代写答案、修改课程源、公开进度或 Roadmap。
 
+### 算法复习 Course 的私有答题 Issue
+
+`algorithm-review` 可额外使用私有 GitHub 答题仓库承载学习者自行撰写的回答。答题 Issue 由稳定身份 `(courseId, lessonId)` 绑定，远程标签只表示作答和审核阶段；它不替代本机 Notes、Evaluation Record、Progress 或 Release Progress。配置、命令与每日 22:00 审核规则见 [`docs/learning-issues.md`](./learning-issues.md)。
+
 ## 常见阻断
 
 - 缺少 `courseId`、`lessonId`、必填元数据或评测数据时，Skill 会停止，不猜测。

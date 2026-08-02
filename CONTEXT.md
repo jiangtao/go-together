@@ -180,6 +180,14 @@ _Avoid_: Day 单独作为身份, Language 与 Day 的组合
 Every Exercise, Evaluation, and Progress record belongs to exactly one stable learning identity. Records for the Default Course follow the same ownership model as records for every other Course.
 _Avoid_: 全局 Day 记录, Default Course 存储特例, 双重归属
 
+**Answer Issue（答题 Issue）**:
+学习者针对一个稳定学习身份在指定私有 GitHub 仓库中自行填写的线上回答载体；它属于 Learning Record 的协作界面，不是 Course Source、Evaluation Record 或 Progress。
+_Avoid_: 公开 Issue, Evaluation Record, Progress, 标准答案
+
+**Answer Issue Review Status（答题 Issue 审核状态）**:
+答题 Issue 上表达作答与异步审核生命周期的互斥标签；它协调远程回答的处理，但不构成课程评测结论，也不得直接改变 Evaluation Record 或 Progress。
+_Avoid_: 评测分数, Progress 状态, Evaluation Record
+
 **学习主线**:
 The ordered path of concepts, practice, verification, and reflection used to move a Node.js backend developer into Go. It is organized by learning depth, not by product delivery.
 _Avoid_: 项目路线, 产品路线

@@ -2,11 +2,11 @@
 
 ### Issue tracker
 
-本仓库使用本地 Markdown 追踪票据与规格。见 `docs/agents/issue-tracker.md`。
+本仓库使用 GitHub Issues 追踪工程票据与规格；学习回答使用另行配置的私有答题仓库。见 `docs/agents/issue-tracker.md`。
 
 ### Triage labels
 
-本地票据使用五个标准状态标签。见 `docs/agents/triage-labels.md`。
+GitHub Issues 使用五个标准状态标签。见 `docs/agents/triage-labels.md`。
 
 ### Domain docs
 

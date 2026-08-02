@@ -1,6 +1,6 @@
 # Triage Labels
 
-| Label in mattpocock/skills | Label in our tracker | Meaning |
+| Label in mattpocock/skills | GitHub label | Meaning |
 | --- | --- | --- |
 | `needs-triage` | `needs-triage` | Maintainer needs to evaluate this issue |
 | `needs-info` | `needs-info` | Waiting on reporter for more information |

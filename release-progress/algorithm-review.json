@@ -1,8 +1,8 @@
 {
   "schemaVersion": 1,
   "courseId": "algorithm-review",
-  "courseRevision": "sha256:ef2e57e8750827ca2dfba773d4bc173c7d7cc704ebc3817b566ae9f351d3b784",
-  "privateInputDigest": "sha256:c2d6b9146466638c614881a19f428d2ed08b65ef820d894ebb35182a80fb220a",
+  "courseRevision": "sha256:fa89c8722a9812899984777e4047eaf41661bada318af847372bb512abcc1414",
+  "privateInputDigest": "sha256:154edb1f109db701a4100fe0697efc4f80142faa60b62eea25615dd407b73c38",
   "lessons": [
     {
       "lessonId": "review-loop-and-complexity",
