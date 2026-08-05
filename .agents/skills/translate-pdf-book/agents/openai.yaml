@@ -1,0 +1,4 @@
+interface:
+  display_name: "翻译 PDF 书籍"
+  short_description: "生成保留术语、代码与版式的专业中文或双语 PDF 译本"
+  default_prompt: "Use $translate-pdf-book to translate this PDF book into a professional Chinese reading edition and a page-aligned bilingual edition."
