@@ -1,8 +1,8 @@
 {
   "schemaVersion": 1,
   "courseId": "editor-engineering",
-  "courseRevision": "sha256:191e69827ee843f44c77d7d9b6e7b08d01376626f500984bc53895e3574156e1",
-  "privateInputDigest": "sha256:fa8938d225792bee318be5cb4dc17c71eb6bf237e4e0be0b0c1f46fd9e7f783e",
+  "courseRevision": "sha256:2c535128652cd4cbc60ed13f96776fbb24e64f85779db061080b21d6bee70f1c",
+  "privateInputDigest": "sha256:48032223d02ee140acd3d7876a4033252ea05a5b3728a1d85b68cf63e45db52e",
   "lessons": [
     {
       "lessonId": "why-editor-engineering",

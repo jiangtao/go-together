@@ -136,7 +136,7 @@ test("四视口保持 normal/Zen 变换且 Resize 不自动适配", async ({
   await expect(
     page.locator('.lesson-node-card[data-selected="true"]')
   ).toHaveCount(0)
-  await expect(page.locator(".react-flow__node")).toHaveCount(47)
+  await expect(page.locator(".react-flow__node")).toHaveCount(44)
   await expectNoPageOverflow(page)
 
   if (projectName === "desktop-chromium") {

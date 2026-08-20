@@ -154,10 +154,16 @@ function CourseIdentityControl({
   selectRef: RefObject<HTMLButtonElement | null>
   onSelectCourse: (courseId: string) => void
 }) {
-  const publishedCourses = catalog.courses.filter(
-    (course) => course.lifecycle === "published"
+  const listedPublishedCourses = catalog.courses.filter(
+    (course) => course.lifecycle === "published" && course.visibility === "listed"
   )
-  if (publishedCourses.length < 2) {
+  const currentDeclaration = catalog.courses.find(
+    (course) => course.courseId === courseData.courseId
+  )
+  if (
+    currentDeclaration?.visibility === "unlisted" ||
+    listedPublishedCourses.length < 2
+  ) {
     return (
       <span
         className="active-course-static"
@@ -169,13 +175,10 @@ function CourseIdentityControl({
     )
   }
 
-  const currentDeclaration = catalog.courses.find(
-    (course) => course.courseId === courseData.courseId
-  )
   const choices =
     currentDeclaration?.lifecycle === "retired"
-      ? [currentDeclaration, ...publishedCourses]
-      : publishedCourses
+      ? [currentDeclaration, ...listedPublishedCourses]
+      : listedPublishedCourses
 
   return (
     <Select

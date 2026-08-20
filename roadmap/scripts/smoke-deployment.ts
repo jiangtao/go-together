@@ -129,8 +129,8 @@ async function runBrowserSmoke(deployment: ResolvedDeployment) {
       throw new Error("浏览器导航跨越受信部署主机")
     }
     await page.locator(".react-flow__node").first().waitFor({ state: "visible" })
-    if ((await page.locator(".react-flow__node").count()) !== 47) {
-      throw new Error("线上路线图节点数不是 47")
+    if ((await page.locator(".react-flow__node").count()) !== 44) {
+      throw new Error("线上路线图节点数不是 44")
     }
     await page
       .getByTestId("lesson-node-0")

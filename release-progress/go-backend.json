@@ -1,8 +1,8 @@
 {
   "schemaVersion": 1,
   "courseId": "go-backend",
-  "courseRevision": "sha256:8e1c5182d35b32e3b03320646dd6c48f3539c0ca24131314c9bd9b2ebe77509f",
-  "privateInputDigest": "sha256:85891ebee1cb2ff215f3e5ef80488a36d8b96252bde1e5d52385174d063a3436",
+  "courseRevision": "sha256:302ef7e82d8c6d0786c4ec726b26c7ad28701624880117f2a8c3661673ab47b1",
+  "privateInputDigest": "sha256:b522ca910b0954bde1cc35615b9aed5944b7bd899b524306c5482d79dd94e88d",
   "lessons": [
     {
       "lessonId": "why-go-after-node",

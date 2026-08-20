@@ -7,6 +7,7 @@ import {
   validateSourceCourseTransition,
   type AuthoringFiles,
   type CompiledCourseContract,
+  type CourseDistribution,
   type SourceCatalog,
   type SourceCatalogCourse,
   type SourceCourse,
@@ -16,6 +17,7 @@ export interface DraftCourseAuthoringRequest {
   catalog: unknown
   course: unknown
   authoringFiles: AuthoringFiles
+  distribution?: CourseDistribution
   existingPaths?: readonly string[]
 }
 
@@ -50,12 +52,17 @@ export interface DraftLessonValidation {
   targets: string[]
 }
 
-function catalogEntry(course: SourceCourse): SourceCatalogCourse {
+function catalogEntry(
+  course: SourceCourse,
+  distribution: CourseDistribution
+): SourceCatalogCourse {
   return {
     courseId: course.courseId,
     title: course.title,
     language: course.language,
     lifecycle: course.lifecycle,
+    visibility: course.visibility,
+    distribution,
     replacementCourseId: course.replacementCourseId,
     manifestPath: `courses/${course.courseId}/course.json`,
   }
@@ -110,7 +117,10 @@ export function validateDraftCourse(
   }
   const nextCatalog = validateSourceCatalogTransition(catalog, {
     ...catalog,
-    courses: [...catalog.courses, catalogEntry(course)],
+    courses: [
+      ...catalog.courses,
+      catalogEntry(course, request.distribution ?? "public"),
+    ],
   })
   const targets = authoringTargets(course)
   assertAuthoringTargetsAvailable(targets, request.existingPaths ?? [])

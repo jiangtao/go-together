@@ -5,6 +5,7 @@ import {
   getNextZoom,
   getZoomControls,
   ROADMAP_MAX_ZOOM,
+  ROADMAP_MOBILE_MIN_ZOOM,
   ROADMAP_MIN_ZOOM,
   shouldAutomaticallyFit,
   type ViewportLayoutEvent,
@@ -49,7 +50,20 @@ describe("路线图自动适配边界", () => {
       canZoomIn: false,
       canZoomOut: true,
     })
+    expect(
+      getZoomControls(ROADMAP_MOBILE_MIN_ZOOM, ROADMAP_MOBILE_MIN_ZOOM)
+    ).toEqual({
+      canZoomIn: true,
+      canZoomOut: false,
+    })
     expect(getNextZoom(ROADMAP_MAX_ZOOM, "in")).toBe(ROADMAP_MAX_ZOOM)
     expect(getNextZoom(ROADMAP_MIN_ZOOM, "out")).toBe(ROADMAP_MIN_ZOOM)
+    expect(
+      getNextZoom(
+        ROADMAP_MOBILE_MIN_ZOOM,
+        "out",
+        ROADMAP_MOBILE_MIN_ZOOM
+      )
+    ).toBe(ROADMAP_MOBILE_MIN_ZOOM)
   })
 })

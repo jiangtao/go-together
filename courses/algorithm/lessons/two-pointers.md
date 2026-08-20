@@ -1,0 +1,43 @@
+# 双指针与相向扫描
+
+## 本节模型
+
+双指针的移动必须由一个可证明的淘汰结论驱动。相向指针常用于排序数组、容器边界和回文区间；同向指针常用于删除、压缩和合并。若移动一端不能排除任何候选，就应改为窗口、哈希或二分模型。
+
+重复元素问题先决定输出是否去重，再决定跳过发生在命中前还是命中后。不要在循环体内混用多套区间约定。
+
+## 速刷动作
+
+1. 写明每次移动后被淘汰的候选集合。
+2. 排序是否会改变题意，先在纸上确认。
+3. 对重复值分别测试全相同、无重复、目标恰好命中边界。
+
+## 阶梯题组
+
+按“简单恢复 → 经典模板 → 深入迁移”完成，先证明一次移动安全，再处理多候选剪枝。
+
+### 简单恢复
+
+- [#125 验证回文串](https://leetcode.cn/problems/valid-palindrome/)（相向扫描）。
+- [#344 反转字符串](https://leetcode.cn/problems/reverse-string/)（原地相向交换）。
+
+### 经典模板（Hot 100 优先）
+
+- Hot 100 优先队列：[#11 盛最多水的容器](https://leetcode.cn/problems/container-with-most-water/)（短板淘汰）。
+- Hot 100 优先队列：[#15 三数之和](https://leetcode.cn/problems/3sum/)（排序与去重）。
+- Hot 100 优先队列：[#42 接雨水](https://leetcode.cn/problems/trapping-rain-water/)（双端最大值）。
+- [#167 两数之和 II - 输入有序数组](https://leetcode.cn/problems/two-sum-ii-input-array-is-sorted/)（有序相向收缩）。
+- [#26 删除有序数组中的重复项](https://leetcode.cn/problems/remove-duplicates-from-sorted-array/)（同向读写）。
+- Hot 100 优先队列：[#283 移动零](https://leetcode.cn/problems/move-zeroes/)（同向覆盖）。
+### 深入迁移
+
+- 进阶延伸：[#881 救生艇](https://leetcode.cn/problems/boats-to-save-people/)（排序后的配对决策）。
+- 进阶延伸：[#16 最接近的三数之和](https://leetcode.cn/problems/3sum-closest/)（目标差值与剪枝）。
+
+## 交付
+
+为一题写出“移动左指针而非右指针”的完整理由；在 Go 中说明排序会否修改调用者的切片。
+
+## 限时与复盘
+
+Hot 100 优先队列每题 20 分钟，进阶延伸 30 分钟。复盘问题：本次移动排除了哪些候选，若不能排除候选应换什么模型？

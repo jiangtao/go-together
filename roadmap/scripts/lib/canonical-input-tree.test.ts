@@ -18,6 +18,8 @@ const catalog: SourceCatalog = {
       title: "Go",
       language: { id: "go", label: "Go" },
       lifecycle: "published",
+      visibility: "listed",
+      distribution: "public",
       replacementCourseId: null,
       manifestPath: "courses/go-backend/course.json",
     },

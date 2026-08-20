@@ -10,6 +10,8 @@
         "label": "Go"
       },
       "lifecycle": "published",
+      "visibility": "listed",
+      "distribution": "public",
       "replacementCourseId": null,
       "manifestPath": "courses/go-backend/course.json"
     },
@@ -21,8 +23,23 @@
         "label": "TypeScript"
       },
       "lifecycle": "published",
+      "visibility": "listed",
+      "distribution": "public",
       "replacementCourseId": null,
       "manifestPath": "courses/editor-engineering/course.json"
+    },
+    {
+      "courseId": "algorithm",
+      "title": "算法回顾",
+      "language": {
+        "id": "typescript",
+        "label": "TypeScript"
+      },
+      "lifecycle": "published",
+      "visibility": "unlisted",
+      "distribution": "local-only",
+      "replacementCourseId": null,
+      "manifestPath": "courses/algorithm/course.json"
     }
   ]
 }

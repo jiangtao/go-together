@@ -61,12 +61,8 @@ export function RoadmapLegend() {
             <span>阶段内实线</span>
           </div>
           <div>
-            <span className="legend-line-sample" data-variant="cross" />
-            <span>跨阶段虚线</span>
-          </div>
-          <div>
             <span className="legend-line-sample" data-variant="structure" />
-            <span>结构线（总路线与阶段）</span>
+            <span>阶段推进虚线</span>
           </div>
         </div>
       </PopoverContent>

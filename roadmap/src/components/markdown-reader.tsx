@@ -3,6 +3,7 @@ import {
   AlertCircleIcon,
   ArrowLeftIcon,
   BookOpenTextIcon,
+  GripVerticalIcon,
   ImageIcon,
   RotateCwIcon,
   XIcon,
@@ -16,9 +17,15 @@ import {
   DrawerClose,
   DrawerContent,
   DrawerDescription,
+  DrawerHandle,
   DrawerHeader,
   DrawerTitle,
 } from "@/components/ui/drawer"
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipTrigger,
+} from "@/components/ui/tooltip"
 import { useMobile } from "@/hooks/use-mobile"
 import {
   normalizeExternalUrl,
@@ -133,11 +140,13 @@ export function MarkdownReader({
       open={open}
       onOpenChange={onOpenChange}
       direction="right"
+      handleOnly
       autoFocus
     >
       <DrawerContent
         className="markdown-reader data-[vaul-drawer-direction=right]:sm:max-w-none"
         data-testid="markdown-reader"
+        showHandle={false}
         style={{
           width: isMobile ? "100dvw" : "70vw",
           maxWidth: "none",
@@ -161,8 +170,25 @@ export function MarkdownReader({
                 返回 {lesson.label}
               </Button>
             ) : null}
-            <div className="markdown-reader-mark" aria-hidden="true">
-              <BookOpenTextIcon />
+            <div className="markdown-reader-leading">
+              <div className="markdown-reader-mark" aria-hidden="true">
+                <BookOpenTextIcon />
+              </div>
+              <Tooltip>
+                <TooltipTrigger asChild>
+                  <span className="markdown-reader-drag-handle-trigger">
+                    <DrawerHandle
+                      className="markdown-reader-drag-handle"
+                      data-testid="markdown-reader-drag-handle"
+                    >
+                      <GripVerticalIcon />
+                    </DrawerHandle>
+                  </span>
+                </TooltipTrigger>
+                <TooltipContent side="right" sideOffset={8}>
+                  向右拖动可关闭
+                </TooltipContent>
+              </Tooltip>
             </div>
             <div className="min-w-0 flex-1">
               <DrawerTitle data-testid="markdown-reader-title">

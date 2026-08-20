@@ -27,6 +27,26 @@ function DrawerClose({
   return <DrawerPrimitive.Close data-slot="drawer-close" {...props} />
 }
 
+function clearTextSelection(): void {
+  window.getSelection()?.removeAllRanges()
+}
+
+function DrawerHandle({
+  onPointerDownCapture,
+  ...props
+}: React.ComponentProps<typeof DrawerPrimitive.Handle>) {
+  return (
+    <DrawerPrimitive.Handle
+      data-slot="drawer-handle"
+      {...props}
+      onPointerDownCapture={(event) => {
+        clearTextSelection()
+        onPointerDownCapture?.(event)
+      }}
+    />
+  )
+}
+
 function DrawerOverlay({
   className,
   ...props
@@ -43,11 +63,16 @@ function DrawerOverlay({
   )
 }
 
+type DrawerContentProps = React.ComponentProps<typeof DrawerPrimitive.Content> & {
+  showHandle?: boolean
+}
+
 function DrawerContent({
   className,
   children,
+  showHandle = true,
   ...props
-}: React.ComponentProps<typeof DrawerPrimitive.Content>) {
+}: DrawerContentProps) {
   return (
     <DrawerPortal data-slot="drawer-portal">
       <DrawerOverlay />
@@ -59,7 +84,7 @@ function DrawerContent({
         )}
         {...props}
       >
-        <div className="mx-auto mt-4 hidden h-1 w-[100px] shrink-0 rounded-full bg-muted group-data-[vaul-drawer-direction=bottom]/drawer-content:block" />
+        {showHandle ? <DrawerHandle className="drawer-default-handle" /> : null}
         {children}
       </DrawerPrimitive.Content>
     </DrawerPortal>
@@ -124,6 +149,7 @@ export {
   DrawerOverlay,
   DrawerTrigger,
   DrawerClose,
+  DrawerHandle,
   DrawerContent,
   DrawerHeader,
   DrawerFooter,

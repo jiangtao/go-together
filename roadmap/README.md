@@ -6,7 +6,7 @@
 
 浏览器只接收 Catalog-driven 的公开投影：
 
-- `courses/catalog.json` 注册的 Published/Retired Course；
+- `courses/catalog.json` 注册且 `distribution: public` 的 Published/Retired Course；
 - `courses/<courseId>/course.json` 与 Lesson 正文的结构化脱敏投影；
 - `release-progress/<courseId>.json` 派生出的最小状态与参考分数；
 - 默认 Go Course 的永久 `/`、`/course.json`、`/sources/lessons/**` 兼容别名。
@@ -30,11 +30,12 @@ npm ci
 npm run dev
 ```
 
-默认地址为 <http://localhost:5173>。`npm run dev` 只执行安全公开生成器后启动 Vite，不监听或同步私有学习目录。
+默认地址为 <http://localhost:5173>。`npm run dev` 执行本地安全投影后启动 Vite，可包含 `local-only` Course，但不监听或同步私有学习目录。公开构建始终改用 `generate:public` 并原子替换生成目录，避免本地产物残留进入部署。
 
 | 命令 | 作用 |
 | --- | --- |
 | `npm run generate:public` | 从 Catalog、Course Source 与 Release Snapshot 生成 `.generated/public` |
+| `npm run generate:local` | 生成本地投影，额外包含 `distribution: local-only` Course；不得用于部署 |
 | `npm run check:determinism` | 双次生成并比较逐文件 SHA-256 |
 | `npm run audit:generated` | 审计生成目录的 schema、白名单和敏感内容 |
 | `npm run package:prebuilt` | 将已审计 dist 确定性打包为 `.vercel/output` |
@@ -42,7 +43,7 @@ npm run dev
 | `npm run build` | 执行安全生成、审计、类型检查、Vite 构建、dist 审计和 prebuilt 打包审计 |
 | `npm run build:hosting` | 本地诊断用的无测试 prebuilt 构建；不是可发布候选门禁，也不被 GitHub 工作流调用 |
 | `npm run build:release` | 执行唯一 `verify:release`，绑定工具链、测试、审计、浏览器证据与 Release Receipt |
-| `npm run test:e2e` | 仅供本地/人工验证，在四个视口运行 Playwright |
+| `npm run test:e2e` | 仅供本地/人工验证，在四个视口运行含 local-only Course 的 Playwright；Release 门禁另以公开投影验证其被排除 |
 | `npm run smoke:deployment -- <URL>` | 仅供本地/人工检查线上 HTTP、DOM、Reader、Zen、安全头与缓存 |
 
 Release Snapshot 按 `(courseId, lessonId)` 携带四态与最小参考分数；Day 只属于 Course 内节奏标签。评测在私有工作区完成，Snapshot 必须由 exporter 从 Evaluation 派生，禁止手工维护为第二事实源。
@@ -53,6 +54,6 @@ Release Snapshot 按 `(courseId, lessonId)` 携带四态与最小参考分数；
 
 ## English quick start
 
-This Vite app publishes Catalog-driven, structurally sanitized Course projections and exported Release Progress Snapshots. The default Go Course keeps permanent root and lesson aliases. Builds never read private Learning Records and never ship rubrics, notes, evaluation prose, answers, local paths, or source maps.
+This Vite app publishes Catalog-driven, structurally sanitized Course projections and exported Release Progress Snapshots. Public builds include only `distribution: public` courses. `generate:local` and `dev` may additionally project local-only courses for direct local access, but deployment artifacts must not contain them. The default Go Course keeps permanent root and lesson aliases. Builds never read private Learning Records and never ship rubrics, notes, evaluation prose, answers, local paths, or source maps.
 
 Use Node 24.x and npm 11.x, then run `npm ci && npm run dev`. The single `roadmap-release` workflow runs the full `verify:release` gate for every PR, main push, and explicit dispatch. It publishes only the audited prebuilt artifact: same-repository PRs may use the Preview Environment; main uses staged Production, smoke, promote, and rollback-with-resmoke. Fork PRs never receive Secrets or deploy. Source deployment and Git Integration stay disabled. See [DEPLOYMENT.md](./DEPLOYMENT.md) for the exact release contract and external Environment setup.

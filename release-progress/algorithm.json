@@ -1,0 +1,193 @@
+{
+  "schemaVersion": 1,
+  "courseId": "algorithm",
+  "courseRevision": "sha256:500a86478f9bb792454ab0bb0252d828b347364b3007ee070dc826f4c2a8c98e",
+  "privateInputDigest": "sha256:4cd111b9cf051836660fd912d94c3d857081de07f71083a1bca8a085f99af8de",
+  "lessons": [
+    {
+      "lessonId": "review-loop-and-complexity",
+      "status": "未开始",
+      "referenceScore": null
+    },
+    {
+      "lessonId": "arrays-strings-matrices",
+      "status": "未开始",
+      "referenceScore": null
+    },
+    {
+      "lessonId": "linked-lists",
+      "status": "未开始",
+      "referenceScore": null
+    },
+    {
+      "lessonId": "prefix-sum-and-difference",
+      "status": "未开始",
+      "referenceScore": null
+    },
+    {
+      "lessonId": "hash-stack-queue",
+      "status": "未开始",
+      "referenceScore": null
+    },
+    {
+      "lessonId": "two-pointers",
+      "status": "未开始",
+      "referenceScore": null
+    },
+    {
+      "lessonId": "sliding-window",
+      "status": "未开始",
+      "referenceScore": null
+    },
+    {
+      "lessonId": "binary-search",
+      "status": "未开始",
+      "referenceScore": null
+    },
+    {
+      "lessonId": "sorting-and-randomized-selection",
+      "status": "未开始",
+      "referenceScore": null
+    },
+    {
+      "lessonId": "data-structure-design",
+      "status": "未开始",
+      "referenceScore": null
+    },
+    {
+      "lessonId": "recursion-and-tree-traversal",
+      "status": "未开始",
+      "referenceScore": null
+    },
+    {
+      "lessonId": "binary-tree-paths",
+      "status": "未开始",
+      "referenceScore": null
+    },
+    {
+      "lessonId": "binary-search-trees",
+      "status": "未开始",
+      "referenceScore": null
+    },
+    {
+      "lessonId": "heap-and-top-k",
+      "status": "未开始",
+      "referenceScore": null
+    },
+    {
+      "lessonId": "trie-and-prefix-search",
+      "status": "未开始",
+      "referenceScore": null
+    },
+    {
+      "lessonId": "backtracking",
+      "status": "未开始",
+      "referenceScore": null
+    },
+    {
+      "lessonId": "bfs-and-dfs",
+      "status": "未开始",
+      "referenceScore": null
+    },
+    {
+      "lessonId": "graph-models",
+      "status": "未开始",
+      "referenceScore": null
+    },
+    {
+      "lessonId": "dynamic-programming-foundations",
+      "status": "未开始",
+      "referenceScore": null
+    },
+    {
+      "lessonId": "sequence-interval-and-tree-dp",
+      "status": "未开始",
+      "referenceScore": null
+    },
+    {
+      "lessonId": "greedy-divide-and-advanced-review",
+      "status": "未开始",
+      "referenceScore": null
+    },
+    {
+      "lessonId": "math-and-bit-models",
+      "status": "未开始",
+      "referenceScore": null
+    },
+    {
+      "lessonId": "string-matching-and-rolling-hash",
+      "status": "未开始",
+      "referenceScore": null
+    },
+    {
+      "lessonId": "union-find-and-offline-connectivity",
+      "status": "未开始",
+      "referenceScore": null
+    },
+    {
+      "lessonId": "range-query-trees",
+      "status": "未开始",
+      "referenceScore": null
+    },
+    {
+      "lessonId": "monotonic-structures-and-contribution",
+      "status": "未开始",
+      "referenceScore": null
+    },
+    {
+      "lessonId": "sweep-line-and-coordinate-compression",
+      "status": "未开始",
+      "referenceScore": null
+    },
+    {
+      "lessonId": "bitmask-state-compression",
+      "status": "未开始",
+      "referenceScore": null
+    },
+    {
+      "lessonId": "randomized-algorithms-and-sampling",
+      "status": "未开始",
+      "referenceScore": null
+    },
+    {
+      "lessonId": "tree-queries-and-algorithm-capstone",
+      "status": "未开始",
+      "referenceScore": null
+    },
+    {
+      "lessonId": "agent-planning-search",
+      "status": "未开始",
+      "referenceScore": null
+    },
+    {
+      "lessonId": "agent-retrieval-top-k",
+      "status": "未开始",
+      "referenceScore": null
+    },
+    {
+      "lessonId": "agent-context-budgeting",
+      "status": "未开始",
+      "referenceScore": null
+    },
+    {
+      "lessonId": "agent-tool-dag",
+      "status": "未开始",
+      "referenceScore": null
+    },
+    {
+      "lessonId": "multi-agent-scheduling",
+      "status": "未开始",
+      "referenceScore": null
+    },
+    {
+      "lessonId": "online-selection-and-bandits",
+      "status": "未开始",
+      "referenceScore": null
+    },
+    {
+      "lessonId": "agent-algorithm-capstone",
+      "status": "未开始",
+      "referenceScore": null
+    }
+  ]
+}

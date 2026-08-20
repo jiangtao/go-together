@@ -12,6 +12,7 @@ import {
   validatePublicCatalogCoursePair as validateSharedPublicCatalogCoursePair,
   type PublicCatalog as SharedPublicCatalog,
   type PublicCatalogCourse as SharedPublicCatalogCourse,
+  type CourseVisibility as SharedCourseVisibility,
   type PublicCourse as SharedPublicCourse,
   type PublicLanguage as SharedPublicLanguage,
   type PublicLesson as SharedPublicLesson,
@@ -28,6 +29,8 @@ type JsonRecord = Record<string, unknown>
 
 export type CourseLifecycle = "draft" | "published" | "retired"
 export type PublicCourseLifecycle = Exclude<CourseLifecycle, "draft">
+export type CourseVisibility = SharedCourseVisibility
+export type CourseDistribution = "public" | "local-only"
 export type LessonLifecycle = "active" | "retired"
 export type Language = SharedPublicLanguage
 export type PublicCatalogCourse = SharedPublicCatalogCourse
@@ -44,6 +47,8 @@ export interface SourceCatalogCourse {
   title: string
   language: Language
   lifecycle: CourseLifecycle
+  visibility: CourseVisibility
+  distribution: CourseDistribution
   replacementCourseId: string | null
   manifestPath: string
 }
@@ -99,6 +104,7 @@ export interface SourceCourse {
   description: string
   language: Language
   lifecycle: CourseLifecycle
+  visibility: CourseVisibility
   replacementCourseId: string | null
   evaluationPolicyPath: string
   commandProfilePath: string
@@ -178,6 +184,8 @@ const SOURCE_CATALOG_COURSE_KEYS = [
   "title",
   "language",
   "lifecycle",
+  "visibility",
+  "distribution",
   "replacementCourseId",
   "manifestPath",
 ] as const
@@ -188,6 +196,7 @@ const SOURCE_COURSE_KEYS = [
   "description",
   "language",
   "lifecycle",
+  "visibility",
   "replacementCourseId",
   "evaluationPolicyPath",
   "commandProfilePath",
@@ -284,6 +293,21 @@ function lifecycle(value: unknown, context: string): asserts value is CourseLife
   }
 }
 
+function visibility(value: unknown, context: string): asserts value is CourseVisibility {
+  if (!["listed", "unlisted"].includes(String(value))) {
+    throw new Error(`${context} 只允许 listed 或 unlisted`)
+  }
+}
+
+function distribution(
+  value: unknown,
+  context: string
+): asserts value is CourseDistribution {
+  if (value !== "public" && value !== "local-only") {
+    throw new Error(`${context} 必须是 public 或 local-only`)
+  }
+}
+
 function lessonLifecycle(
   value: unknown,
   context: string
@@ -371,6 +395,8 @@ function validateCatalogRelationships<T extends {
   courseId: string
   language: Language
   lifecycle: CourseLifecycle
+  visibility: CourseVisibility
+  distribution: CourseDistribution
   replacementCourseId: string | null
 }>(courses: T[], defaultCourseId: string): void {
   const byId = new Map(courses.map((course) => [course.courseId, course]))
@@ -383,8 +409,13 @@ function validateCatalogRelationships<T extends {
     languageLabels.set(course.language.id, course.language.label)
   }
   const defaultCourse = byId.get(defaultCourseId)
-  if (!defaultCourse || defaultCourse.lifecycle !== "published") {
-    throw new Error("Default Course 必须 Published")
+  if (
+    !defaultCourse ||
+    defaultCourse.lifecycle !== "published" ||
+    defaultCourse.visibility !== "listed" ||
+    defaultCourse.distribution !== "public"
+  ) {
+    throw new Error("Default Course 必须是 Public Listed Published")
   }
   for (const course of courses) {
     if (course.replacementCourseId === null) continue
@@ -395,6 +426,12 @@ function validateCatalogRelationships<T extends {
     if (!replacement) throw new Error("Replacement Course 不存在")
     if (replacement.lifecycle !== "published") {
       throw new Error("Replacement Course 必须 Published")
+    }
+    if (
+      course.distribution === "public" &&
+      replacement.distribution !== "public"
+    ) {
+      throw new Error("Public Course 的 Replacement 必须保持 Public")
     }
     if (replacement.language.id !== course.language.id) {
       throw new Error("Replacement Course 必须属于同一 Language")
@@ -429,6 +466,8 @@ export function parseSourceCatalog(value: unknown): SourceCatalog {
     string(course.title, `${context}.title`)
     const language = parseLanguage(course.language, `${context}.language`)
     lifecycle(course.lifecycle, `${context}.lifecycle`)
+    visibility(course.visibility, `${context}.visibility`)
+    distribution(course.distribution, `${context}.distribution`)
     nullableId(course.replacementCourseId, `${context}.replacementCourseId`)
     safePath(course.manifestPath, `${context}.manifestPath`)
     if (course.manifestPath !== `courses/${course.courseId}/course.json`) {
@@ -687,6 +726,7 @@ export function parseSourceCourse(value: unknown): SourceCourse {
   string(course.description, "sourceCourse.description")
   const language = parseLanguage(course.language, "sourceCourse.language")
   lifecycle(course.lifecycle, "sourceCourse.lifecycle")
+  visibility(course.visibility, "sourceCourse.visibility")
   nullableId(course.replacementCourseId, "sourceCourse.replacementCourseId")
   if (course.replacementCourseId === course.courseId) {
     throw new Error("Course 不能替代自身")
@@ -748,6 +788,7 @@ export function parseSourceCourse(value: unknown): SourceCourse {
     description: course.description,
     language,
     lifecycle: course.lifecycle,
+    visibility: course.visibility,
     replacementCourseId: course.replacementCourseId,
     evaluationPolicyPath: course.evaluationPolicyPath,
     commandProfilePath: course.commandProfilePath,

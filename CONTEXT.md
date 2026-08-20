@@ -52,6 +52,14 @@ _Avoid_: Day, Markdown 文件, 全局课次, 跨 Course 共享 Lesson 身份
 Course 的发布可用性阶段，与 Lesson 的学习状态相互独立；生命周期变化不改变 Course 身份或历史学习记录的归属。
 _Avoid_: 学习进度, Lesson 状态, 内容排序
 
+**Course Visibility（课程可见性）**:
+Published Course 在公开学习界面的发现策略；它与 Course Lifecycle 正交，只决定是否列入课程选择器，不决定 URL 是否可访问或课程内容是否受认证保护。
+_Avoid_: Course Lifecycle, 访问控制, 私有 Course, Draft
+
+**Unlisted Course（不列入目录的课程）**:
+一个保持 Published 生命周期、拥有规范公开投影和 Canonical Course URL 的 Course，但不出现在公开课程选择器中；知道规范 URL 的学习者仍可直接访问。它不是私有课程或认证边界。
+_Avoid_: Draft Course, 私有 Course, 已删除 Course, 隐藏文件
+
 **Course Revision（课程修订）**:
 一个 Course 在某次发布中的确定性内容快照身份；修订变化不会创建或替换 Course 身份。
 _Avoid_: Course ID, Schema Version, 手工版本号
@@ -88,6 +96,22 @@ _Avoid_: Public Resource, Learning Record, Lesson 正文
 Course 为一个 Lesson 提供的只读练习起始材料；学习者基于它产生的文件属于 Exercise Workspace。
 _Avoid_: Exercise Workspace, 标准答案, 评测结果
 
+**Practice Cluster（题型速刷组）**:
+Course 内围绕同一算法模型组织的有序外部题目引用集合，用于集中复习和计时训练；它属于一个或多个 Lesson 的练习设计，但不是 Lesson 正文、题面或答案。
+_Avoid_: 题库镜像, 题面副本, 单题 Lesson, 标准答案
+
+**Problem Reference（题目引用）**:
+指向外部题目的最小课程元数据，包含稳定题目识别、标题、链接、题型标签和练习优先级，不包含题面、测试数据、题解或来源代码。
+_Avoid_: 题目正文, Exercise Template, 题解, 题库副本
+
+**Hot 100 Priority（Hot 100 优先级）**:
+LeetCode Hot 100 题目在 Practice Cluster 中的默认优先级；它影响同类题的复习顺序，不替代 Lesson 的能力目标或评测标准。
+_Avoid_: Lesson 身份, Evaluation Revision, 通过条件
+
+**Advanced Extension（进阶迁移题）**:
+在 Hot 100 核心题之后、仍属于同一算法模型的高迁移练习；它通过更强约束、组合状态、复杂边界或证明要求深化模型，而不是单纯按难度堆叠无关题目。
+_Avoid_: 随机难题, 新题型插队, Hot 100 替代品
+
 **Exercise Workspace（练习工作区）**:
 学习者针对一个稳定学习身份创建或修改的练习产物集合；它属于 Learning Record，而不是 Course Source。
 _Avoid_: Exercise Template, Course Source, 跨 Lesson 工作区
@@ -117,8 +141,8 @@ _Avoid_: Evaluation Record, 会话记忆, Progress 快照
 _Avoid_: Evaluation Record, 手工进度副本, Day 状态表
 
 **Public Catalog（公开课程目录）**:
-Course Catalog 面向公开学习入口的安全投影，只暴露可解析的 Published 与 Retired Course 元数据，不包含 Draft 或私有编写信息。
-_Avoid_: Course Catalog 源文件, 发现界面状态, 私有课程清单
+Course Catalog 面向公开学习入口的安全投影，只暴露可解析的 Published 与 Retired Course 元数据及其可见性，不包含 Draft 或私有编写信息；课程选择器依据 Visibility 决定发现范围。
+_Avoid_: Course Catalog 源文件, 发现界面状态, 私有课程清单, 访问控制列表
 
 **Public Projection（公开投影）**:
 从 Course Source 与派生 Progress 生成的严格白名单制品；它可随时重建，绝不反向成为课程或学习记录的事实源。
@@ -137,8 +161,8 @@ _Avoid_: Evaluation Record, Public Progress, 手工进度源
 _Avoid_: 第二真相源, 永久旧存储, 内部双写
 
 **Canonical Course URL（规范课程 URL）**:
-The permanent public namespace of a Course is `/courses/{courseId}`. `/`, `/course.json`, and `/sources/lessons/**` are permanent compatibility aliases for the Default Course, which is currently the Go Course.
-_Avoid_: 将根路径作为所有课程的规范身份, 将兼容别名用于非默认课程
+The permanent public namespace of a Published Course is `/courses/{courseId}`, including an Unlisted Course. `/`, `/course.json`, and `/sources/lessons/**` are permanent compatibility aliases for the Default Course, which is currently the Go Course.
+_Avoid_: 将根路径作为所有课程的规范身份, 将兼容别名用于非默认课程, 把 URL 知道与访问授权混为一谈
 
 **Course Cadence（课程节奏）**:
 一个 Course 将有序 Lesson 安排为学习节奏的方式；每个 Course 自行定义节奏并可以使用或省略 Day，但必须保持明确的 Lesson 顺序。当前 Go Course 保留既有 Day 0–36 语义，其他 Course 无须套用固定天数。
@@ -155,6 +179,16 @@ _Avoid_: Day 单独作为身份, Language 与 Day 的组合
 **Course-scoped Learning Record（课程域学习记录）**:
 Every Exercise, Evaluation, and Progress record belongs to exactly one stable learning identity. Records for the Default Course follow the same ownership model as records for every other Course.
 _Avoid_: 全局 Day 记录, Default Course 存储特例, 双重归属
+
+**Answer Issue（答题 Issue）**:
+学习者针对一个稳定学习身份在指定私有 GitHub 仓库中自行填写的线上回答载体；它属于 Learning Record 的协作界面，不是 Course Source、Evaluation Record 或 Progress。
+An online, learner-authored answer carrier for one stable learning identity in a configured private GitHub repository. It is a collaboration surface for the Learning Record, not Course Source, Evaluation Record, or Progress.
+_Avoid_: 公开 Issue, Evaluation Record, Progress, 标准答案
+
+**Answer Issue Review Status（答题 Issue 审核状态）**:
+答题 Issue 上表达作答与异步审核生命周期的互斥标签；它协调远程回答的处理，但不构成课程评测结论，也不得直接改变 Evaluation Record 或 Progress。
+Mutually exclusive labels on an Answer Issue that express the answer and asynchronous-review lifecycle. They coordinate remote handling but are not a course evaluation result and must not directly alter Evaluation Record or Progress.
+_Avoid_: 评测分数, Progress 状态, Evaluation Record
 
 **学习主线**:
 The ordered path of concepts, practice, verification, and reflection used to move a Node.js backend developer into Go. It is organized by learning depth, not by product delivery.

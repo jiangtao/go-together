@@ -38,3 +38,6 @@ origin.md
 /courses/*/resources/internal/
 /learning-records/*/lessons/
 /exercise/
+
+# Local GitHub answer-issue configuration and review logs; never publish or track.
+/.learning-issues/

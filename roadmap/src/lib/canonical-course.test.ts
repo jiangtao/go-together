@@ -44,6 +44,7 @@ function canonicalFixture() {
     description: "Go backend course",
     language: { id: "go", label: "Go" },
     lifecycle: "published",
+    visibility: "listed",
     replacementCourseId: null,
     tracks: [
       {
@@ -90,6 +91,7 @@ function canonicalFixture() {
         description: course.description,
         language: course.language,
         lifecycle: "published",
+        visibility: "listed",
         replacementCourseId: null,
         pageHref: "/courses/go-backend",
         courseHref: "/courses/go-backend/course.json",
@@ -126,6 +128,7 @@ function secondaryFixture(
     description: "Python language foundations",
     language: { id: "python", label: "Python" },
     lifecycle: "published",
+    visibility: "listed",
     replacementCourseId: null,
     tracks: [
       {
@@ -174,6 +177,7 @@ function secondaryFixture(
     description: course.description,
     language: course.language,
     lifecycle: "published",
+    visibility: "listed",
     replacementCourseId: null,
     pageHref: "/courses/python-core",
     courseHref: "/courses/python-core/course.json",
@@ -367,6 +371,7 @@ describe("canonical Course runtime loader", () => {
       courseId: "draft-course",
       title: "Draft Course",
       lifecycle: "draft",
+      visibility: "listed",
       pageHref: "/courses/draft-course",
       courseHref: "/courses/draft-course/course.json",
       progressHref: "/courses/draft-course/progress.json",
@@ -386,6 +391,7 @@ describe("canonical Course runtime loader", () => {
       description: "Python language foundations",
       language: { id: "python", label: "Python" },
       lifecycle: "published",
+      visibility: "listed",
       replacementCourseId: null,
       tracks: [
         {
@@ -439,6 +445,7 @@ describe("canonical Course runtime loader", () => {
           description: course.description,
           language: course.language,
           lifecycle: "published",
+          visibility: "listed",
           replacementCourseId: null,
           pageHref: "/courses/python-core",
           courseHref: "/courses/python-core/course.json",

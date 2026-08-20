@@ -59,6 +59,7 @@ const protectedRoots = [
 function baseEnvironment(fixed: Record<string, string> = {}): NodeJS.ProcessEnv {
   return createReleaseEnvironment(process.env, {
     E2E_EVIDENCE_DIR: evidenceDirectory,
+    E2E_INCLUDE_LOCAL_ONLY: "0",
     NPM_CONFIG_USERCONFIG: path.join(roadmapDirectory, ".npmrc"),
     PYTHONDONTWRITEBYTECODE: "1",
     PLAYWRIGHT_ARTIFACT_DIR: path.join(
