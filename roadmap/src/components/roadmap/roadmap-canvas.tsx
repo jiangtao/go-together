@@ -68,8 +68,8 @@ import {
   getZoomControls,
   createRoadmapViewportKey,
   ROADMAP_MAX_ZOOM,
+  ROADMAP_MOBILE_MIN_ZOOM,
   ROADMAP_MIN_ZOOM,
-  shouldAutomaticallyFit,
 } from "@/lib/roadmap-viewport"
 import { cn } from "@/lib/utils"
 import type {
@@ -145,6 +145,7 @@ export const RoadmapCanvas = forwardRef<
   const zenExitRef = useRef<HTMLButtonElement>(null)
   const [viewportZoom, setViewportZoom] = useState(1)
   const [flowReady, setFlowReady] = useState(0)
+  const minZoom = isMobile ? ROADMAP_MOBILE_MIN_ZOOM : ROADMAP_MIN_ZOOM
   const viewportKey = createRoadmapViewportKey(
     courseId,
     courseRevision,
@@ -176,6 +177,7 @@ export const RoadmapCanvas = forwardRef<
     ]
   )
   const { x: focusX, y: focusY, zoom: focusZoom } = layout.focus
+  const initialViewport = layout.initialViewport
   const selectedStage =
     selectedLessonId === null
       ? null
@@ -231,12 +233,30 @@ export const RoadmapCanvas = forwardRef<
         const stored = viewportCache.get(viewportKey)
         if (stored) {
           void instance.setViewport(stored, { duration: 0 })
-        } else if (shouldAutomaticallyFit("initial-layout", false)) {
-          void instance.fitView({ padding: 0.08, maxZoom: 1, duration: 0 })
+        } else if (initialViewport === "whole") {
+          void instance.fitView({
+            padding: 0.1,
+            maxZoom: 1,
+            duration: 0,
+          })
+        } else {
+          void instance.setCenter(focusX, focusY, {
+            zoom: focusZoom,
+            duration: 0,
+          })
         }
       })
     })
-  }, [cancelPendingRestore, flowReady, viewportCache, viewportKey])
+  }, [
+    cancelPendingRestore,
+    flowReady,
+    focusX,
+    focusY,
+    focusZoom,
+    initialViewport,
+    viewportCache,
+    viewportKey,
+  ])
 
   const focusRecommended = useCallback(() => {
     void flowInstance.current?.setCenter(focusX, focusY, {
@@ -281,9 +301,9 @@ export const RoadmapCanvas = forwardRef<
     if (!instance) {
       return
     }
-    const nextZoom = getNextZoom(instance.getZoom(), direction)
+    const nextZoom = getNextZoom(instance.getZoom(), direction, minZoom)
     void instance.zoomTo(nextZoom, { duration: 180 })
-  }, [])
+  }, [minZoom])
 
   const handleSearchSelect = useCallback(
     (lesson: RoadmapLesson) => {
@@ -333,7 +353,7 @@ export const RoadmapCanvas = forwardRef<
   const recommendationLabel =
     lessons.find((lesson) => lesson.lessonId === recommendedLessonId)?.label ??
     "最后课次"
-  const zoomControls = getZoomControls(viewportZoom)
+  const zoomControls = getZoomControls(viewportZoom, minZoom)
 
   return (
     <Card
@@ -490,7 +510,7 @@ export const RoadmapCanvas = forwardRef<
             onMoveEnd={(_event, viewport) => {
               viewportCache.set(viewportKey, viewport)
             }}
-            minZoom={ROADMAP_MIN_ZOOM}
+            minZoom={minZoom}
             maxZoom={ROADMAP_MAX_ZOOM}
             nodesDraggable={false}
             nodesConnectable={false}

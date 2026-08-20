@@ -476,7 +476,7 @@ test("公开课程数据提供确定加载态", async ({ page }) => {
   await expect(page).toHaveURL(/\/courses\/go-backend$/)
   await expect(page.getByTestId("course-load-screen")).toBeVisible()
   releaseCourse()
-  await expect(page.locator(".react-flow__node")).toHaveCount(47)
+  await expect(page.locator(".react-flow__node")).toHaveCount(44)
   await expect(page.getByTestId("course-load-screen")).toHaveCount(0)
   await expect(page).toHaveURL(/\/courses\/go-backend$/)
   expectNoRuntimeErrors()
@@ -553,7 +553,7 @@ test("公开课程数据错误后可重试", async ({ page }) => {
     testWindow.__restoreCourseFetch?.()
   })
   await page.getByRole("button", { name: "重新加载" }).click()
-  await expect(page.locator(".react-flow__node")).toHaveCount(47)
+  await expect(page.locator(".react-flow__node")).toHaveCount(44)
   expectNoRuntimeErrors()
 })
 
@@ -634,17 +634,53 @@ test("真实 Published Course Select 恰有两门并在刷新后保持显式 URL
   expectNoRuntimeErrors()
 })
 
-test("真实 Unlisted 算法课程可手动直达且不加入选择器", async ({ page }) => {
+test("Local-only 算法课程在公开投影排除、在本地投影可直达", async (
+  { page },
+  testInfo
+) => {
   const expectNoRuntimeErrors = watchRuntimeErrors(page)
-  await page.goto("/courses/algorithm-review")
-  await expect(page).toHaveURL(/\/courses\/algorithm-review$/)
+  await page.goto("/courses/algorithm")
+
+  if (process.env.E2E_INCLUDE_LOCAL_ONLY !== "1") {
+    await expect(page).toHaveURL(/\/courses\/go-backend$/)
+    await expect(page.getByTestId("course-heading")).toHaveText(
+      "Go 36 天学习路线图"
+    )
+    await expect(
+      page.getByText("未找到课程“algorithm”", { exact: false })
+    ).toBeVisible()
+    const courseFile = await page.request.get(
+      "/courses/algorithm/course.json"
+    )
+    expect(courseFile.status()).toBe(404)
+    expectNoRuntimeErrors()
+    return
+  }
+
+  await expect(page).toHaveURL(/\/courses\/algorithm$/)
   await expect(page.getByTestId("course-heading")).toHaveText(
-    "算法复习路径：30 天核心 + 7 天 Agent 进阶"
+    "算法回顾"
   )
   await expect(page.getByTestId("active-course-static")).toHaveText(
-    "算法复习路径：30 天核心 + 7 天 Agent 进阶"
+    "算法回顾"
   )
   await expect(page.getByTestId("course-select-trigger")).toHaveCount(0)
+  await expect(
+    page.locator('.stage-node-card[data-level="1"]')
+  ).toHaveCount(2)
+  await expect(
+    page.locator('.stage-node-card[data-level="2"]')
+  ).toHaveCount(3)
+  await expect(
+    page.locator('.stage-node-card[data-level="3"]')
+  ).toHaveCount(4)
+  await expect(
+    page.locator(
+      '.stage-node-card[data-level="4"][data-level-kind="extension"]'
+    )
+  ).toHaveCount(2)
+  await expect(page.getByText("第 1/4 层 · 基础建模").first()).toBeVisible()
+  await expect(page.getByText("第 4/4 层 · Agent 进阶").first()).toBeVisible()
   await expect(
     page.getByRole("group", {
       name: /Day 30 树上查询与算法综合，状态 未开始/,
@@ -656,10 +692,19 @@ test("真实 Unlisted 算法课程可手动直达且不加入选择器", async (
     })
   ).toBeVisible()
 
+  if (testInfo.project.name.startsWith("mobile")) {
+    await page.getByTestId("roadmap-fit-view").click()
+    await waitForViewportToSettle(page.locator(".react-flow__viewport"))
+    await expectWholeRoadmapInsideCanvas(
+      page,
+      page.getByTestId("roadmap-canvas")
+    )
+  }
+
   await page.goto("/")
   await page.getByTestId("course-select-trigger").click()
   await expect(
-    page.getByRole("option", { name: "TypeScript · 算法复习路径：30 天核心 + 7 天 Agent 进阶" })
+    page.getByRole("option", { name: "TypeScript · 算法回顾" })
   ).toHaveCount(0)
   expectNoRuntimeErrors()
 })
@@ -711,7 +756,7 @@ test("Course Select 以 URL 切换任意结构课程并按 history 恢复 transf
     "Python 语言基础"
   )
   await expect(courseSelect).toBeFocused()
-  await expect(page.locator(".react-flow__node")).toHaveCount(6)
+  await expect(page.locator(".react-flow__node")).toHaveCount(5)
   await expect(page.getByTestId("lesson-node-functions")).toContainText(
     "课次 1"
   )
@@ -803,7 +848,7 @@ test("迟到 Course 请求不能覆盖 history 已选择的 Active Course", asyn
   await expect(page.getByTestId("course-heading")).toContainText("Go")
   await page.waitForTimeout(850)
   await expect(page.getByTestId("course-heading")).toContainText("Go")
-  await expect(page.locator(".react-flow__node")).toHaveCount(47)
+  await expect(page.locator(".react-flow__node")).toHaveCount(44)
   expectNoRuntimeErrors()
 })
 
@@ -879,7 +924,7 @@ test("尾斜杠规范化、未知 Course 确定回退与 Retired Replacement 均
   await expect(page.getByTestId("course-route-notice")).toContainText(
     "Go 36 天学习路线图"
   )
-  await expect(page.locator(".react-flow__node")).toHaveCount(47)
+  await expect(page.locator(".react-flow__node")).toHaveCount(44)
 
   await page.goto("/courses/go-legacy")
   await expect(page).toHaveURL(/\/courses\/go-legacy$/)
@@ -902,7 +947,7 @@ test("非默认无 Day Course 在四视口保持全览、触控尺寸与 Reader 
   const expectNoRuntimeErrors = watchRuntimeErrors(page)
   await mockMultiCourseProjection(page)
   await page.goto("/courses/python-core")
-  await expect(page.locator(".react-flow__node")).toHaveCount(6)
+  await expect(page.locator(".react-flow__node")).toHaveCount(5)
 
   const canvas = page.getByTestId("roadmap-canvas")
   const viewport = page.locator(".react-flow__viewport")
@@ -968,29 +1013,17 @@ test("桌面与移动路线图可见、可交互且无布局碰撞", async ({
   ).toHaveCount(0)
   await expect(page.locator(".react-flow__node-lesson")).toHaveCount(37)
   await expect(page.locator(".react-flow__node-stage")).toHaveCount(6)
-  await expect(page.locator(".react-flow__node-overview")).toHaveCount(4)
-  await expect(page.locator(".react-flow__edge")).toHaveCount(45)
+  await expect(page.locator(".react-flow__node-overview")).toHaveCount(1)
+  await expect(page.locator(".react-flow__edge")).toHaveCount(37)
   await expect(
     page.locator('.react-flow__edge[data-id^="structure-"].animated')
-  ).toHaveCount(9)
+  ).toHaveCount(0)
   await expect(
     page.locator('.react-flow__edge[data-id^="path-"].animated')
   ).toHaveCount(0)
-  const crossStageEdges = page.locator(
-    '.react-flow__edge.roadmap-cross-stage-edge[data-id^="path-"]'
-  )
-  await expect(crossStageEdges).toHaveCount(5)
-  const crossStageDashArrays = await crossStageEdges
-    .locator(".react-flow__edge-path")
-    .evaluateAll((paths) =>
-      paths.map((edgePath) => window.getComputedStyle(edgePath).strokeDasharray)
-    )
-  expect(crossStageDashArrays.every((dashArray) => dashArray !== "none")).toBe(
-    true
-  )
-  const animatedEdgeStyles = await page
+  const structureEdgeStyles = await page
     .locator(
-      '.react-flow__edge[data-id^="structure-"].animated .react-flow__edge-path'
+      '.react-flow__edge[data-id^="structure-"] .react-flow__edge-path'
     )
     .evaluateAll((paths) =>
       paths.map((edgePath) => {
@@ -1001,11 +1034,11 @@ test("桌面与移动路线图可见、可交互且无布局碰撞", async ({
         }
       })
     )
-  expect(animatedEdgeStyles).toHaveLength(9)
+  expect(structureEdgeStyles).toHaveLength(6)
   expect(
-    animatedEdgeStyles.every(
+    structureEdgeStyles.every(
       ({ animationName, strokeDasharray }) =>
-        animationName !== "none" && strokeDasharray !== "none"
+        animationName === "none" && strokeDasharray !== "none"
     )
   ).toBe(true)
   const canvasBox = await page.getByTestId("roadmap-canvas").boundingBox()
@@ -1021,7 +1054,7 @@ test("桌面与移动路线图可见、可交互且无布局碰撞", async ({
   const canvas = page.getByTestId("roadmap-canvas")
   const viewport = page.locator(".react-flow__viewport")
   await waitForViewportToSettle(viewport)
-  await expectWholeRoadmapInsideCanvas(page, canvas)
+  await expectNodeInsideCanvas(page.getByTestId("lesson-node-0"), canvas)
 
   const pageHasHorizontalOverflow = await page.evaluate(
     () => document.documentElement.scrollWidth > window.innerWidth + 1
@@ -1324,7 +1357,7 @@ test("桌面与移动路线图可见、可交互且无布局碰撞", async ({
   await page.locator(".react-flow__controls-fitview").click()
   await waitForViewportToSettle(viewport)
   await expectNodeInsideCanvas(page.getByTestId("roadmap-root"), canvas)
-  await expectNodeInsideCanvas(page.getByTestId("roadmap-track-3"), canvas)
+  await expectNodeInsideCanvas(page.getByTestId("stage-6"), canvas)
 
   await canvas.screenshot({
     path: path.join(
@@ -1663,7 +1696,7 @@ test("文字导航、当前位置和图例能解释并定位路线图", async ({
   await page.getByTestId("roadmap-fit-view").click()
   await waitForViewportToSettle(viewport)
   await expectNodeInsideCanvas(page.getByTestId("roadmap-root"), canvas)
-  await expectNodeInsideCanvas(page.getByTestId("roadmap-track-3"), canvas)
+  await expectNodeInsideCanvas(page.getByTestId("stage-6"), canvas)
 
   await page.getByRole("combobox", { name: "跳转阶段" }).click()
   await page.getByRole("option", { name: /阶段 6.*Agent 切片与复盘/ }).click()
@@ -1720,8 +1753,7 @@ test("文字导航、当前位置和图例能解释并定位路线图", async ({
   await expect(legend).toContainText("选中")
   await expect(legend).toContainText("推荐")
   await expect(legend).toContainText("阶段内实线")
-  await expect(legend).toContainText("跨阶段虚线")
-  await expect(legend).toContainText("结构线")
+  await expect(legend).toContainText("阶段推进虚线")
   expectNoRuntimeErrors()
 })
 

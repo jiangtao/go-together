@@ -22,22 +22,22 @@ interface LayoutSettings {
   lessonColumns: number
   groupWidth: number
   headerHeight: number
-  horizontalPadding: number
   nodeWidth: number
   nodeHeight: number
   columnGap: number
   rowGap: number
   bottomPadding: number
-  trackGap: number
   rootWidth: number
   rootHeight: number
-  trackWidth: number
-  trackHeight: number
   rootY: number
-  trackY: number
   stageTopY: number
-  stageRowGap: number
+  stageColumnGap: number
+  stageWithinLevelGap: number
+  stageLevelGap: number
+  extensionLevelGap: number
+  stageWidthStep: number
   focusZoom: number
+  openingZoom: number
 }
 
 interface PositionedLesson {
@@ -45,20 +45,33 @@ interface PositionedLesson {
   absolutePosition: XYPosition
 }
 
+interface PositionedStage {
+  node: StageFlowNode
+  absolutePosition: XYPosition
+}
+
 interface StagePlacement {
   x: number
   y: number
+  width: number
   height: number
+  level: number
+  totalLevels: number
+  levelLabel: string
+  levelKind: "core" | "extension"
+}
+
+interface StageLevel {
+  label: string
+  kind: "core" | "extension"
+  stages: RoadmapStage[]
 }
 
 export interface RoadmapLayout {
   nodes: RoadmapNode[]
   edges: RoadmapEdge[]
   focus: XYPosition & { zoom: number }
-}
-
-export function roadmapTrackNodeId(trackId: string): string {
-  return `track:${trackId}`
+  initialViewport: "whole" | "focus"
 }
 
 export function roadmapStageNodeId(stageId: string): string {
@@ -74,51 +87,121 @@ function learningEdgeId(sourceLessonId: string, targetLessonId: string): string 
 }
 
 const DESKTOP_SETTINGS: LayoutSettings = {
-  lessonColumns: 3,
-  groupWidth: 594,
-  headerHeight: 96,
-  horizontalPadding: 24,
+  lessonColumns: 4,
+  groupWidth: 782,
+  headerHeight: 112,
   nodeWidth: 170,
   nodeHeight: 116,
   columnGap: 18,
   rowGap: 18,
   bottomPadding: 24,
-  trackGap: 100,
   rootWidth: 300,
   rootHeight: 96,
-  trackWidth: 240,
-  trackHeight: 84,
   rootY: 0,
-  trackY: 152,
-  stageTopY: 304,
-  stageRowGap: 110,
+  stageTopY: 184,
+  stageColumnGap: 64,
+  stageWithinLevelGap: 48,
+  stageLevelGap: 112,
+  extensionLevelGap: 160,
+  stageWidthStep: 0,
   focusZoom: 0.84,
+  openingZoom: 0.72,
 }
 
 const MOBILE_SETTINGS: LayoutSettings = {
   lessonColumns: 2,
   groupWidth: 376,
-  headerHeight: 104,
-  horizontalPadding: 20,
+  headerHeight: 120,
   nodeWidth: 160,
   nodeHeight: 120,
   columnGap: 16,
   rowGap: 16,
   bottomPadding: 24,
-  trackGap: 48,
   rootWidth: 280,
   rootHeight: 100,
-  trackWidth: 208,
-  trackHeight: 88,
   rootY: 0,
-  trackY: 160,
-  stageTopY: 320,
-  stageRowGap: 100,
+  stageTopY: 188,
+  stageColumnGap: 0,
+  stageWithinLevelGap: 48,
+  stageLevelGap: 88,
+  extensionLevelGap: 120,
+  stageWidthStep: 24,
   focusZoom: 0.88,
+  openingZoom: 0.88,
 }
 
 function percentage(completed: number, total: number): number {
   return total === 0 ? 0 : Math.round((completed / total) * 100)
+}
+
+function progressiveLevelSizes(total: number): number[] {
+  if (total <= 0) return []
+  if (total <= 2) return [total]
+
+  let levelCount = total <= 5 ? 2 : total <= 11 ? 3 : Math.ceil(total / 4)
+  if (total === levelCount * 4) {
+    levelCount += 1
+  }
+
+  const base = Math.floor(total / levelCount)
+  const remainder = total % levelCount
+  const sizes = Array.from({ length: levelCount }, (_, index) =>
+    index >= levelCount - remainder ? base + 1 : base
+  )
+  if (
+    sizes.length > 1 &&
+    sizes.every((size) => size === sizes[0]) &&
+    sizes[0] > 1 &&
+    sizes.at(-1)! < 4
+  ) {
+    sizes[0] -= 1
+    sizes[sizes.length - 1] += 1
+  }
+  return sizes
+}
+
+function coreLevelLabel(index: number, total: number): string {
+  if (total === 1) return "核心主线"
+  if (index === 0) return "基础建模"
+  if (index === total - 1) return "深入优化"
+  return total === 3 ? "经典结构" : `进阶建模 ${index}`
+}
+
+function buildStageLevels(
+  tracks: RoadmapTrack[],
+  stages: RoadmapStage[]
+): StageLevel[] {
+  const lastTrack = tracks.at(-1)
+  const extensionTrackId =
+    lastTrack && /\bagent\b/i.test(`${lastTrack.id} ${lastTrack.title}`)
+      ? lastTrack.id
+      : null
+  const coreStages = stages.filter(
+    (stage) => stage.trackId !== extensionTrackId
+  )
+  const extensionStages = stages.filter(
+    (stage) => stage.trackId === extensionTrackId
+  )
+  const coreSizes = progressiveLevelSizes(coreStages.length)
+  let offset = 0
+  const levels = coreSizes.map((size, index): StageLevel => {
+    const level = {
+      label: coreLevelLabel(index, coreSizes.length),
+      kind: "core" as const,
+      stages: coreStages.slice(offset, offset + size),
+    }
+    offset += size
+    return level
+  })
+
+  if (extensionStages.length > 0) {
+    levels.push({
+      label: "Agent 进阶",
+      kind: "extension",
+      stages: extensionStages,
+    })
+  }
+  return levels
 }
 
 function stageHeight(
@@ -135,8 +218,8 @@ function stageHeight(
 }
 
 function connectionPositions(
-  source: PositionedLesson,
-  target: PositionedLesson
+  source: { absolutePosition: XYPosition },
+  target: { absolutePosition: XYPosition }
 ): { source: Position; target: Position } {
   const horizontalDelta =
     target.absolutePosition.x - source.absolutePosition.x
@@ -163,18 +246,17 @@ function structuralEdge(
     type: "smoothstep",
     source,
     target,
-    animated: true,
     className: "roadmap-structure-edge",
     data: { kind: "structure" },
     markerEnd: {
       type: MarkerType.ArrowClosed,
-      width: 13,
-      height: 13,
+      width: 12,
+      height: 12,
       color: "var(--roadmap-structure-edge)",
     },
     style: {
       stroke: "var(--roadmap-structure-edge)",
-      strokeWidth: 1.4,
+      strokeWidth: 1.6,
     },
     selectable: false,
     focusable: false,
@@ -203,9 +285,16 @@ export function buildRoadmapLayout({
   onOpenCourse?: (lesson: RoadmapLesson, trigger: HTMLElement) => void
 }): RoadmapLayout {
   const settings = isMobile ? MOBILE_SETTINGS : DESKTOP_SETTINGS
-  const graphWidth =
-    tracks.length * settings.groupWidth +
-    Math.max(0, tracks.length - 1) * settings.trackGap
+  const stageLevels = buildStageLevels(tracks, stages)
+  const graphWidth = Math.max(
+    settings.rootWidth,
+    ...stageLevels.map((level, index) =>
+      isMobile
+        ? settings.groupWidth + index * settings.stageWidthStep
+        : level.stages.length * settings.groupWidth +
+          Math.max(0, level.stages.length - 1) * settings.stageColumnGap
+    )
+  )
   const rootId = "roadmap:root"
   const completedLessons = lessons.filter(
     (lesson) => lesson.status === "通过"
@@ -220,7 +309,7 @@ export function buildRoadmapLayout({
     style: { width: settings.rootWidth, height: settings.rootHeight },
     data: {
       variant: "root",
-      eyebrow: `${tracks.length} 条主干 · ${stages.length} 个阶段 · ${lessons.length} 个课次`,
+      eyebrow: `由浅入深 · ${stageLevels.length} 层 · ${stages.length} 个阶段`,
       title: courseTitle,
       description: courseDescription,
       completed: completedLessons,
@@ -233,88 +322,64 @@ export function buildRoadmapLayout({
     focusable: false,
   }
 
-  const stageRows = Math.max(...tracks.map((track) => track.stageIds.length))
-  const stageRowY: number[] = []
-  let nextStageY = settings.stageTopY
-  for (let row = 0; row < stageRows; row += 1) {
-    stageRowY.push(nextStageY)
-    const rowHeight = Math.max(
-      ...tracks.map((track) => {
-        const stageId = track.stageIds[row]
-        const stage = stages.find((candidate) => candidate.id === stageId)
-        return stage ? stageHeight(stage, settings) : 0
-      })
-    )
-    nextStageY += rowHeight + settings.stageRowGap
-  }
   const stagePlacements = new Map<string, StagePlacement>()
-  const trackNodes: OverviewFlowNode[] = []
-  const structureEdges: RoadmapEdge[] = []
-
-  tracks.forEach((track, trackIndex) => {
-    const groupX = trackIndex * (settings.groupWidth + settings.trackGap)
-    const trackLessons = lessons.filter((lesson) =>
-      track.stageIds.includes(lesson.stageId)
-    )
-    const trackCompleted = trackLessons.filter(
-      (lesson) => lesson.status === "通过"
-    ).length
-    trackNodes.push({
-      id: roadmapTrackNodeId(track.id),
-      type: "overview",
-      position: {
-        x: groupX + (settings.groupWidth - settings.trackWidth) / 2,
-        y: settings.trackY,
-      },
-      style: { width: settings.trackWidth, height: settings.trackHeight },
-      data: {
-        variant: "track",
-        eyebrow: `主干 ${trackIndex + 1}`,
-        title: track.title,
-        description: track.description,
-        completed: trackCompleted,
-        total: trackLessons.length,
-        percentage: percentage(trackCompleted, trackLessons.length),
-        testId: `roadmap-track-${trackIndex + 1}`,
-      },
-      draggable: false,
-      selectable: false,
-      focusable: false,
-    })
-    structureEdges.push(structuralEdge(rootId, roadmapTrackNodeId(track.id)))
-
-    track.stageIds.forEach((stageId, stageIndex) => {
-      const stage = stages.find((candidate) => candidate.id === stageId)
-      if (!stage) {
-        return
+  let nextStageY = settings.stageTopY
+  for (const [levelIndex, level] of stageLevels.entries()) {
+    if (isMobile) {
+      const width = settings.groupWidth + levelIndex * settings.stageWidthStep
+      for (const stage of level.stages) {
+        const height = stageHeight(stage, settings)
+        stagePlacements.set(stage.id, {
+          x: (graphWidth - width) / 2,
+          y: nextStageY,
+          width,
+          height,
+          level: levelIndex + 1,
+          totalLevels: stageLevels.length,
+          levelLabel: level.label,
+          levelKind: level.kind,
+        })
+        nextStageY += height + settings.stageWithinLevelGap
       }
-      stagePlacements.set(stageId, {
-        x: groupX,
-        y: stageRowY[stageIndex],
-        height: stageHeight(stage, settings),
+      nextStageY -= settings.stageWithinLevelGap
+    } else {
+      const rowWidth =
+        level.stages.length * settings.groupWidth +
+        Math.max(0, level.stages.length - 1) * settings.stageColumnGap
+      const rowX = (graphWidth - rowWidth) / 2
+      const heights = level.stages.map((stage) => stageHeight(stage, settings))
+      level.stages.forEach((stage, index) => {
+        const visualIndex =
+          levelIndex % 2 === 0 ? index : level.stages.length - 1 - index
+        stagePlacements.set(stage.id, {
+          x:
+            rowX +
+            visualIndex * (settings.groupWidth + settings.stageColumnGap),
+          y: nextStageY,
+          width: settings.groupWidth,
+          height: heights[index],
+          level: levelIndex + 1,
+          totalLevels: stageLevels.length,
+          levelLabel: level.label,
+          levelKind: level.kind,
+        })
       })
-    })
+      nextStageY += Math.max(...heights, 0)
+    }
 
-    if (track.stageIds[0]) {
-      structureEdges.push(
-        structuralEdge(
-          roadmapTrackNodeId(track.id),
-          roadmapStageNodeId(track.stageIds[0])
-        )
-      )
+    const nextLevel = stageLevels[levelIndex + 1]
+    if (nextLevel) {
+      nextStageY +=
+        nextLevel.kind === "extension"
+          ? settings.extensionLevelGap
+          : settings.stageLevelGap
     }
-    for (let index = 0; index < track.stageIds.length - 1; index += 1) {
-      structureEdges.push(
-        structuralEdge(
-          roadmapStageNodeId(track.stageIds[index]),
-          roadmapStageNodeId(track.stageIds[index + 1])
-        )
-      )
-    }
-  })
+  }
 
   const stageNodes: StageFlowNode[] = []
+  const positionedStages: PositionedStage[] = []
   const positionedLessons: PositionedLesson[] = []
+  const trackById = new Map(tracks.map((track) => [track.id, track]))
 
   for (const stage of stages) {
     const placement = stagePlacements.get(stage.id)
@@ -326,21 +391,33 @@ export function buildRoadmapLayout({
       (lesson) => lesson.status === "通过"
     ).length
 
-    stageNodes.push({
+    const stageNode: StageFlowNode = {
       id: roadmapStageNodeId(stage.id),
       type: "stage",
       position: { x: placement.x, y: placement.y },
       data: {
         stage,
+        trackTitle: trackById.get(stage.trackId)?.title ?? "课程主题",
+        level: placement.level,
+        totalLevels: placement.totalLevels,
+        levelLabel: placement.levelLabel,
+        levelKind: placement.levelKind,
         lessons: stageLessons,
         completed,
         total: stageLessons.length,
         percentage: percentage(completed, stageLessons.length),
+        targetPosition: Position.Top,
+        sourcePosition: Position.Bottom,
       },
-      style: { width: settings.groupWidth, height: placement.height },
+      style: { width: placement.width, height: placement.height },
       selectable: false,
       draggable: false,
       focusable: false,
+    }
+    stageNodes.push(stageNode)
+    positionedStages.push({
+      node: stageNode,
+      absolutePosition: { x: placement.x, y: placement.y },
     })
 
     stageLessons.forEach((lesson, index) => {
@@ -350,8 +427,11 @@ export function buildRoadmapLayout({
         row % 2 === 1
           ? settings.lessonColumns - 1 - sequentialColumn
           : sequentialColumn
+      const lessonGridWidth =
+        settings.lessonColumns * settings.nodeWidth +
+        Math.max(0, settings.lessonColumns - 1) * settings.columnGap
       const x =
-        settings.horizontalPadding +
+        (placement.width - lessonGridWidth) / 2 +
         column * (settings.nodeWidth + settings.columnGap)
       const y =
         settings.headerHeight + row * (settings.nodeHeight + settings.rowGap)
@@ -393,6 +473,20 @@ export function buildRoadmapLayout({
     })
   }
 
+  const structureEdges: RoadmapEdge[] = []
+  const firstStage = positionedStages[0]
+  if (firstStage) {
+    structureEdges.push(structuralEdge(rootId, firstStage.node.id))
+  }
+  for (let index = 0; index < positionedStages.length - 1; index += 1) {
+    const source = positionedStages[index]
+    const target = positionedStages[index + 1]
+    const positions = connectionPositions(source, target)
+    source.node.data.sourcePosition = positions.source
+    target.node.data.targetPosition = positions.target
+    structureEdges.push(structuralEdge(source.node.id, target.node.id))
+  }
+
   const lessonOrder = new Map(
     lessons.map((lesson, index) => [lesson.lessonId, index])
   )
@@ -403,37 +497,39 @@ export function buildRoadmapLayout({
   )
 
   const learningEdges: RoadmapEdge[] = []
-  for (let index = 0; index < positionedLessons.length - 1; index += 1) {
-    const source = positionedLessons[index]
-    const target = positionedLessons[index + 1]
-    const positions = connectionPositions(source, target)
-    const crossesStage =
-      source.node.data.lesson.stageId !== target.node.data.lesson.stageId
-    source.node.data.sourcePosition = positions.source
-    target.node.data.targetPosition = positions.target
-    learningEdges.push({
-      id: learningEdgeId(
-        source.node.data.lesson.lessonId,
-        target.node.data.lesson.lessonId
-      ),
-      type: "smoothstep",
-      source: source.node.id,
-      target: target.node.id,
-      className: crossesStage ? "roadmap-cross-stage-edge" : undefined,
-      data: { kind: "learning" },
-      markerEnd: {
-        type: MarkerType.ArrowClosed,
-        width: 14,
-        height: 14,
-        color: "var(--roadmap-edge)",
-      },
-      style: {
-        stroke: "var(--roadmap-edge)",
-        strokeWidth: 1.6,
-      },
-      selectable: false,
-      focusable: false,
-    })
+  for (const stage of stages) {
+    const stageLessons = positionedLessons.filter(
+      (positioned) => positioned.node.data.lesson.stageId === stage.id
+    )
+    for (let index = 0; index < stageLessons.length - 1; index += 1) {
+      const source = stageLessons[index]
+      const target = stageLessons[index + 1]
+      const positions = connectionPositions(source, target)
+      source.node.data.sourcePosition = positions.source
+      target.node.data.targetPosition = positions.target
+      learningEdges.push({
+        id: learningEdgeId(
+          source.node.data.lesson.lessonId,
+          target.node.data.lesson.lessonId
+        ),
+        type: "smoothstep",
+        source: source.node.id,
+        target: target.node.id,
+        data: { kind: "learning" },
+        markerEnd: {
+          type: MarkerType.ArrowClosed,
+          width: 14,
+          height: 14,
+          color: "var(--roadmap-edge)",
+        },
+        style: {
+          stroke: "var(--roadmap-edge)",
+          strokeWidth: 1.6,
+        },
+        selectable: false,
+        focusable: false,
+      })
+    }
   }
 
   const focusLessonId = recommendedLessonId ?? lessons.at(-1)?.lessonId
@@ -441,8 +537,30 @@ export function buildRoadmapLayout({
     positionedLessons.find(
       (positioned) => positioned.node.data.lesson.lessonId === focusLessonId
     ) ?? positionedLessons[0]
+  const focusStage = focusLesson
+    ? stagePlacements.get(focusLesson.node.data.lesson.stageId)
+    : undefined
   const focus = focusLesson
-    ? {
+    ? focusStage?.level === 1
+      ? isMobile
+        ? {
+          x: graphWidth / 2,
+          y:
+              (settings.rootY + settings.rootHeight + focusStage.y) /
+              2,
+          zoom: settings.openingZoom,
+        }
+        : {
+          x: graphWidth / 2,
+          y:
+            (settings.rootY +
+              settings.rootHeight +
+              focusStage.y +
+              focusStage.height) /
+            2,
+          zoom: settings.openingZoom,
+        }
+      : {
         x: focusLesson.absolutePosition.x + settings.nodeWidth / 2,
         y: focusLesson.absolutePosition.y + settings.nodeHeight / 2,
         zoom: settings.focusZoom,
@@ -456,11 +574,11 @@ export function buildRoadmapLayout({
   return {
     nodes: [
       rootNode,
-      ...trackNodes,
       ...stageNodes,
       ...positionedLessons.map(({ node }) => node),
     ],
     edges: [...structureEdges, ...learningEdges],
     focus,
+    initialViewport: stageLevels.length === 1 ? "whole" : "focus",
   }
 }

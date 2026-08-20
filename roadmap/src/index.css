@@ -552,7 +552,6 @@
     border-top: 2px solid var(--roadmap-edge);
   }
 
-  .legend-line-sample[data-variant="cross"],
   .legend-line-sample[data-variant="structure"] {
     border-top-style: dashed;
   }
@@ -573,7 +572,7 @@
   }
 
   .roadmap-zen-safe-area {
-    height: calc(env(safe-area-inset-top, 0px) + 56px);
+    height: calc(env(safe-area-inset-top, 0px) + 72px);
     flex: none;
     background: var(--background);
   }
@@ -699,12 +698,44 @@
     overflow-wrap: anywhere;
   }
 
+  .stage-node-title {
+    display: grid;
+    gap: 0.1875rem;
+  }
+
+  .stage-node-kicker {
+    color: var(--muted-foreground);
+    font-size: 0.6875rem;
+    line-height: 1.2;
+    font-weight: 600;
+  }
+
+  .stage-node-card[data-level-kind="extension"] {
+    border-color: color-mix(in oklch, var(--primary) 30%, var(--border));
+    background: color-mix(in oklch, var(--primary) 5%, var(--card));
+  }
+
   .stage-node-card [data-slot="card-description"] {
     display: -webkit-box;
     overflow: hidden;
     -webkit-box-orient: vertical;
     -webkit-line-clamp: 2;
     line-clamp: 2;
+  }
+
+  .stage-node-meta {
+    display: flex;
+    max-width: 18rem;
+    flex-wrap: wrap;
+    justify-content: flex-end;
+    gap: 0.375rem;
+  }
+
+  .stage-node-meta [data-slot="badge"] {
+    max-width: 12rem;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
   }
 
   .stage-node-progress {
@@ -811,14 +842,11 @@
     background: var(--roadmap-structure-edge);
   }
 
-  .react-flow__edge.roadmap-structure-edge.animated
-    path.react-flow__edge-path {
-    stroke-dasharray: 8 7;
-    animation-duration: 0.9s;
-  }
-
-  .react-flow__edge.roadmap-cross-stage-edge path.react-flow__edge-path {
-    stroke-dasharray: 8 7;
+  .react-flow__edge.roadmap-structure-edge path.react-flow__edge-path {
+    stroke-dasharray: 6 6;
+    stroke-linecap: round;
+    stroke-linejoin: round;
+    opacity: 0.88;
   }
 
   .react-flow__controls {
@@ -1359,14 +1387,6 @@
 @keyframes reader-pulse {
   50% {
     opacity: 0.5;
-  }
-}
-
-@media (prefers-reduced-motion: reduce) {
-  .react-flow__edge.roadmap-structure-edge.animated
-    path.react-flow__edge-path {
-    animation: none;
-    stroke-dasharray: 8 7;
   }
 }
 

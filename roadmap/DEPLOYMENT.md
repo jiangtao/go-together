@@ -2,7 +2,7 @@
 
 ## 公开边界
 
-公开站点只包含 `courses/catalog.json` 正向枚举的 Course 安全投影、对应 `release-progress/<courseId>.json` 的最小状态，以及默认 Go Course 的永久 legacy aliases。Markdown 投影按结构移除 rubric、答案/评测材料和仓库治理路径，同时保留教学正文与教学代码路径。
+公开站点只包含 `courses/catalog.json` 正向枚举且 `distribution: "public"` 的 Course 安全投影、对应 `release-progress/<courseId>.json` 的最小状态，以及默认 Go Course 的永久 legacy aliases。`local-only` Course 必须从公开 Catalog、`.generated/public`、`dist` 与 `.vercel/output` 完全排除；Markdown 投影按结构移除 rubric、答案/评测材料和仓库治理路径，同时保留教学正文与教学代码路径。
 
 构建与部署产物不得包含回答、学习笔记、评测正文、`exercise`、旧 `src/data/course.json`、私有/本机路径、环境文件、测试证据、source map 或源码。固定数据链如下：
 
@@ -91,7 +91,7 @@ npm run test:e2e
 npm run smoke:deployment -- <VERCEL_PREVIEW_URL>
 ```
 
-Smoke 仅允许 HTTPS、本项目 Vercel 主机和 443；拒绝凭证、参数、IP literal、localhost、私有/链路本地/保留/CGNAT/组播地址及任何重定向。DNS 只解析一次，全部结果必须是公网单播；Node HTTPS 固定到该地址集合并保留 TLS SNI/主机名校验，Chromium 使用同一已验证地址映射且拦截跨源请求。随后验证首页、`course.json`、Day 0/36、SPA 深链、缓存、安全头、47 个节点、Day Drawer、Markdown Reader 与 Zen。
+Smoke 仅允许 HTTPS、本项目 Vercel 主机和 443；拒绝凭证、参数、IP literal、localhost、私有/链路本地/保留/CGNAT/组播地址及任何重定向。DNS 只解析一次，全部结果必须是公网单播；Node HTTPS 固定到该地址集合并保留 TLS SNI/主机名校验，Chromium 使用同一已验证地址映射且拦截跨源请求。随后验证首页、`course.json`、Day 0/36、SPA 深链、缓存、安全头、44 个节点、Day Drawer、Markdown Reader 与 Zen。
 
 Preview/staged smoke 未通过时不得 promote。Production 只从已经通过同等 smoke 的候选发布；生产 smoke 失败时工作流以 `vercel rollback` 回到上一 Production，并在 `smoke-rollback-production` 复验。不要恢复旧数据或私有同步链。
 
@@ -108,4 +108,4 @@ Preview/staged smoke 未通过时不得 promote。Production 只从已经通过�
 
 ## English operational summary
 
-The only deployable artifact is the audited Vercel Build Output API v3 directory at `.vercel/output`. The single `roadmap-release` workflow runs the full release gate for every PR, main push, and explicit dispatch. It deploys only the verified prebuilt artifact: same-repository PRs receive a protected Preview deployment; main follows staged Production, smoke, promote, and rollback-with-resmoke. Fork PRs never receive Secrets or deploy. Deployment jobs do not checkout candidate code and verify Receipt/catalog/prebuilt digests plus Vercel metadata before proceeding. Source deployment, cloud builds, and Git Integration are disabled. The Vercel project is `self-go` (`prj_IueM8ji3ilkZo7rlJXLEtJzoB7e0`), and the sole recommended production entry is <https://self-go.vercel.app/>. <https://go-together-roadmap.vercel.app/> and <https://lession-together.vercel.app/> remain legacy compatibility aliases. The externally owned `go-ahead.vercel.app` hostname is retained only as a historical conflict record and is no longer a target.
+The only deployable artifact is the audited Vercel Build Output API v3 directory at `.vercel/output`. Public generation includes only `distribution: public` courses; local-only courses must be absent from the public Catalog and every deployable file tree. The single `roadmap-release` workflow runs the full release gate for every PR, main push, and explicit dispatch. It deploys only the verified prebuilt artifact: same-repository PRs receive a protected Preview deployment; main follows staged Production, smoke, promote, and rollback-with-resmoke. Fork PRs never receive Secrets or deploy. Deployment jobs do not checkout candidate code and verify Receipt/catalog/prebuilt digests plus Vercel metadata before proceeding. Source deployment, cloud builds, and Git Integration are disabled. The Vercel project is `self-go` (`prj_IueM8ji3ilkZo7rlJXLEtJzoB7e0`), and the sole recommended production entry is <https://self-go.vercel.app/>. <https://go-together-roadmap.vercel.app/> and <https://lession-together.vercel.app/> remain legacy compatibility aliases.

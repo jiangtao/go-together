@@ -1,4 +1,5 @@
 export const ROADMAP_MIN_ZOOM = 0.18
+export const ROADMAP_MOBILE_MIN_ZOOM = 0.08
 export const ROADMAP_MAX_ZOOM = 1.6
 
 export function createRoadmapViewportKey(
@@ -23,20 +24,27 @@ export function shouldAutomaticallyFit(
   return event === "initial-layout" && !hasCompletedInitialFit
 }
 
-export function getZoomControls(zoom: number): {
+export function getZoomControls(
+  zoom: number,
+  minZoom = ROADMAP_MIN_ZOOM
+): {
   canZoomIn: boolean
   canZoomOut: boolean
 } {
   return {
     canZoomIn: zoom < ROADMAP_MAX_ZOOM - Number.EPSILON,
-    canZoomOut: zoom > ROADMAP_MIN_ZOOM + Number.EPSILON,
+    canZoomOut: zoom > minZoom + Number.EPSILON,
   }
 }
 
-export function getNextZoom(zoom: number, direction: "in" | "out"): number {
+export function getNextZoom(
+  zoom: number,
+  direction: "in" | "out",
+  minZoom = ROADMAP_MIN_ZOOM
+): number {
   const factor = direction === "in" ? 1.2 : 1 / 1.2
   return Math.min(
     ROADMAP_MAX_ZOOM,
-    Math.max(ROADMAP_MIN_ZOOM, zoom * factor)
+    Math.max(minZoom, zoom * factor)
   )
 }

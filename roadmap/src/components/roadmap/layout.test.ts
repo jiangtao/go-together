@@ -126,10 +126,11 @@ describe("总分结构化路线布局", () => {
       recommendedLessonId: "functions",
     })
 
-    expect(layout.nodes.filter((node) => node.type === "overview")).toHaveLength(2)
+    expect(layout.nodes.filter((node) => node.type === "overview")).toHaveLength(1)
     expect(layout.nodes.filter((node) => node.type === "stage")).toHaveLength(2)
     expect(layout.nodes.filter((node) => node.type === "lesson")).toHaveLength(3)
-    expect(layout.edges.filter((edge) => edge.data?.kind === "learning")).toHaveLength(2)
+    expect(layout.edges.filter((edge) => edge.data?.kind === "learning")).toHaveLength(1)
+    expect(layout.initialViewport).toBe("whole")
   })
 
   it("为跨类型同名领域 ID 分配独立 React Flow 命名空间", () => {
@@ -238,7 +239,7 @@ describe("总分结构化路线布局", () => {
     )
   })
 
-  it("建立一个总节点、三条主干和六个非纵向堆叠阶段簇", () => {
+  it("建立由浅入深的阶段梯形和阶段内课次", () => {
     const layout = buildRoadmapLayout({
       courseTitle: "Go 36 天实战",
       courseDescription: "Go 后端学习路线",
@@ -254,10 +255,61 @@ describe("总分结构化路线布局", () => {
     )
     const stageNodes = layout.nodes.filter((node) => node.type === "stage")
 
-    expect(overviewNodes).toHaveLength(4)
+    expect(overviewNodes).toHaveLength(1)
     expect(stageNodes).toHaveLength(6)
-    expect(new Set(stageNodes.map((node) => node.position.x)).size).toBe(3)
-    expect(new Set(stageNodes.map((node) => node.position.y)).size).toBe(2)
+    const stagesByLevel = stageNodes.reduce(
+      (levels, node) => {
+        const level = levels.get(node.data.level) ?? []
+        level.push(node)
+        levels.set(node.data.level, level)
+        return levels
+      },
+      new Map<number, (typeof stageNodes)[number][]>()
+    )
+    expect([...stagesByLevel.values()].map((level) => level.length)).toEqual([
+      1, 2, 3,
+    ])
+    expect(stageNodes.map((node) => node.data.level)).toEqual([
+      1, 2, 2, 3, 3, 3,
+    ])
+    const levelWidths = [...stagesByLevel.values()].map((level) => {
+      const left = Math.min(...level.map((node) => node.position.x))
+      const right = Math.max(
+        ...level.map(
+          (node) => node.position.x + Number(node.style?.width ?? 0)
+        )
+      )
+      return right - left
+    })
+    expect(levelWidths[0]).toBeLessThan(levelWidths[1])
+    expect(levelWidths[1]).toBeLessThan(levelWidths[2])
+    const stageById = new Map(stageNodes.map((node) => [node.id, node]))
+    expect(stageById.get("stage:stage-2")!.position.x).toBeGreaterThan(
+      stageById.get("stage:stage-3")!.position.x
+    )
+    expect(stageById.get("stage:stage-4")!.position.x).toBeLessThan(
+      stageById.get("stage:stage-5")!.position.x
+    )
+    expect(stageById.get("stage:stage-5")!.position.x).toBeLessThan(
+      stageById.get("stage:stage-6")!.position.x
+    )
+    expect(layout.nodes.some((node) => node.id.startsWith("track:"))).toBe(false)
+    expect(layout.initialViewport).toBe("focus")
+
+    const mobileLayout = buildRoadmapLayout({
+      courseTitle: "Go 36 天实战",
+      courseDescription: "Go 后端学习路线",
+      tracks,
+      stages,
+      lessons,
+      isMobile: true,
+      selectedLessonId: null,
+      recommendedLessonId: "day-01",
+    })
+    const firstMobileStage = mobileLayout.nodes.find(
+      (node) => node.id === "stage:stage-1"
+    )!
+    expect(mobileLayout.focus.y).toBeLessThan(firstMobileStage.position.y)
 
     const structuralEdges = layout.edges.filter(
       (edge) =>
@@ -267,21 +319,23 @@ describe("总分结构化路线布局", () => {
       (edge) =>
         (edge.data as { kind?: string } | undefined)?.kind === "learning"
     )
-    expect(structuralEdges).toHaveLength(9)
-    expect(learningEdges).toHaveLength(36)
-    expect(structuralEdges.every((edge) => edge.animated)).toBe(true)
+    expect(structuralEdges).toHaveLength(6)
+    expect(learningEdges).toHaveLength(31)
+    expect(structuralEdges.every((edge) => edge.animated !== true)).toBe(true)
     expect(learningEdges.some((edge) => edge.animated)).toBe(false)
+    expect(structuralEdges.map((edge) => [edge.source, edge.target])).toEqual([
+      ["roadmap:root", "stage:stage-1"],
+      ["stage:stage-1", "stage:stage-2"],
+      ["stage:stage-2", "stage:stage-3"],
+      ["stage:stage-3", "stage:stage-4"],
+      ["stage:stage-4", "stage:stage-5"],
+      ["stage:stage-5", "stage:stage-6"],
+    ])
 
     const crossStageEdges = learningEdges.filter(
       (edge) => edge.className === "roadmap-cross-stage-edge"
     )
-    expect(crossStageEdges.map((edge) => edge.id)).toEqual([
-      "path-6:day-06-6:day-07",
-      "path-6:day-12-6:day-13",
-      "path-6:day-18-6:day-19",
-      "path-6:day-22-6:day-23",
-      "path-6:day-28-6:day-29",
-    ])
+    expect(crossStageEdges).toHaveLength(0)
     expect(
       learningEdges.filter((edge) => edge.className === undefined)
     ).toHaveLength(31)
