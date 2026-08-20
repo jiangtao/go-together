@@ -32,7 +32,7 @@ STATUS_LABEL_DETAILS = {
     "review:revision-needed": ("D93F0B", "需要学习者修订"),
     "review:blocked": ("B60205", "审核被安全或运行条件阻断"),
 }
-ENABLED_COURSE_IDS = frozenset({"algorithm-review"})
+ENABLED_COURSE_IDS = frozenset({"algorithm"})
 SCHEDULE_MARKER = "# go-together-answer-review"
 REVIEW_COMMENT_MARKER_PREFIX = "go-together-answer-review"
 
@@ -155,7 +155,7 @@ def resolve_active_lesson(
 def require_issue_enabled_course(course_id: str) -> None:
     if course_id not in ENABLED_COURSE_IDS:
         raise WorkflowError(
-            "当前答题 Issue 流程仅为 algorithm-review 启用；其他 Course 必须先显式接入"
+            "当前答题 Issue 流程仅为 algorithm 启用；其他 Course 必须先显式接入"
         )
 
 

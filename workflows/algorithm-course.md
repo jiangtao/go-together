@@ -63,7 +63,7 @@
 
 ## 当前运行状态
 
-**已基于维护者语雀笔记和既有算法主题结构创建原创算法复习 Course：`courseId=algorithm-review`、主语言 TypeScript、Published + Unlisted。**
+**已基于维护者语雀笔记和既有算法主题结构创建原创算法复习 Course：`courseId=algorithm`、主语言 TypeScript、Published + Unlisted。**
 
 课程发布后采用 Unlisted Course：保持 Published 生命周期和规范 URL，但不出现在课程选择器；这只隐藏发现入口，不提供访问控制。
 

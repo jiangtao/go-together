@@ -2,7 +2,7 @@
 
 ## 问题
 
-现有 `algorithm-review` 已覆盖主要模型，但只有 20 天，题组只分 Hot 100 与进阶，缺少从简单恢复到经典模板再到深入迁移的显式坡度；同时没有将 AI Agent 工作流中真正依赖的搜索、检索、调度与在线决策模型组成独立复习段。经典算法主线应完整独立为 30 天，Agent 映射另追加一周。
+现有 `algorithm` 已覆盖主要模型，但只有 20 天，题组只分 Hot 100 与进阶，缺少从简单恢复到经典模板再到深入迁移的显式坡度；同时没有将 AI Agent 工作流中真正依赖的搜索、检索、调度与在线决策模型组成独立复习段。经典算法主线应完整独立为 30 天，Agent 映射另追加一周。
 
 ## 参考边界
 
@@ -45,7 +45,7 @@ AI 相关内容只教授算法映射，不把特定模型、框架或供应商 A
 
 ## 验收
 
-- Course 保持 `courseId=algorithm-review`、Published + Unlisted；已有 20 个 Lesson ID 永久保留。
+- Course 保持 `courseId=algorithm`、Published + Unlisted；已有 20 个 Lesson ID 永久保留。
 - Day 覆盖 1–37，其中 Day 1–30 只属于经典算法主线，Day 31–37 才进入 Agent 映射；Track/Stage 顺序表达上表的依赖。
 - 所有 37 个 Lesson 都有“简单恢复 → 经典模板（Hot 100 优先）→ 深入迁移”的题组顺序、时限和复盘问题。
 - Day 1–30 每个经典算法分类至少引用 10 道不重复的 LeetCode CN 题目，且同一 Lesson 内不得重复链接。

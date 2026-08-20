@@ -110,6 +110,7 @@ function catalog(courses: SourceCourse[]): SourceCatalog {
       language: course.language,
       lifecycle: course.lifecycle,
       visibility: course.visibility,
+      distribution: "public",
       replacementCourseId: course.replacementCourseId,
       manifestPath: `courses/${course.courseId}/course.json`,
     })),
@@ -150,13 +151,14 @@ afterEach(async () => {
 })
 
 describe("Catalog-driven public projection", () => {
-  it("projects an Unlisted Published Course for direct access without dropping its practice assets", async () => {
+  it("excludes Local-only courses publicly and preserves them in the explicit local projection", async () => {
     const root = await mkdtemp(path.join(os.tmpdir(), "multi-course-public-"))
     temporaryDirectories.push(root)
-    const outputDirectory = path.join(root, "public")
+    const publicDirectory = path.join(root, "public")
+    const localDirectory = path.join(root, "local")
     const listed = sourceCourse("go-backend")
     const unlisted = {
-      ...sourceCourse("algorithm-review"),
+      ...sourceCourse("algorithm"),
       visibility: "unlisted",
     } as SourceCourse
     const unlistedCatalog = {
@@ -168,6 +170,7 @@ describe("Catalog-driven public projection", () => {
           language: listed.language,
           lifecycle: listed.lifecycle,
           visibility: "listed",
+          distribution: "public",
           replacementCourseId: listed.replacementCourseId,
           manifestPath: "courses/go-backend/course.json",
         },
@@ -177,8 +180,9 @@ describe("Catalog-driven public projection", () => {
           language: unlisted.language,
           lifecycle: unlisted.lifecycle,
           visibility: "unlisted",
+          distribution: "local-only",
           replacementCourseId: unlisted.replacementCourseId,
-          manifestPath: "courses/algorithm-review/course.json",
+          manifestPath: "courses/algorithm/course.json",
         },
       ],
     } as SourceCatalog
@@ -186,30 +190,49 @@ describe("Catalog-driven public projection", () => {
     await buildMultiCoursePublicArtifacts({
       sourceCatalog: unlistedCatalog,
       courses: [projection(listed), projection(unlisted)],
-      outputDirectory,
+      outputDirectory: publicDirectory,
     })
 
     const publicCatalog = JSON.parse(
-      await readFile(path.join(outputDirectory, "courses/catalog.json"), "utf8")
+      await readFile(path.join(publicDirectory, "courses/catalog.json"), "utf8")
     ) as { courses: Array<{ courseId: string; visibility: string }> }
-    const publicCourse = JSON.parse(
+    expect(publicCatalog.courses.map((course) => course.courseId)).toEqual([
+      "go-backend",
+    ])
+    await expect(
+      readFile(
+        path.join(publicDirectory, "courses/algorithm/course.json"),
+        "utf8"
+      )
+    ).rejects.toMatchObject({ code: "ENOENT" })
+
+    await buildMultiCoursePublicArtifacts({
+      sourceCatalog: unlistedCatalog,
+      courses: [projection(listed), projection(unlisted)],
+      outputDirectory: localDirectory,
+      includeLocalOnly: true,
+    })
+
+    const localCatalog = JSON.parse(
+      await readFile(path.join(localDirectory, "courses/catalog.json"), "utf8")
+    ) as { courses: Array<{ courseId: string; visibility: string }> }
+    const localCourse = JSON.parse(
       await readFile(
-        path.join(outputDirectory, "courses/algorithm-review/course.json"),
+        path.join(localDirectory, "courses/algorithm/course.json"),
         "utf8"
       )
     ) as { visibility: string }
-
     expect(
-      publicCatalog.courses.find(
-        (course) => course.courseId === "algorithm-review"
+      localCatalog.courses.find(
+        (course) => course.courseId === "algorithm"
       )?.visibility
     ).toBe("unlisted")
-    expect(publicCourse.visibility).toBe("unlisted")
+    expect(localCourse.visibility).toBe("unlisted")
     await expect(
       readFile(
         path.join(
-          outputDirectory,
-          "courses/algorithm-review/sources/lessons/first-lesson.md"
+          localDirectory,
+          "courses/algorithm/sources/lessons/first-lesson.md"
         ),
         "utf8"
       )

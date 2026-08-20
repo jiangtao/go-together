@@ -4,7 +4,7 @@
 >
 > A reusable, curriculum-driven learning framework.
 
-`lesson-together` 把课程内容、逐日练习、学习评测和进度可视化组织成一条可执行、可复盘的学习路径。框架支持多课程共存；当前目录可发现“Node.js 工程师 → Go 后端开发者”与“Web 编辑器工程实战”两门课程。已发布课程还可以采用不列入目录的可见性，仅通过稳定 URL 手动进入。
+`lesson-together` 把课程内容、逐日练习、学习评测和进度可视化组织成一条可执行、可复盘的学习路径。框架支持多课程共存；当前公开目录可发现“Node.js 工程师 → Go 后端开发者”与“Web 编辑器工程实战”两门课程。课程的发现性 `visibility` 与部署范围 `distribution` 相互独立；本地专用课程不会进入任何公开构建。
 
 仓库地址保持为 [github.com/jiangtao/go-together](https://github.com/jiangtao/go-together)，Vercel 项目名为 `self-go`；仓库、目录、package 与应用内品牌保持不变。
 
@@ -22,12 +22,12 @@
 
 本分支已用按课程隔离的学习记录替代旧的 `exercise/dayN` 布局；旧路径只用于迁移或兼容参考，新课程不得再写入旧 exercise 路径。要让一门新课出现在路线图，按以下顺序维护：
 
-1. 在 `courses/catalog.json` 注册唯一 `courseId`，填写 `manifestPath: courses/<courseId>/course.json`；完成校验后才将生命周期设为 `published`，`draft` 不进入公开课程选择器。
+1. 在 `courses/catalog.json` 注册唯一 `courseId`，填写 `manifestPath: courses/<courseId>/course.json` 与 `distribution: public|local-only`；完成校验后才将生命周期设为 `published`，`draft` 不进入公开课程选择器。
 2. 创建课程源：`courses/<courseId>/course.json`、`courses/<courseId>/lessons/<lessonId>.md`，以及课程自己的 `courses/<courseId>/evaluation/policy.md` 和 `courses/<courseId>/evaluation/command-profile.json`。Manifest 中的 Lesson、评测政策和命令配置共同定义稳定身份与评测范围。
 3. 学习者证据写入私有 `learning-records/<courseId>/lessons/<lessonId>/notes.md` 与 `evaluation.md`；这些记录不进入公开站点。`courses/` 是课程源，`learning-records/` 是私有证据，不能互相当作第二事实源。
 4. 由评测记录派生 `release-progress/<courseId>.json`，只保留安全状态和参考分数；它是公开状态快照，不手工回写，也不覆盖 Evaluation。
 5. 在 `roadmap/` 生成并验证公开投影：运行 `npm run generate:public`、`npm run check:determinism`、`npm run audit:generated`，再用 `npm run build:hosting` 产出并审计 `roadmap/.vercel/output`。生成器读取 Catalog、课程源和 Release Progress，不读取私有学习记录作为公开正文。
-6. 只发布已审计的 `roadmap/.vercel/output` prebuilt artifact。`courses/catalog.json` 中 `lifecycle: "published"` 的条目，在公开生成、确定性检查、审计和构建全部成功后进入公开 Catalog；其中仅 `visibility: "listed"` 出现在路线图课程选择器，`unlisted` 只可由稳定 URL 手动进入，且不提供访问控制；`draft` 课程源不会出现。发布边界和回滚流程见 [`roadmap/DEPLOYMENT.md`](./roadmap/DEPLOYMENT.md)。
+6. 只发布已审计的 `roadmap/.vercel/output` prebuilt artifact。只有 `published + distribution: "public"` 的条目进入公开 Catalog；其中仅 `visibility: "listed"` 出现在课程选择器。`distribution: "local-only"` 的课程只能由 `npm run generate:local`/`dev` 在本地生成，公开 Catalog、`dist` 和 prebuilt 包必须零文件。发布边界和回滚流程见 [`roadmap/DEPLOYMENT.md`](./roadmap/DEPLOYMENT.md)。
 
 ## 开始学习已发布课程（学习者）
 
@@ -58,6 +58,8 @@ npm ci
 npm run dev
 ```
 
+本地专用算法课程可访问 <http://127.0.0.1:5173/courses/algorithm>；公开站点和部署包不包含该路由的数据文件。
+
 需要 Node.js 24.x 与 npm 11.x，默认本地地址为 <http://127.0.0.1:5173/>。完整开发、验证和安全发布命令见 [`roadmap/README.md`](./roadmap/README.md) 与 [`roadmap/DEPLOYMENT.md`](./roadmap/DEPLOYMENT.md)。
 
 历史上曾考虑使用 `go-ahead.vercel.app`，但该域名已被另一 Vercel 项目全局占用。它只作为历史冲突记录保留，不再是本项目的目标域名或推荐入口。
@@ -68,4 +70,4 @@ npm run dev
 
 ## English summary
 
-lesson-together is a reusable, multi-course learning framework that turns curricula into lessons, exercises, evaluations, and a visual progress roadmap. The discoverable catalog includes [Go backend engineering](https://self-go.vercel.app/courses/go-backend) and [Web editor engineering](https://self-go.vercel.app/courses/editor-engineering). Published courses may also be unlisted: they are reachable only through their stable URL and are excluded from the course selector; unlisted visibility is not authentication or access control. The Vercel project is named `self-go`, and the sole recommended production entry is <https://self-go.vercel.app/>. <https://go-together-roadmap.vercel.app/> and <https://lession-together.vercel.app/> remain legacy compatibility aliases. The externally owned `go-ahead.vercel.app` hostname is retained only as a historical conflict record and is no longer a target. Private notes and evaluation prose stay local; only sanitized course projections and redacted progress summaries are published.
+lesson-together is a reusable, multi-course learning framework that turns curricula into lessons, exercises, evaluations, and a visual progress roadmap. The discoverable public catalog includes [Go backend engineering](https://self-go.vercel.app/courses/go-backend) and [Web editor engineering](https://self-go.vercel.app/courses/editor-engineering). Discoverability (`visibility`) is separate from deployment scope (`distribution`): local-only courses are projected by local development commands but are absent from the public Catalog, `dist`, and deployable prebuilt artifact. The Vercel project is named `self-go`, and the sole recommended production entry is <https://self-go.vercel.app/>. <https://go-together-roadmap.vercel.app/> and <https://lession-together.vercel.app/> remain legacy compatibility aliases. Private notes and evaluation prose stay local; only sanitized public-distribution course projections and redacted progress summaries are published.

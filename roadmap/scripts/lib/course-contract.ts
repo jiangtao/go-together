@@ -30,6 +30,7 @@ type JsonRecord = Record<string, unknown>
 export type CourseLifecycle = "draft" | "published" | "retired"
 export type PublicCourseLifecycle = Exclude<CourseLifecycle, "draft">
 export type CourseVisibility = SharedCourseVisibility
+export type CourseDistribution = "public" | "local-only"
 export type LessonLifecycle = "active" | "retired"
 export type Language = SharedPublicLanguage
 export type PublicCatalogCourse = SharedPublicCatalogCourse
@@ -47,6 +48,7 @@ export interface SourceCatalogCourse {
   language: Language
   lifecycle: CourseLifecycle
   visibility: CourseVisibility
+  distribution: CourseDistribution
   replacementCourseId: string | null
   manifestPath: string
 }
@@ -183,6 +185,7 @@ const SOURCE_CATALOG_COURSE_KEYS = [
   "language",
   "lifecycle",
   "visibility",
+  "distribution",
   "replacementCourseId",
   "manifestPath",
 ] as const
@@ -296,6 +299,15 @@ function visibility(value: unknown, context: string): asserts value is CourseVis
   }
 }
 
+function distribution(
+  value: unknown,
+  context: string
+): asserts value is CourseDistribution {
+  if (value !== "public" && value !== "local-only") {
+    throw new Error(`${context} 必须是 public 或 local-only`)
+  }
+}
+
 function lessonLifecycle(
   value: unknown,
   context: string
@@ -384,6 +396,7 @@ function validateCatalogRelationships<T extends {
   language: Language
   lifecycle: CourseLifecycle
   visibility: CourseVisibility
+  distribution: CourseDistribution
   replacementCourseId: string | null
 }>(courses: T[], defaultCourseId: string): void {
   const byId = new Map(courses.map((course) => [course.courseId, course]))
@@ -399,9 +412,10 @@ function validateCatalogRelationships<T extends {
   if (
     !defaultCourse ||
     defaultCourse.lifecycle !== "published" ||
-    defaultCourse.visibility !== "listed"
+    defaultCourse.visibility !== "listed" ||
+    defaultCourse.distribution !== "public"
   ) {
-    throw new Error("Default Course 必须是 Listed Published")
+    throw new Error("Default Course 必须是 Public Listed Published")
   }
   for (const course of courses) {
     if (course.replacementCourseId === null) continue
@@ -412,6 +426,12 @@ function validateCatalogRelationships<T extends {
     if (!replacement) throw new Error("Replacement Course 不存在")
     if (replacement.lifecycle !== "published") {
       throw new Error("Replacement Course 必须 Published")
+    }
+    if (
+      course.distribution === "public" &&
+      replacement.distribution !== "public"
+    ) {
+      throw new Error("Public Course 的 Replacement 必须保持 Public")
     }
     if (replacement.language.id !== course.language.id) {
       throw new Error("Replacement Course 必须属于同一 Language")
@@ -447,6 +467,7 @@ export function parseSourceCatalog(value: unknown): SourceCatalog {
     const language = parseLanguage(course.language, `${context}.language`)
     lifecycle(course.lifecycle, `${context}.lifecycle`)
     visibility(course.visibility, `${context}.visibility`)
+    distribution(course.distribution, `${context}.distribution`)
     nullableId(course.replacementCourseId, `${context}.replacementCourseId`)
     safePath(course.manifestPath, `${context}.manifestPath`)
     if (course.manifestPath !== `courses/${course.courseId}/course.json`) {

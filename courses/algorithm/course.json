@@ -1,7 +1,7 @@
 {
   "schemaVersion": 1,
-  "courseId": "algorithm-review",
-  "title": "算法复习路径：30 天核心 + 7 天 Agent 进阶",
+  "courseId": "algorithm",
+  "title": "算法回顾",
   "description": "先用 30 天按题型建模完成经典算法主线，再用 7 天将其映射到 Agent；以 TypeScript 建立主实现，并以 JavaScript 运行时特性和 Go 对照巩固。",
   "language": {
     "id": "typescript",

@@ -104,6 +104,7 @@ export async function createPublicCourseFixture(
         language: sourceCourse.language,
         lifecycle: sourceCourse.lifecycle,
         visibility: sourceCourse.visibility,
+        distribution: "public",
         replacementCourseId: null,
         manifestPath: "courses/go-backend/course.json",
       },

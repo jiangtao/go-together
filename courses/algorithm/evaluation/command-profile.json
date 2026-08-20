@@ -1,6 +1,6 @@
 {
   "schemaVersion": 1,
-  "profileId": "algorithm-review-local",
+  "profileId": "algorithm-local",
   "environment": {
     "node": "24.x",
     "go": "1.24+"

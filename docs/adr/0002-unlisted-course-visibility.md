@@ -1,3 +1,9 @@
 # 不列入目录的课程使用 Visibility，而非 Lifecycle
 
-算法复习 Course 需要能通过 `/courses/{courseId}` 手动进入，但不能出现在课程选择器。我们将其建模为 Published + `visibility: unlisted`：Lifecycle 继续表达发布可用性，Visibility 只表达界面发现；Draft 会阻止公开投影，无法满足直接访问。静态公开投影没有认证边界，因此 Unlisted 不是私有或保密访问控制，知道 URL 的人仍可访问。
+**Status:** superseded by ADR 0004
+
+最初算法 Course 只要求不出现在课程选择器，因此建模为 Published + `visibility: unlisted`。后续需求明确为“不进入任何公开部署、仅本地可见”，单独的发现性已不足以表达边界；新的分发决策见 ADR 0004。
+
+## English
+
+The algorithm course was originally modeled as Published + `visibility: unlisted` because it only needed to be hidden from the selector. The requirement later changed to local-only distribution with zero public deployment artifacts, so ADR 0004 supersedes this discoverability-only decision.

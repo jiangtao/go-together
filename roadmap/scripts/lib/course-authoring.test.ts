@@ -102,6 +102,7 @@ function catalog(courses: SourceCourse[]): SourceCatalog {
       language: entry.language,
       lifecycle: entry.lifecycle,
       visibility: entry.visibility,
+      distribution: "public",
       replacementCourseId: entry.replacementCourseId,
       manifestPath: `courses/${entry.courseId}/course.json`,
     })),
@@ -131,6 +132,20 @@ describe("course authoring contract", () => {
       "go-backend",
       "python-backend",
     ])
+    expect(validated.catalog.courses[1].distribution).toBe("public")
+
+    const localDraft = course("local-course")
+    const localValidated = validateDraftCourse({
+      catalog: validated.catalog,
+      course: localDraft,
+      authoringFiles: files(localDraft),
+      distribution: "local-only",
+    })
+    expect(
+      localValidated.catalog.courses.find(
+        (entry) => entry.courseId === "local-course"
+      )?.distribution
+    ).toBe("local-only")
 
     expect(() =>
       validateDraftCourse({

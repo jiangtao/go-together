@@ -48,9 +48,10 @@ const ID_PATTERN = /^[a-z0-9]+(?:-[a-z0-9]+)*$/
 const LEGACY_HREF_PATTERN =
   /^\/sources\/lessons\/day-(\d{2})-[a-z0-9]+(?:-[a-z0-9]+)*\.md$/
 
-interface PublicCourseBuildOptions {
+export interface PublicCourseBuildOptions {
   repositoryRoot?: string
   outputDirectory?: string
+  includeLocalOnly?: boolean
 }
 
 interface GoCompatibilityStage {
@@ -548,6 +549,7 @@ export async function buildPublicArtifacts(
     sourceCatalog,
     courses: courseInputs,
     outputDirectory,
+    includeLocalOnly: options.includeLocalOnly,
     legacy: {
       courseId: "go-backend",
       courseData: legacyCourse,

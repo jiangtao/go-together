@@ -56,6 +56,7 @@ export interface MultiCoursePublicBuildInput {
   sourceCatalog: unknown
   courses: CourseProjectionInput[]
   outputDirectory: string
+  includeLocalOnly?: boolean
   legacy?: LegacyPublicProjection
 }
 
@@ -481,10 +482,15 @@ export async function buildMultiCoursePublicArtifacts(
     }
   }
 
+  const projectedInputs = parsedInputs.filter(({ source }) => {
+    const catalogCourse = catalogById.get(source.courseId)!
+    return input.includeLocalOnly || catalogCourse.distribution === "public"
+  })
+
   const catalog = parsePublicCatalog({
     schemaVersion: 1,
     defaultCourseId: sourceCatalog.defaultCourseId,
-    courses: parsedInputs
+    courses: projectedInputs
       .filter((entry) => entry.source.lifecycle !== "draft")
       .map(({ source, compiled }) => ({
         courseId: source.courseId,
@@ -505,7 +511,7 @@ export async function buildMultiCoursePublicArtifacts(
   const publicCourses: PublicCourse[] = []
   const publicLessonByCourse = new Map<string, Map<string, string>>()
 
-  for (const { input: courseInput, source, compiled } of parsedInputs) {
+  for (const { input: courseInput, source, compiled } of projectedInputs) {
     if (source.lifecycle === "draft") {
       if (courseInput.snapshot !== undefined) {
         throw new Error("Draft Course 不得提供 Release Progress Snapshot")

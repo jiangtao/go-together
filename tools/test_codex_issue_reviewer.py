@@ -40,7 +40,7 @@ output_path.write_text(json.dumps({"status": "revision-needed"}), encoding="utf-
             "schemaVersion": 1,
             "repository": "learner/private-answers",
             "issueNumber": 42,
-            "courseId": "algorithm-review",
+            "courseId": "algorithm",
             "lessonId": "arrays-strings-matrices",
             "workspace": str(self.workspace),
         }

@@ -19,7 +19,7 @@
 
 ## Learning Answer Issues
 
-课程学习回答不是工程票据，不能创建在当前公开仓库。首个接入的 `algorithm-review` Course 使用本机配置指定的私有 GitHub 答题仓库；协议、命令和 22:00 审核流程见 `docs/learning-issues.md`。
+课程学习回答不是工程票据，不能创建在当前公开仓库。首个接入的 `algorithm` Course 使用本机配置指定的私有 GitHub 答题仓库；协议、命令和 22:00 审核流程见 `docs/learning-issues.md`。
 
 ## English
 
@@ -31,4 +31,4 @@ Engineering specifications and implementation tickets are published in [jiangtao
 - Historical `.scratch/` files remain local history and are not a publication location for new engineering tickets.
 - When a skill says “publish to the issue tracker”, use `gh issue create --repo jiangtao/go-together` and apply `ready-for-agent`, unless the workflow explicitly needs another state. Fetch a ticket with `gh issue view <number> --repo jiangtao/go-together`.
 
-Learning answers are not engineering tickets and must never be created in this public repository. The first integrated Course, `algorithm-review`, uses a private GitHub answer repository chosen by local configuration; see `docs/learning-issues.md` for the protocol, commands, and 22:00 review workflow.
+Learning answers are not engineering tickets and must never be created in this public repository. The first integrated Course, `algorithm`, uses a private GitHub answer repository chosen by local configuration; see `docs/learning-issues.md` for the protocol, commands, and 22:00 review workflow.

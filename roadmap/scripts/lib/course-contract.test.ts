@@ -169,6 +169,7 @@ function sourceCatalog(
         language: { id: "go", label: "Go" },
         lifecycle: "published",
         visibility: "listed",
+        distribution: "public",
         replacementCourseId: null,
         manifestPath: "courses/go-backend/course.json",
       },
@@ -358,6 +359,7 @@ describe("multi-course domain contracts", () => {
       language: { id: "go", label: "Go" },
       lifecycle: "retired" as const,
       visibility: "listed" as const,
+      distribution: "public" as const,
       replacementCourseId: "go-backend",
       manifestPath: "courses/go-foundations/course.json",
     }
@@ -372,10 +374,27 @@ describe("multi-course domain contracts", () => {
       parseSourceCatalog({
         ...sourceCatalog(),
         courses: [
+          { ...sourceCatalog().courses[0], distribution: "private" },
+        ],
+      })
+    ).toThrow("public 或 local-only")
+    expect(() =>
+      parseSourceCatalog({
+        ...sourceCatalog(),
+        courses: [
+          { ...sourceCatalog().courses[0], distribution: "local-only" },
+        ],
+      })
+    ).toThrow("Default Course 必须是 Public Listed Published")
+
+    expect(() =>
+      parseSourceCatalog({
+        ...sourceCatalog(),
+        courses: [
           { ...sourceCatalog().courses[0], lifecycle: "draft" },
         ],
       })
-    ).toThrow("Default Course 必须是 Listed Published")
+    ).toThrow("Default Course 必须是 Public Listed Published")
     expect(() =>
       parseSourceCatalog({
         ...sourceCatalog(),
@@ -476,7 +495,7 @@ describe("multi-course domain contracts", () => {
         ...published,
         courses: [{ ...published.courses[0], lifecycle: "draft" }],
       })
-    ).toThrow("Default Course 必须是 Listed Published")
+    ).toThrow("Default Course 必须是 Public Listed Published")
     expect(() =>
       validateSourceCatalogTransition(published, {
         ...published,

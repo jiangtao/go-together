@@ -28,13 +28,13 @@ class LearningIssuesCliTest(unittest.TestCase):
         self.temporary_directory.cleanup()
 
     def _write_course_fixture(self):
-        course_directory = self.workspace / "courses" / "algorithm-review"
+        course_directory = self.workspace / "courses" / "algorithm"
         course_directory.mkdir(parents=True)
         (course_directory / "course.json").write_text(
             json.dumps(
                 {
                     "schemaVersion": 1,
-                    "courseId": "algorithm-review",
+                    "courseId": "algorithm",
                     "lifecycle": "published",
                     "tracks": [
                         {
@@ -169,7 +169,7 @@ raise SystemExit(91)
     def _issue(self, *, number=42, status="answer:open", answer="", state="OPEN"):
         metadata = {
             "schemaVersion": 1,
-            "courseId": "algorithm-review",
+            "courseId": "algorithm",
             "lessonId": "arrays-strings-matrices",
         }
         labels = [status]
@@ -194,7 +194,7 @@ raise SystemExit(91)
             "--workspace",
             str(self.workspace),
             "--course-id",
-            "algorithm-review",
+            "algorithm",
             "--lesson-id",
             "arrays-strings-matrices",
         )
@@ -206,7 +206,7 @@ raise SystemExit(91)
         calls = self._gh_calls()
         create_call = next(call for call in calls if call[:2] == ["issue", "create"])
         body = create_call[create_call.index("--body") + 1]
-        self.assertIn('"courseId":"algorithm-review"', body)
+        self.assertIn('"courseId":"algorithm"', body)
         self.assertIn('"lessonId":"arrays-strings-matrices"', body)
         self.assertIn("## 学习者回答", body)
         self.assertNotIn("标准答案", body)
@@ -220,7 +220,7 @@ raise SystemExit(91)
             "--workspace",
             str(self.workspace),
             "--course-id",
-            "algorithm-review",
+            "algorithm",
             "--lesson-id",
             "arrays-strings-matrices",
             environment=self._environment(
@@ -243,7 +243,7 @@ raise SystemExit(91)
             "--workspace",
             str(self.workspace),
             "--course-id",
-            "algorithm-review",
+            "algorithm",
             "--lesson-id",
             "arrays-strings-matrices",
             environment=self._environment(
@@ -270,7 +270,7 @@ raise SystemExit(91)
             "--workspace",
             str(self.workspace),
             "--course-id",
-            "algorithm-review",
+            "algorithm",
             "--lesson-id",
             "arrays-strings-matrices",
             environment=self._environment(
@@ -296,7 +296,7 @@ raise SystemExit(91)
             "--workspace",
             str(self.workspace),
             "--course-id",
-            "algorithm-review",
+            "algorithm",
             "--lesson-id",
             "arrays-strings-matrices",
             environment=self._environment(
@@ -317,7 +317,7 @@ raise SystemExit(91)
             "--workspace",
             str(self.workspace),
             "--course-id",
-            "algorithm-review",
+            "algorithm",
             "--lesson-id",
             "not-a-lesson",
         )
@@ -365,7 +365,7 @@ raise SystemExit(91)
         )
 
         self.assertEqual(result.returncode, 2)
-        self.assertIn("algorithm-review", result.stderr)
+        self.assertIn("algorithm", result.stderr)
         self.assertEqual(self._gh_calls(), [])
 
     def test_public_target_repository_stops_before_creating_labels_or_issues(self):
@@ -376,7 +376,7 @@ raise SystemExit(91)
             "--workspace",
             str(self.workspace),
             "--course-id",
-            "algorithm-review",
+            "algorithm",
             "--lesson-id",
             "arrays-strings-matrices",
             environment=self._environment(
@@ -423,7 +423,7 @@ raise SystemExit(91)
     def test_submit_rejects_an_issue_for_a_course_without_issue_workflow_opt_in(self):
         issue = self._issue()
         issue["body"] = issue["body"].replace(
-            "algorithm-review", "another-course"
+            "algorithm", "another-course"
         )
         result = self._run(
             "submit",
@@ -439,7 +439,7 @@ raise SystemExit(91)
         )
 
         self.assertEqual(result.returncode, 2)
-        self.assertIn("algorithm-review", result.stderr)
+        self.assertIn("algorithm", result.stderr)
         self.assertFalse(
             any(call[:2] == ["issue", "edit"] for call in self._gh_calls())
         )
@@ -527,15 +527,15 @@ raise SystemExit(91)
         protected_records = {
             self.workspace
             / "learning-records"
-            / "algorithm-review"
+            / "algorithm"
             / "arrays-strings-matrices"
             / "evaluation.json": '{"evaluation":"unchanged"}',
             self.workspace
             / "progress"
-            / "algorithm-review.json": '{"progress":"unchanged"}',
+            / "algorithm.json": '{"progress":"unchanged"}',
             self.workspace
             / "release-progress"
-            / "algorithm-review.json": '{"release":"unchanged"}',
+            / "algorithm.json": '{"release":"unchanged"}',
         }
         for path, contents in protected_records.items():
             path.parent.mkdir(parents=True, exist_ok=True)

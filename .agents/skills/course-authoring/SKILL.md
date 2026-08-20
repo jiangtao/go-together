@@ -15,8 +15,8 @@ description: Use when a maintainer explicitly asks to create a course, add a les
 
 ### 创建 Draft Course
 
-1. 要求完整元数据：`courseId`、标题、描述、语言 `id/label`，以及初始 Track、Stage、Lesson 结构。
-2. 在 `courses/catalog.json` 增加唯一 Draft 声明；Manifest 固定为 `courses/<courseId>/course.json`。
+1. 要求完整元数据：`courseId`、标题、描述、语言 `id/label`、分发范围 `public/local-only`，以及初始 Track、Stage、Lesson 结构。
+2. 在 `courses/catalog.json` 增加唯一 Draft 声明；Manifest 固定为 `courses/<courseId>/course.json`。未声明分发范围时只允许默认 `public`，不得猜测为 `local-only`。
 3. 创建 `courses/<courseId>/course.json`、`lessons/<lessonId>.md`、`evaluation/policy.md` 和 `evaluation/command-profile.json`，并补齐 Manifest 声明的所有资源文件。
 4. 使用 `roadmap/scripts/lib/course-authoring.ts` 与现有 Course Contract 校验；任何重复 ID、重复或已存在路径、缺失字段、非法相对路径或 schema 不匹配都必须停止。
 
@@ -30,8 +30,8 @@ description: Use when a maintainer explicitly asks to create a course, add a les
 
 1. 维护者明确请求发布时，确认 Draft→Published 是合法单向转换，Course/Language/Manifest 身份不变，所有 Lesson 与 authoring files 完整。
 2. 从私有 Evaluation 派生 `release-progress/<courseId>.json`，不得手工编写或让 Snapshot 反向修改 Evaluation。
-3. 在 `roadmap/` 运行公开生成、确定性检查、公开审计和 `build:hosting`；发布只接受审计通过的 `roadmap/.vercel/output` prebuilt artifact。
-4. 只有 `courses/catalog.json` 中生命周期为 `published` 且上述生成/审计/构建全部成功的课程，才进入公开 Catalog 和路线图选择器。Draft 源永不公开；失败时保持 Draft 并报告阻断原因。
+3. `distribution: public` 时，在 `roadmap/` 运行公开生成、确定性检查、公开审计和 `build:hosting`；发布只接受审计通过的 `roadmap/.vercel/output` prebuilt artifact。`distribution: local-only` 时，公开生成与所有部署产物必须零课程文件，仅 `generate:local`/`dev` 可生成本地投影。
+4. 只有 `published + distribution: public` 且上述生成/审计/构建全部成功的课程，才进入公开 Catalog；其中仅 `visibility: listed` 进入路线图选择器。`local-only` 和 Draft 源永不进入公开构建；失败时保持原生命周期并报告阻断原因。
 
 ## 学习者交接
 
@@ -41,9 +41,9 @@ description: Use when a maintainer explicitly asks to create a course, add a les
 
 - 缺少稳定 ID、元数据不完整、Course/ Lesson 重复或目标路径已存在。
 - 请求覆盖已有文件、改变 Published/Retired 身份、跨课程写入或使用 symlink/越界路径。
-- Draft 未完成完整 Contract、Release Progress 无法由私有 Evaluation 派生，或公开生成/审计/build 失败。
+- Draft 未完成完整 Contract、Release Progress 无法由私有 Evaluation 派生，公开生成/审计/build 失败，或 `local-only` Course 泄露到任一公开/部署产物。
 - 请求代写学习者 Notes/Evaluation、修改状态、绕过评测 Skill，或直接发布未审计 source tree。
 
 ## 回报
 
-报告 courseId、lessonId（如适用）、当前生命周期、写入/未写入的规范路径、验证结果和阻断原因。不得输出私有 Notes、Evaluation 正文、答案、命令参数或本机路径；发布前必须明确说明公开投影与 prebuilt 审计结果。
+报告 courseId、lessonId（如适用）、当前生命周期、分发范围、写入/未写入的规范路径、验证结果和阻断原因。不得输出私有 Notes、Evaluation 正文、答案、命令参数或本机路径；发布前必须明确说明公开投影、local-only 排除检查与 prebuilt 审计结果。

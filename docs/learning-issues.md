@@ -1,6 +1,6 @@
 # GitHub 答题 Issue 与夜间审核
 
-`algorithm-review` 的学习者回答可以使用私有 GitHub 仓库中的 Issue 进行异步协作。当前课程仓库只保存协议和工具，不保存学习回答、答题仓库地址、访问令牌或审核日志。
+`algorithm` 的学习者回答可以使用私有 GitHub 仓库中的 Issue 进行异步协作。当前课程仓库只保存协议和工具，不保存学习回答、答题仓库地址、访问令牌或审核日志。
 
 ## 边界与前提
 
@@ -8,7 +8,7 @@
 - 每个 Answer Issue 只属于一个稳定学习身份 `(courseId, lessonId)`。Day、标题、路径和对话记忆都不能代替该身份。
 - 学习者是回答正文的唯一作者。创建工具只生成骨架；审核工具只更新协议标签和通用审核评论。
 - 本机 Evaluation Record 仍是评测、Progress 和 Release Progress 的唯一事实源。答题 Issue 审核状态不等于课程通过。
-- 工具只处理 `algorithm-review`；其他 Course 必须先明确接入并补齐其 Course Evaluation Policy。
+- 工具只处理 `algorithm`；其他 Course 必须先明确接入并补齐其 Course Evaluation Policy。
 
 ## 本机配置
 
@@ -47,7 +47,7 @@ python3 tools/learning_issues.py init \
 python3 tools/learning_issues.py open \
   --config .learning-issues/answer-issues.json \
   --workspace . \
-  --course-id algorithm-review \
+  --course-id algorithm \
   --lesson-id arrays-strings-matrices
 ```
 
@@ -110,7 +110,7 @@ Cron 不会唤醒处于休眠或关机状态的 Mac；本流程不承诺漏跑�
 
 ## English Reference
 
-`algorithm-review` learner answers can be handled asynchronously through Issues in a private GitHub repository. The current course repository stores only the protocol and tooling; it never stores learner answers, the answer-repository address, access tokens, or review logs.
+`algorithm` learner answers can be handled asynchronously through Issues in a private GitHub repository. The current course repository stores only the protocol and tooling; it never stores learner answers, the answer-repository address, access tokens, or review logs.
 
 ### Boundary and prerequisites
 
@@ -118,7 +118,7 @@ Cron 不会唤醒处于休眠或关机状态的 Mac；本流程不承诺漏跑�
 - Every Answer Issue belongs to one stable learning identity, `(courseId, lessonId)`. A Day, title, path, or conversation memory cannot replace that identity.
 - The learner is the only author of the answer body. Creation writes a skeleton only; review updates protocol labels and a generic review comment only.
 - The local Evaluation Record remains the sole source of evaluation, Progress, and Release Progress. An Answer-Issue review status does not mean the Course was passed.
-- The tool serves `algorithm-review` only. Another Course must be explicitly integrated and given its own Course Evaluation Policy.
+- The tool serves `algorithm` only. Another Course must be explicitly integrated and given its own Course Evaluation Policy.
 
 ### Local configuration
 
@@ -157,7 +157,7 @@ Create or reuse the single Answer Issue for a concrete Lesson. If its sole match
 python3 tools/learning_issues.py open \
   --config .learning-issues/answer-issues.json \
   --workspace . \
-  --course-id algorithm-review \
+  --course-id algorithm \
   --lesson-id arrays-strings-matrices
 ```
 
