@@ -306,6 +306,55 @@ async function expectElementInsideViewport(locator: Locator, viewportHeight: num
   expect(box!.y + box!.height).toBeLessThanOrEqual(viewportHeight)
 }
 
+async function dragSelectText(page: Page, target: Locator): Promise<string> {
+  const [targetBox, viewport] = await Promise.all([
+    target.boundingBox(),
+    Promise.resolve(page.viewportSize()),
+  ])
+  if (!targetBox || !viewport) {
+    throw new Error("文本区域或视口不可用，无法验证拖选")
+  }
+
+  const startX = targetBox.x + 4
+  const startY = targetBox.y + Math.min(8, targetBox.height / 2)
+  const endX = Math.min(targetBox.x + targetBox.width - 4, viewport.width - 4)
+  await page.mouse.move(startX, startY)
+  await page.mouse.down()
+  await page.mouse.move(endX, startY, { steps: 8 })
+  await page.mouse.up()
+
+  return page.evaluate(() => window.getSelection()?.toString() ?? "")
+}
+
+async function dragDrawerHandleToClose(page: Page, drawer: Locator): Promise<void> {
+  const [drawerBox, handleBox, viewport, direction] = await Promise.all([
+    drawer.boundingBox(),
+    drawer.locator('[data-slot="drawer-handle"]').boundingBox(),
+    Promise.resolve(page.viewportSize()),
+    drawer.getAttribute("data-vaul-drawer-direction"),
+  ])
+  if (!drawerBox || !handleBox || !viewport) {
+    throw new Error("抽屉、拖拽把手或视口不可用，无法验证关闭手势")
+  }
+
+  const startX = handleBox.x + handleBox.width / 2
+  const startY = handleBox.y + handleBox.height / 2
+  let endX = startX
+  let endY = startY
+  if (direction === "right") {
+    endX = Math.min(startX + drawerBox.width * 0.4, viewport.width - 4)
+  } else if (direction === "bottom") {
+    endY = Math.min(startY + drawerBox.height * 0.4, viewport.height - 4)
+  } else {
+    throw new Error(`不支持的抽屉关闭方向：${direction ?? "未知"}`)
+  }
+
+  await page.mouse.move(startX, startY)
+  await page.mouse.down()
+  await page.mouse.move(endX, endY, { steps: 8 })
+  await page.mouse.up()
+}
+
 async function expectMinimumTouchTargets(locator: Locator) {
   const undersized = await locator.evaluateAll((elements) =>
     elements
@@ -1135,6 +1184,10 @@ test("桌面与移动路线图可见、可交互且无布局碰撞", async ({
   await expect(page.getByTestId("lesson-detail-title")).toHaveText(
     "minimal Tool interface"
   )
+  await expect(page.getByTestId("lesson-objective")).toHaveCSS(
+    "user-select",
+    "text"
+  )
   await expect(page.getByTestId("progress-overview")).toHaveCount(0)
   await expect(page.getByTestId("learning-progress-toggle")).toHaveCount(0)
   await expect(page.locator('[data-testid^="stage-progress-"]')).toHaveCount(0)
@@ -1199,6 +1252,7 @@ test("桌面与移动路线图可见、可交互且无布局碰撞", async ({
   )
   const markdownContent = page.getByTestId("markdown-content")
   await expect(markdownContent).toBeVisible()
+  await expect(markdownContent).toHaveCSS("user-select", "text")
   await expect(
     markdownContent.getByRole("heading", {
       level: 1,
@@ -1403,6 +1457,60 @@ test("Day 节点与应用内课程阅读器支持键盘操作", async ({
   await expect(page.getByTestId("markdown-reader")).toHaveCount(0)
   await expect(lessonLink).toBeFocused()
   expectNoRuntimeErrors()
+})
+
+test("课程详情与 Markdown 正文支持选中复制", async ({ page }) => {
+  await page.goto("/")
+  const dayZero = page.locator(
+    '.react-flow__node-lesson[data-id="lesson:why-go-after-node"]'
+  )
+  await dayZero.locator('[data-slot="card-header"]').click()
+  const learningDrawer = page.getByTestId("learning-drawer")
+  await expect(learningDrawer).toBeVisible()
+  await waitForElementToSettle(learningDrawer)
+  const learningHandle = learningDrawer.locator('[data-slot="drawer-handle"]')
+  await expect(learningHandle).toHaveCSS("height", "44px")
+  expect(
+    await learningHandle.evaluate(
+      (element) => window.getComputedStyle(element, "::before").content
+    )
+  ).toBe(
+    (await learningDrawer.getAttribute("data-vaul-drawer-direction")) === "bottom"
+      ? '"向下拖动关闭"'
+      : '"向右拖动关闭"'
+  )
+
+  await expect(page.getByTestId("lesson-objective")).toHaveCSS(
+    "user-select",
+    "text"
+  )
+  expect(
+    await dragSelectText(page, page.getByTestId("lesson-objective"))
+  ).not.toBe("")
+  await expect(learningDrawer).toBeVisible()
+
+  await dragDrawerHandleToClose(page, learningDrawer)
+  await expect(learningDrawer).toHaveCount(0)
+
+  await dayZero.locator('[data-slot="card-header"]').click()
+  await expect(learningDrawer).toBeVisible()
+  await page.getByTestId("lesson-resource-lesson").click()
+  const markdownReader = page.getByTestId("markdown-reader")
+  await expect(markdownReader).toBeVisible()
+  await waitForElementToSettle(markdownReader)
+  const markdownContent = page.getByTestId("markdown-content")
+  await expect(markdownContent).toBeVisible()
+  await expect(markdownContent).toHaveCSS("user-select", "text")
+  const markdownHeading = markdownContent.getByRole("heading", { level: 1 })
+  expect(await dragSelectText(page, markdownHeading)).not.toBe("")
+
+  const markdownHandle = page.getByTestId("markdown-reader-drag-handle")
+  await expect(markdownHandle).toBeVisible()
+  await expect(markdownHandle).toHaveCSS("height", "24px")
+  await markdownHandle.hover()
+  await expect(page.getByRole("tooltip")).toHaveText("向右拖动可关闭")
+  await dragDrawerHandleToClose(page, markdownReader)
+  await expect(markdownReader).toHaveCount(0)
 })
 
 test("课程阅读器提供稳定加载态", async ({ page }, testInfo) => {

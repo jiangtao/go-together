@@ -56,6 +56,7 @@ export function LearningDrawer({
       open={open}
       onOpenChange={onOpenChange}
       direction={isMobile ? "bottom" : "right"}
+      handleOnly
       autoFocus
     >
       <DrawerContent

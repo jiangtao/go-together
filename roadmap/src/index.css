@@ -843,6 +843,108 @@
     height: auto;
   }
 
+  [data-vaul-drawer].learning-drawer,
+  [data-vaul-drawer].markdown-reader {
+    -webkit-user-select: text !important;
+    user-select: text !important;
+  }
+
+  [data-slot="drawer-handle"] {
+    flex: none;
+    -webkit-user-select: none !important;
+    user-select: none !important;
+    cursor: grab;
+  }
+
+  [data-slot="drawer-handle"].drawer-default-handle {
+    display: grid !important;
+    width: auto !important;
+    min-width: 8rem;
+    height: 2.75rem !important;
+    margin: 0.75rem auto 0.25rem !important;
+    place-items: center;
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    background: var(--muted) !important;
+    color: var(--muted-foreground);
+    font-size: 0.75rem;
+    font-weight: 600;
+    opacity: 1 !important;
+  }
+
+  [data-slot="drawer-handle"].drawer-default-handle::before {
+    content: "拖动关闭";
+  }
+
+  [data-vaul-drawer-direction="right"]
+    [data-slot="drawer-handle"].drawer-default-handle::before {
+    content: "向右拖动关闭";
+  }
+
+  [data-vaul-drawer-direction="bottom"]
+    [data-slot="drawer-handle"].drawer-default-handle::before {
+    content: "向下拖动关闭";
+  }
+
+  [data-slot="drawer-handle"].drawer-default-handle:hover {
+    border-color: var(--ring);
+    background: var(--accent) !important;
+    color: var(--accent-foreground);
+  }
+
+  [data-slot="drawer-handle"]:active {
+    cursor: grabbing;
+  }
+
+  [data-slot="drawer-handle"] [data-vaul-handle-hitarea] {
+    inset: 0 !important;
+    width: 100% !important;
+    height: 100% !important;
+    transform: none !important;
+  }
+
+  .markdown-reader-leading {
+    display: flex;
+    flex: none;
+    flex-direction: column;
+    align-items: center;
+    gap: 0.25rem;
+  }
+
+  .markdown-reader-drag-handle-trigger {
+    display: block;
+    flex: none;
+  }
+
+  [data-slot="drawer-handle"].markdown-reader-drag-handle {
+    display: grid !important;
+    width: 2rem !important;
+    min-width: 2rem;
+    height: 1.5rem !important;
+    margin: 0 !important;
+    place-items: center;
+    border-radius: calc(var(--radius) - 2px);
+    background: transparent !important;
+    color: var(--muted-foreground);
+    opacity: 1 !important;
+  }
+
+  [data-slot="drawer-handle"].markdown-reader-drag-handle:hover {
+    background: var(--accent) !important;
+    color: var(--accent-foreground);
+  }
+
+  [data-slot="drawer-handle"].markdown-reader-drag-handle
+    [data-vaul-handle-hitarea] {
+    display: grid;
+    place-items: center;
+  }
+
+  [data-slot="drawer-handle"].markdown-reader-drag-handle svg {
+    width: 1rem;
+    height: 1rem;
+  }
+
   .lesson-detail-content {
     display: flex;
     min-height: 0;
