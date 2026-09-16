@@ -642,7 +642,7 @@
         {
           "stageId": "grpc-service-chain",
           "title": "gRPC 服务链路",
-          "description": "完成 unary、client、streaming、context 与 metadata 链路。",
+          "description": "学习服务间调用的契约、client、streaming 与 metadata；按项目需要补齐，不是进入 Eino 的前置条件。",
           "lessons": [
             {
               "lessonId": "unary-server",
@@ -972,19 +972,19 @@
         },
         {
           "stageId": "agent-slice-and-review",
-          "title": "Agent 切片与复盘",
-          "description": "阅读开源模式，构造最小 Agent 切片并完成集成、加固和复盘。",
+          "title": "Go 综合练习与 Agent 入门",
+          "description": "以 WeKnora 阅读和最小 Agent 切片巩固接口、context、测试与运行治理；不重复实战课的框架进阶。",
           "lessons": [
             {
               "lessonId": "open-source-reading-pass",
               "lifecycle": "active",
               "day": 29,
-              "title": "open-source reading pass",
-              "objective": "本文件只服务当天学习。今天只完成今天的目标，不提前展开后续天数，避免主题互相干扰。",
+              "title": "WeKnora 请求链路阅读",
+              "objective": "从熟悉的页面问答操作出发，用四遍阅读法追到 WeKnora 的 Go 路由、业务处理和流式返回，为关键行为寻找验证证据。",
               "goals": [
-                "能用四遍阅读法读一个真实 Go 开源项目，而不是随机点文件。",
+                "能用四遍阅读法追踪 WeKnora 的一次问答请求，至少深入一段 Go 业务逻辑。",
                 "能从开源项目中提取一个 100-300 行可复刻小模式。",
-                "能把阅读重点放在 Go 工业实践：目录结构、接口边界、context、错误、并发、测试、可观测性。"
+                "能给出 context、错误与测试等三类源码证据，区分页面现象、源码判断和运行验证。"
               ],
               "contentPath": "lessons/open-source-reading-pass.md",
               "exerciseTemplatePath": null,
@@ -1186,8 +1186,8 @@
               "lessonId": "final-review",
               "lifecycle": "active",
               "day": 36,
-              "title": "final review",
-              "objective": "今天不是继续加功能，而是证明自己能解释这条链路：HTTP/gRPC -> service -> sqlc repository -> transaction -> Agent tool loop -> streaming progress -> tests -> structured logs -> race check -> graceful shutdown。",
+              "title": "复盘与 WeKnora 进阶",
+              "objective": "用工程证据复盘 Go 后端与 Agent 切片，并按 WeKnora 完整应用和首次贡献 → Eino 深入机制 → 按需 MCP 安排下一阶段。",
               "goals": [
                 "今天不是继续加功能，而是证明自己能解释这条链路：HTTP/gRPC -> service -> sqlc repository -> transaction -> Agent tool loop -> streaming progress -> tests -> structured logs -> race check -> graceful shutdown。"
               ],

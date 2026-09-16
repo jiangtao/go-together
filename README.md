@@ -4,7 +4,9 @@
 >
 > A reusable, curriculum-driven learning framework.
 
-`lesson-together` 把课程内容、逐日练习、学习评测和进度可视化组织成一条可执行、可复盘的学习路径。框架支持多课程共存；当前已发布“Node.js 工程师 → Go 后端开发者”与“Web 编辑器工程实战”两门课程。
+`lesson-together` 把课程内容、逐日练习、学习评测和进度可视化组织成一条可执行、可复盘的学习路径。框架支持多课程共存；当前课程目录包含“Node.js 工程师 → Go 后端开发者”、“Web 编辑器工程实战”和“Go Agent 应用实战”。
+
+新增的 [Go Agent 应用实战](./courses/go-agent-application/README.md)有 30 个课次，承接前端应用与 Node.js 背景：WeKnora 完整应用和首次贡献 → Eino 深入机制 → 按需 MCP。本地课程目录已纳入该课，线上可用性以实际部署版本为准。
 
 仓库地址保持为 [github.com/jiangtao/go-together](https://github.com/jiangtao/go-together)，Vercel 项目名为 `self-go`；仓库、目录、package 与应用内品牌保持不变。
 

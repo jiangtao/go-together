@@ -52,12 +52,18 @@
 | Phase 03 DB + sqlc + Tx | Accessing relational databases, database/sql, pgxpool, sqlc PostgreSQL tutorial, sqlc config, golang-migrate/migrate | 建立显式数据层、迁移、生成代码和事务边界 |
 | Phase 04 gRPC Unary | gRPC Go Quickstart, gRPC Go Basics, proto3 Guide, Go Generated Code Guide, Status Codes | 先学 contract-first、生成代码、unary server/client 和错误码 |
 | Phase 05 Concurrency/Ops | context, Pipelines and cancellation, sync, errgroup, Go Memory Model, Race Detector, log/slog, slog blog, Server.Shutdown, signal.NotifyContext, gRPC Graceful Shutdown | 学 streaming、取消、并发治理、race、日志和 shutdown |
-| Phase 06 Agent/Capstone | langchaingo, Ollama API, chi, pgx, sqlc, grpc-go, connect-go | 用开源项目做四遍阅读和最小复刻 |
+| Phase 06 Agent/Capstone | WeKnora 为应用主项目，Eino 为机制进阶；后端基础沿用 chi, pgx, sqlc, grpc-go | 从页面操作追到 Go 业务逻辑、验证关键行为，再拆出单 Agent 服务 |
 
 ### Study Projects (Agent / AI)
 
-- [langchaingo](https://github.com/tmc/langchaingo) — Go port of LangChain. Demonstrates LLM provider abstraction, chain composition, tool/function calling, memory management, agent loops. Study for: interfaces, concurrency in agent flows. Difficulty: Intermediate.
+- [WeKnora](https://github.com/Tencent/WeKnora)：针对前端应用与 Node.js 后端背景的主项目，也是首次贡献的优先项目。沿上传、解析、索引、提问、检索、Agent 工具调用和流式返回深入；优先研究前后端交界处且需要 Go 验证的问题。
+- [Eino](https://github.com/cloudwego/eino)：第二阶段。能独立追踪 WeKnora 一次问答请求后，从 [ADK 快速开始](https://www.cloudwego.io/docs/eino/core_modules/eino_adk/agent_quickstart/) 拆出 HTTP → 单 Agent → 一个业务工具 → 流式返回，再研究上下文、中断恢复和编排。
+- [MCP 官方 Go SDK](https://github.com/modelcontextprotocol/go-sdk)：有真实工具接入需求后再学协议语义、client/server 与传输边界，不作为前两阶段的先修。
+- [MCP-Go](https://github.com/mark3labs/mcp-go)：未来专门练习协议工具或小修复时的备选，参考[贡献指南](https://github.com/mark3labs/mcp-go/blob/main/CONTRIBUTING.md)。初次接入与官方 SDK 二选一。
+- [PicoClaw](https://github.com/sipeed/picoclaw)：可选的完整应用阅读对照，不安排为必经阶段；首次贡献优先级较低，需独立核对人工回应。
 - [Ollama](https://github.com/ollama/ollama) — Production-grade local LLM server + CLI. Study `server/` and `api/` packages for: HTTP API design, subprocess management, CLI structure. Difficulty: Intermediate, large codebase.
+
+上述顺序承接 2026-09-15 调研会话在明确“前端应用侧转来，有 Node.js 后端基础”后的最终建议：WeKnora → Eino → 按需 MCP。此前面向泛 Go 后端开发者的 Eino/MCP-Go 优先顺序不适用于本次个人路线。原候选筛选按累计 stars 至少 2,000、业务代码近 3 个自然月有更新，Issue 活动仅作参考；LangChainGo 与 Coze Studio 未通过该次活跃度筛选。重新选型时复核实际源码提交和人工回应。详细安排见 [Go Agent 学习与贡献计划](docs/go-agent-learning-plan.md)。
 
 ### Study Projects (Backend / Infrastructure)
 
@@ -76,6 +82,7 @@
 - [Gopher Slack](https://invite.slack.golangbridge.org/) — Official Go community Slack. Use for: quick questions, ecosystem knowledge.
 - [Go Weekly](https://golangweekly.com/) — Curated newsletter of Go articles, releases, and projects.
 
-## Gaps
+## 下一步补齐
 
-- No identified Agent-framework-level Go project suitable for beginners. langchaingo is the closest but assumes intermediate Go. May need to teach up to it.
+- 先固定 WeKnora 版本并跑通一个知识库的上传与问答，再编写真实链路课；当前计划不代表已部署或验证。
+- 区分浏览器现象、Go 后端测试、模型调用与上游贡献证据；完成应用链路追踪后再进入 Eino 小服务。

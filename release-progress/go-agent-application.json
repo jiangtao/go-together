@@ -1,0 +1,158 @@
+{
+  "schemaVersion": 1,
+  "courseId": "go-agent-application",
+  "courseRevision": "sha256:428de78c88988fff63a5fc8e5f76b1885d665337f868eaa15db4ef1bf7efbdca",
+  "privateInputDigest": "sha256:45a082d13c66fab33fdd634aef3660caeb5286035d012cd7a0d273ebe4d5db0d",
+  "lessons": [
+    {
+      "lessonId": "version-and-baseline",
+      "status": "未开始",
+      "referenceScore": null
+    },
+    {
+      "lessonId": "local-weknora-loop",
+      "status": "未开始",
+      "referenceScore": null
+    },
+    {
+      "lessonId": "upload-request-path",
+      "status": "未开始",
+      "referenceScore": null
+    },
+    {
+      "lessonId": "document-processing-states",
+      "status": "未开始",
+      "referenceScore": null
+    },
+    {
+      "lessonId": "retrieval-and-citations",
+      "status": "未开始",
+      "referenceScore": null
+    },
+    {
+      "lessonId": "question-streaming-path",
+      "status": "未开始",
+      "referenceScore": null
+    },
+    {
+      "lessonId": "parameter-and-error-contracts",
+      "status": "未开始",
+      "referenceScore": null
+    },
+    {
+      "lessonId": "application-chain-review",
+      "status": "未开始",
+      "referenceScore": null
+    },
+    {
+      "lessonId": "cancel-request-semantics",
+      "status": "未开始",
+      "referenceScore": null
+    },
+    {
+      "lessonId": "cancellation-regression-test",
+      "status": "未开始",
+      "referenceScore": null
+    },
+    {
+      "lessonId": "async-task-retry",
+      "status": "未开始",
+      "referenceScore": null
+    },
+    {
+      "lessonId": "database-index-consistency",
+      "status": "未开始",
+      "referenceScore": null
+    },
+    {
+      "lessonId": "concurrency-and-deadlines",
+      "status": "未开始",
+      "referenceScore": null
+    },
+    {
+      "lessonId": "agent-context-and-tools",
+      "status": "未开始",
+      "referenceScore": null
+    },
+    {
+      "lessonId": "retrieval-quality-fixture",
+      "status": "未开始",
+      "referenceScore": null
+    },
+    {
+      "lessonId": "failure-attribution-review",
+      "status": "未开始",
+      "referenceScore": null
+    },
+    {
+      "lessonId": "contribution-candidate-triage",
+      "status": "未开始",
+      "referenceScore": null
+    },
+    {
+      "lessonId": "minimal-reproduction",
+      "status": "未开始",
+      "referenceScore": null
+    },
+    {
+      "lessonId": "minimal-fix-and-regression",
+      "status": "未开始",
+      "referenceScore": null
+    },
+    {
+      "lessonId": "contribution-evidence-package",
+      "status": "未开始",
+      "referenceScore": null
+    },
+    {
+      "lessonId": "eino-service-boundary",
+      "status": "未开始",
+      "referenceScore": null
+    },
+    {
+      "lessonId": "eino-scripted-model",
+      "status": "未开始",
+      "referenceScore": null
+    },
+    {
+      "lessonId": "eino-readonly-tool",
+      "status": "未开始",
+      "referenceScore": null
+    },
+    {
+      "lessonId": "eino-loop-failure-bounds",
+      "status": "未开始",
+      "referenceScore": null
+    },
+    {
+      "lessonId": "eino-http-stream",
+      "status": "未开始",
+      "referenceScore": null
+    },
+    {
+      "lessonId": "platform-framework-comparison",
+      "status": "未开始",
+      "referenceScore": null
+    },
+    {
+      "lessonId": "context-or-resume",
+      "status": "未开始",
+      "referenceScore": null
+    },
+    {
+      "lessonId": "orchestration-decision",
+      "status": "未开始",
+      "referenceScore": null
+    },
+    {
+      "lessonId": "full-chain-verification",
+      "status": "未开始",
+      "referenceScore": null
+    },
+    {
+      "lessonId": "next-step-and-mcp",
+      "status": "未开始",
+      "referenceScore": null
+    }
+  ]
+}
