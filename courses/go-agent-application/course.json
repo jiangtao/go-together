@@ -1,0 +1,1124 @@
+{
+  "schemaVersion": 1,
+  "courseId": "go-agent-application",
+  "title": "Go Agent 应用实战",
+  "description": "面向前端应用与 Node.js 背景：WeKnora 完整应用和首次贡献 → Eino 深入机制 → 按需 MCP。每课追入 Go 业务逻辑并验证关键行为。",
+  "language": {
+    "id": "go",
+    "label": "Go"
+  },
+  "lifecycle": "published",
+  "replacementCourseId": null,
+  "evaluationPolicyPath": "evaluation/policy.md",
+  "commandProfilePath": "evaluation/command-profile.json",
+  "publicResources": [],
+  "internalResources": [],
+  "tracks": [
+    {
+      "trackId": "application-to-agent",
+      "title": "WeKnora 应用与后端",
+      "description": "从功能闭环深入后端机制，阶段总结分别回答“链路如何工作”和“故障为何发生”。",
+      "stages": [
+        {
+          "stageId": "weknora-application",
+          "title": "WeKnora 功能闭环",
+          "description": "里程碑：独立追通上传、检索与问答，解释页面到 Go 的完整链路。",
+          "lessons": [
+            {
+              "lessonId": "version-and-baseline",
+              "lifecycle": "active",
+              "day": 1,
+              "title": "固定版本与环境基线",
+              "objective": "先把“我运行的是哪个版本”变成可回答的问题。源码、镜像和文档版本不同，会让页面行为与阅读的 Go 实现不一致。",
+              "goals": [
+                "先把“我运行的是哪个版本”变成可回答的问题。源码、镜像和文档版本不同，会让页面行为与阅读的 Go 实现不一致。",
+                "证明入口版本可定位，必要依赖有明确状态。不能因为 Docker 命令存在就认定服务、数据库或模型已可用。",
+                "一份版本与依赖清单，附实际检查输出及缺失项。"
+              ],
+              "contentPath": "lessons/version-and-baseline.md",
+              "exerciseTemplatePath": null,
+              "evaluation": {
+                "competencies": [
+                  {
+                    "competencyId": "explain-mechanism",
+                    "title": "解释本课机制与边界"
+                  },
+                  {
+                    "competencyId": "verify-evidence",
+                    "title": "完成本课明确要求的产物与验证"
+                  }
+                ],
+                "requiredEvidence": [
+                  "notes",
+                  "explicit-exercise-evidence"
+                ],
+                "scoringBasis": [
+                  "准确",
+                  "完整",
+                  "可验证"
+                ]
+              }
+            },
+            {
+              "lessonId": "local-weknora-loop",
+              "lifecycle": "active",
+              "day": 2,
+              "title": "启动一个最小知识库",
+              "objective": "环境的价值是让一次用户操作可复现。首轮只运行一套本地测试环境、一个知识库和一种问答模式。",
+              "goals": [
+                "环境的价值是让一次用户操作可复现。首轮只运行一套本地测试环境、一个知识库和一种问答模式。",
+                "页面、API、文档处理和模型请求分别有证据；启动服务不是本课的全部成功条件。",
+                "一个知识库的上传和问答记录，以及源码版本、启动方式和脱敏日志。"
+              ],
+              "contentPath": "lessons/local-weknora-loop.md",
+              "exerciseTemplatePath": null,
+              "evaluation": {
+                "competencies": [
+                  {
+                    "competencyId": "explain-mechanism",
+                    "title": "解释本课机制与边界"
+                  },
+                  {
+                    "competencyId": "verify-evidence",
+                    "title": "完成本课明确要求的产物与验证"
+                  }
+                ],
+                "requiredEvidence": [
+                  "notes",
+                  "explicit-exercise-evidence"
+                ],
+                "scoringBasis": [
+                  "准确",
+                  "完整",
+                  "可验证"
+                ]
+              }
+            },
+            {
+              "lessonId": "upload-request-path",
+              "lifecycle": "active",
+              "day": 3,
+              "title": "从上传操作追到 Go 业务逻辑",
+              "objective": "利用熟悉的浏览器 Network 面板，把上传操作映射到服务端真实函数。目标是追踪数据，不是浏览所有目录。",
+              "goals": [
+                "利用熟悉的浏览器 Network 面板，把上传操作映射到服务端真实函数。目标是追踪数据，不是浏览所有目录。",
+                "请求中的一个具体字段能够追到 Go 业务使用处；能区分请求失败与异步处理失败。",
+                "一次上传的脱敏请求摘要、5-8 个节点的调用图和字段映射表。"
+              ],
+              "contentPath": "lessons/upload-request-path.md",
+              "exerciseTemplatePath": null,
+              "evaluation": {
+                "competencies": [
+                  {
+                    "competencyId": "explain-mechanism",
+                    "title": "解释本课机制与边界"
+                  },
+                  {
+                    "competencyId": "verify-evidence",
+                    "title": "完成本课明确要求的产物与验证"
+                  }
+                ],
+                "requiredEvidence": [
+                  "notes",
+                  "explicit-exercise-evidence"
+                ],
+                "scoringBasis": [
+                  "准确",
+                  "完整",
+                  "可验证"
+                ]
+              }
+            },
+            {
+              "lessonId": "document-processing-states",
+              "lifecycle": "active",
+              "day": 4,
+              "title": "解析、切分与索引的状态边界",
+              "objective": "文档已经出现在列表里，却没有检索结果时，必须知道它卡在哪个处理阶段。",
+              "goals": [
+                "文档已经出现在列表里，却没有检索结果时，必须知道它卡在哪个处理阶段。",
+                "能定位文档停在哪一步，并解释页面状态与后端事实之间的映射。",
+                "处理状态图、一份片段样例和一个失败/恢复场景。"
+              ],
+              "contentPath": "lessons/document-processing-states.md",
+              "exerciseTemplatePath": null,
+              "evaluation": {
+                "competencies": [
+                  {
+                    "competencyId": "explain-mechanism",
+                    "title": "解释本课机制与边界"
+                  },
+                  {
+                    "competencyId": "verify-evidence",
+                    "title": "完成本课明确要求的产物与验证"
+                  }
+                ],
+                "requiredEvidence": [
+                  "notes",
+                  "explicit-exercise-evidence"
+                ],
+                "scoringBasis": [
+                  "准确",
+                  "完整",
+                  "可验证"
+                ]
+              }
+            },
+            {
+              "lessonId": "retrieval-and-citations",
+              "lifecycle": "active",
+              "day": 5,
+              "title": "一次问答中的检索与引用",
+              "objective": "回答看起来合理，不代表它使用了正确文档。本课从引用反向核对检索和生成依据。",
+              "goals": [
+                "回答看起来合理，不代表它使用了正确文档。本课从引用反向核对检索和生成依据。",
+                "能够区分检索不到、排序错误、上下文丢失和生成无依据，而不是统一称为“模型不行”。",
+                "两个问题的检索/回答/引用对照及 Go 结果组装位置。"
+              ],
+              "contentPath": "lessons/retrieval-and-citations.md",
+              "exerciseTemplatePath": null,
+              "evaluation": {
+                "competencies": [
+                  {
+                    "competencyId": "explain-mechanism",
+                    "title": "解释本课机制与边界"
+                  },
+                  {
+                    "competencyId": "verify-evidence",
+                    "title": "完成本课明确要求的产物与验证"
+                  }
+                ],
+                "requiredEvidence": [
+                  "notes",
+                  "explicit-exercise-evidence"
+                ],
+                "scoringBasis": [
+                  "准确",
+                  "完整",
+                  "可验证"
+                ]
+              }
+            },
+            {
+              "lessonId": "question-streaming-path",
+              "lifecycle": "active",
+              "day": 6,
+              "title": "问答流与页面状态",
+              "objective": "流式输出将一个响应拆成多个事件。前端习惯于 append 文本，后端还需要保证状态与终止语义。",
+              "goals": [
+                "流式输出将一个响应拆成多个事件。前端习惯于 append 文本，后端还需要保证状态与终止语义。",
+                "至少一条链路深入 Go 写流逻辑；不能仅凭最终文本正确判断事件处理正确。",
+                "事件样本、Go/前端源码位置和三种结束方式的状态表。"
+              ],
+              "contentPath": "lessons/question-streaming-path.md",
+              "exerciseTemplatePath": null,
+              "evaluation": {
+                "competencies": [
+                  {
+                    "competencyId": "explain-mechanism",
+                    "title": "解释本课机制与边界"
+                  },
+                  {
+                    "competencyId": "verify-evidence",
+                    "title": "完成本课明确要求的产物与验证"
+                  }
+                ],
+                "requiredEvidence": [
+                  "notes",
+                  "explicit-exercise-evidence"
+                ],
+                "scoringBasis": [
+                  "准确",
+                  "完整",
+                  "可验证"
+                ]
+              }
+            },
+            {
+              "lessonId": "parameter-and-error-contracts",
+              "lifecycle": "active",
+              "day": 7,
+              "title": "参数与错误穿过前后端边界",
+              "objective": "一个配置在页面上能填写，不代表 Go 后端实际使用了它。用可观察的输入差异验证完整契约。",
+              "goals": [
+                "一个配置在页面上能填写，不代表 Go 后端实际使用了它。用可观察的输入差异验证完整契约。",
+                "测试断言落到真实使用字段和稳定错误分类，不依赖脆弱的整段错误字符串。",
+                "字段流转表、四组输入和定向 Go 测试结果。"
+              ],
+              "contentPath": "lessons/parameter-and-error-contracts.md",
+              "exerciseTemplatePath": null,
+              "evaluation": {
+                "competencies": [
+                  {
+                    "competencyId": "explain-mechanism",
+                    "title": "解释本课机制与边界"
+                  },
+                  {
+                    "competencyId": "verify-evidence",
+                    "title": "完成本课明确要求的产物与验证"
+                  }
+                ],
+                "requiredEvidence": [
+                  "notes",
+                  "explicit-exercise-evidence"
+                ],
+                "scoringBasis": [
+                  "准确",
+                  "完整",
+                  "可验证"
+                ]
+              }
+            },
+            {
+              "lessonId": "application-chain-review",
+              "lifecycle": "active",
+              "day": 8,
+              "title": "独立复述应用闭环",
+              "objective": "阶段复盘要求在没有导航提示时，从一个用户动作独立定位到 Go 实现和数据变化。",
+              "goals": [
+                "阶段复盘要求在没有导航提示时，从一个用户动作独立定位到 Go 实现和数据变化。",
+                "每个关键结论都有代码或运行证据；无法解释的边界明确列为待补项。",
+                "独立绘制的调用图、一个反例验证和三个下一阶段问题。"
+              ],
+              "contentPath": "lessons/application-chain-review.md",
+              "exerciseTemplatePath": null,
+              "evaluation": {
+                "competencies": [
+                  {
+                    "competencyId": "explain-mechanism",
+                    "title": "解释本课机制与边界"
+                  },
+                  {
+                    "competencyId": "verify-evidence",
+                    "title": "完成本课明确要求的产物与验证"
+                  }
+                ],
+                "requiredEvidence": [
+                  "notes",
+                  "explicit-exercise-evidence"
+                ],
+                "scoringBasis": [
+                  "准确",
+                  "完整",
+                  "可验证"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "stageId": "weknora-backend",
+          "title": "WeKnora 后端与检索",
+          "description": "里程碑：用测试解释取消、重试、一致性与检索失败的原因。",
+          "lessons": [
+            {
+              "lessonId": "cancel-request-semantics",
+              "lifecycle": "active",
+              "day": 9,
+              "title": "取消回答的真实语义",
+              "objective": "从“点击停止”开始调查，确认被停止的是渲染、连接、请求，还是后端工作。",
+              "goals": [
+                "从“点击停止”开始调查，确认被停止的是渲染、连接、请求，还是后端工作。",
+                "能解释每个 context 的所有者和生命周期，区分主动取消与独立后台任务。",
+                "取消路径图、四类终止情形的语义表和对应 Go 源码位置。"
+              ],
+              "contentPath": "lessons/cancel-request-semantics.md",
+              "exerciseTemplatePath": null,
+              "evaluation": {
+                "competencies": [
+                  {
+                    "competencyId": "explain-mechanism",
+                    "title": "解释本课机制与边界"
+                  },
+                  {
+                    "competencyId": "verify-evidence",
+                    "title": "完成本课明确要求的产物与验证"
+                  }
+                ],
+                "requiredEvidence": [
+                  "notes",
+                  "explicit-exercise-evidence"
+                ],
+                "scoringBasis": [
+                  "准确",
+                  "完整",
+                  "可验证"
+                ]
+              }
+            },
+            {
+              "lessonId": "cancellation-regression-test",
+              "lifecycle": "active",
+              "day": 10,
+              "title": "用 Go 测试证明取消与清理",
+              "objective": "将上一课的行为约定变成可重复的测试，不依赖模型恰好慢到能手工点停止。",
+              "goals": [
+                "将上一课的行为约定变成可重复的测试，不依赖模型恰好慢到能手工点停止。",
+                "测试本身有超时保护；能区分调用方返回和底层工作退出。对独立后台任务按既有约定验证。",
+                "正常与取消两组测试、失败前后输出及资源回收断言。"
+              ],
+              "contentPath": "lessons/cancellation-regression-test.md",
+              "exerciseTemplatePath": null,
+              "evaluation": {
+                "competencies": [
+                  {
+                    "competencyId": "explain-mechanism",
+                    "title": "解释本课机制与边界"
+                  },
+                  {
+                    "competencyId": "verify-evidence",
+                    "title": "完成本课明确要求的产物与验证"
+                  }
+                ],
+                "requiredEvidence": [
+                  "notes",
+                  "explicit-exercise-evidence"
+                ],
+                "scoringBasis": [
+                  "准确",
+                  "完整",
+                  "可验证"
+                ]
+              }
+            },
+            {
+              "lessonId": "async-task-retry",
+              "lifecycle": "active",
+              "day": 11,
+              "title": "异步任务、重试与幂等",
+              "objective": "任务失败后能重试，不代表重复执行不会产生重复数据。本课只追一个文档处理任务。",
+              "goals": [
+                "任务失败后能重试，不代表重复执行不会产生重复数据。本课只追一个文档处理任务。",
+                "以最终数据与副作用为依据判断重复执行，不只看重试日志。",
+                "任务状态图、一次重试验证和重复执行的结果对比。"
+              ],
+              "contentPath": "lessons/async-task-retry.md",
+              "exerciseTemplatePath": null,
+              "evaluation": {
+                "competencies": [
+                  {
+                    "competencyId": "explain-mechanism",
+                    "title": "解释本课机制与边界"
+                  },
+                  {
+                    "competencyId": "verify-evidence",
+                    "title": "完成本课明确要求的产物与验证"
+                  }
+                ],
+                "requiredEvidence": [
+                  "notes",
+                  "explicit-exercise-evidence"
+                ],
+                "scoringBasis": [
+                  "准确",
+                  "完整",
+                  "可验证"
+                ]
+              }
+            },
+            {
+              "lessonId": "database-index-consistency",
+              "lifecycle": "active",
+              "day": 12,
+              "title": "数据库与索引的一致性",
+              "objective": "元数据写入成功、索引写入失败是常见的跨组件边界。先理解现有恢复方式，再考虑修复。",
+              "goals": [
+                "元数据写入成功、索引写入失败是常见的跨组件边界。先理解现有恢复方式，再考虑修复。",
+                "说明哪部分保证原子性、哪部分依靠后续恢复，不把整个链路称为单一事务。",
+                "跨组件写入顺序、故障注入结果及一条一致性不变量。"
+              ],
+              "contentPath": "lessons/database-index-consistency.md",
+              "exerciseTemplatePath": null,
+              "evaluation": {
+                "competencies": [
+                  {
+                    "competencyId": "explain-mechanism",
+                    "title": "解释本课机制与边界"
+                  },
+                  {
+                    "competencyId": "verify-evidence",
+                    "title": "完成本课明确要求的产物与验证"
+                  }
+                ],
+                "requiredEvidence": [
+                  "notes",
+                  "explicit-exercise-evidence"
+                ],
+                "scoringBasis": [
+                  "准确",
+                  "完整",
+                  "可验证"
+                ]
+              }
+            },
+            {
+              "lessonId": "concurrency-and-deadlines",
+              "lifecycle": "active",
+              "day": 13,
+              "title": "并发上限与超时预算",
+              "objective": "当文档或问题变多，重要的不只是吞吐量，还包括排队、取消和资源上限。",
+              "goals": [
+                "当文档或问题变多，重要的不只是吞吐量，还包括排队、取消和资源上限。",
+                "证明最大活动数不超过限制，取消等待者不会永久占用容量。",
+                "配置到代码的路径、最大活动数断言和两个取消/超时场景。"
+              ],
+              "contentPath": "lessons/concurrency-and-deadlines.md",
+              "exerciseTemplatePath": null,
+              "evaluation": {
+                "competencies": [
+                  {
+                    "competencyId": "explain-mechanism",
+                    "title": "解释本课机制与边界"
+                  },
+                  {
+                    "competencyId": "verify-evidence",
+                    "title": "完成本课明确要求的产物与验证"
+                  }
+                ],
+                "requiredEvidence": [
+                  "notes",
+                  "explicit-exercise-evidence"
+                ],
+                "scoringBasis": [
+                  "准确",
+                  "完整",
+                  "可验证"
+                ]
+              }
+            },
+            {
+              "lessonId": "agent-context-and-tools",
+              "lifecycle": "active",
+              "day": 14,
+              "title": "上下文构建与工具选择",
+              "objective": "同一问题在普通问答与 Agent 模式中可能经过不同处理。用实际输入输出理解选择依据。",
+              "goals": [
+                "同一问题在普通问答与 Agent 模式中可能经过不同处理。用实际输入输出理解选择依据。",
+                "每个模式都有实际源码路径；不能默认 WeKnora 使用 Eino 或共享同一套循环。",
+                "两种模式的对比、一条工具链和上下文来源表。"
+              ],
+              "contentPath": "lessons/agent-context-and-tools.md",
+              "exerciseTemplatePath": null,
+              "evaluation": {
+                "competencies": [
+                  {
+                    "competencyId": "explain-mechanism",
+                    "title": "解释本课机制与边界"
+                  },
+                  {
+                    "competencyId": "verify-evidence",
+                    "title": "完成本课明确要求的产物与验证"
+                  }
+                ],
+                "requiredEvidence": [
+                  "notes",
+                  "explicit-exercise-evidence"
+                ],
+                "scoringBasis": [
+                  "准确",
+                  "完整",
+                  "可验证"
+                ]
+              }
+            },
+            {
+              "lessonId": "retrieval-quality-fixture",
+              "lifecycle": "active",
+              "day": 15,
+              "title": "用固定数据检查检索与引用",
+              "objective": "建立小而可解释的数据集，让检索调整有可比较的基线。",
+              "goals": [
+                "建立小而可解释的数据集，让检索调整有可比较的基线。",
+                "结果可由其他人按相同数据重算；空检索、错误引用与编造答案分开记录。",
+                "10 份文档、10 个问题、固定配置与逐题结果表。"
+              ],
+              "contentPath": "lessons/retrieval-quality-fixture.md",
+              "exerciseTemplatePath": null,
+              "evaluation": {
+                "competencies": [
+                  {
+                    "competencyId": "explain-mechanism",
+                    "title": "解释本课机制与边界"
+                  },
+                  {
+                    "competencyId": "verify-evidence",
+                    "title": "完成本课明确要求的产物与验证"
+                  }
+                ],
+                "requiredEvidence": [
+                  "notes",
+                  "explicit-exercise-evidence"
+                ],
+                "scoringBasis": [
+                  "准确",
+                  "完整",
+                  "可验证"
+                ]
+              }
+            },
+            {
+              "lessonId": "failure-attribution-review",
+              "lifecycle": "active",
+              "day": 16,
+              "title": "逐层定位问答失败",
+              "objective": "用上一课的失败题走完一次归因，而不是从结果直接猜测根因。",
+              "goals": [
+                "用上一课的失败题走完一次归因，而不是从结果直接猜测根因。",
+                "结论说明已排除哪些解释和仍有哪些不确定性，不能把相关性当成因果证明。",
+                "逐层证据表、一个单变量验证和可供复现的问题描述。"
+              ],
+              "contentPath": "lessons/failure-attribution-review.md",
+              "exerciseTemplatePath": null,
+              "evaluation": {
+                "competencies": [
+                  {
+                    "competencyId": "explain-mechanism",
+                    "title": "解释本课机制与边界"
+                  },
+                  {
+                    "competencyId": "verify-evidence",
+                    "title": "完成本课明确要求的产物与验证"
+                  }
+                ],
+                "requiredEvidence": [
+                  "notes",
+                  "explicit-exercise-evidence"
+                ],
+                "scoringBasis": [
+                  "准确",
+                  "完整",
+                  "可验证"
+                ]
+              }
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "trackId": "engineering-contribution",
+      "title": "真实项目贡献",
+      "description": "把已观察的问题转成复现、测试与最小修复，形成可复查的工程成果。",
+      "stages": [
+        {
+          "stageId": "weknora-contribution",
+          "title": "WeKnora 首次贡献",
+          "description": "里程碑：交付最小复现、Go 回归测试与贡献材料，不以合并为门槛。",
+          "lessons": [
+            {
+              "lessonId": "contribution-candidate-triage",
+              "lifecycle": "active",
+              "day": 17,
+              "title": "筛选一个值得贡献的问题",
+              "objective": "把学习中已经观察到的问题收敛成一个可处理候选，先检查是否有人正在解决。",
+              "goals": [
+                "把学习中已经观察到的问题收敛成一个可处理候选，先检查是否有人正在解决。",
+                "候选有实际复现和可解释的边界；发布评论或认领前另行获得授权。",
+                "最多三个候选的筛选表与一个明确的本地工作范围。"
+              ],
+              "contentPath": "lessons/contribution-candidate-triage.md",
+              "exerciseTemplatePath": null,
+              "evaluation": {
+                "competencies": [
+                  {
+                    "competencyId": "explain-mechanism",
+                    "title": "解释本课机制与边界"
+                  },
+                  {
+                    "competencyId": "verify-evidence",
+                    "title": "完成本课明确要求的产物与验证"
+                  }
+                ],
+                "requiredEvidence": [
+                  "notes",
+                  "explicit-exercise-evidence"
+                ],
+                "scoringBasis": [
+                  "准确",
+                  "完整",
+                  "可验证"
+                ]
+              }
+            },
+            {
+              "lessonId": "minimal-reproduction",
+              "lifecycle": "active",
+              "day": 18,
+              "title": "构造最小复现与失败测试",
+              "objective": "一份好的复现能让不了解对话背景的人看到同一个错误。",
+              "goals": [
+                "一份好的复现能让不了解对话背景的人看到同一个错误。",
+                "失败断言直接对应问题；随机性、网络和环境缺失要被控制或明确标注。",
+                "最小输入、稳定失败测试、实际输出及正常对照。"
+              ],
+              "contentPath": "lessons/minimal-reproduction.md",
+              "exerciseTemplatePath": null,
+              "evaluation": {
+                "competencies": [
+                  {
+                    "competencyId": "explain-mechanism",
+                    "title": "解释本课机制与边界"
+                  },
+                  {
+                    "competencyId": "verify-evidence",
+                    "title": "完成本课明确要求的产物与验证"
+                  }
+                ],
+                "requiredEvidence": [
+                  "notes",
+                  "explicit-exercise-evidence"
+                ],
+                "scoringBasis": [
+                  "准确",
+                  "完整",
+                  "可验证"
+                ]
+              }
+            },
+            {
+              "lessonId": "minimal-fix-and-regression",
+              "lifecycle": "active",
+              "day": 19,
+              "title": "最小修复与回归范围",
+              "objective": "修复只改变已经证明错误的行为，并用证据解释为什么不会破坏邻近路径。",
+              "goals": [
+                "修复只改变已经证明错误的行为，并用证据解释为什么不会破坏邻近路径。",
+                "前后测试使用相同条件；若验证已有 PR，明确测试的 PR/SHA，不声称自己实现了修复。",
+                "最小 diff、修复前后结果、邻近行为检查与剩余限制。"
+              ],
+              "contentPath": "lessons/minimal-fix-and-regression.md",
+              "exerciseTemplatePath": null,
+              "evaluation": {
+                "competencies": [
+                  {
+                    "competencyId": "explain-mechanism",
+                    "title": "解释本课机制与边界"
+                  },
+                  {
+                    "competencyId": "verify-evidence",
+                    "title": "完成本课明确要求的产物与验证"
+                  }
+                ],
+                "requiredEvidence": [
+                  "notes",
+                  "explicit-exercise-evidence"
+                ],
+                "scoringBasis": [
+                  "准确",
+                  "完整",
+                  "可验证"
+                ]
+              }
+            },
+            {
+              "lessonId": "contribution-evidence-package",
+              "lifecycle": "active",
+              "day": 20,
+              "title": "整理可复查的贡献材料",
+              "objective": "贡献交付是让维护者可以理解和验证，不以立即合并作为学习完成条件。",
+              "goals": [
+                "贡献交付是让维护者可以理解和验证，不以立即合并作为学习完成条件。",
+                "另一位开发者能按材料复现或验证；无合适新问题时可交付已有修复的验证报告。",
+                "一份可复查的贡献草稿，含问题、变更、验证与限制。"
+              ],
+              "contentPath": "lessons/contribution-evidence-package.md",
+              "exerciseTemplatePath": null,
+              "evaluation": {
+                "competencies": [
+                  {
+                    "competencyId": "explain-mechanism",
+                    "title": "解释本课机制与边界"
+                  },
+                  {
+                    "competencyId": "verify-evidence",
+                    "title": "完成本课明确要求的产物与验证"
+                  }
+                ],
+                "requiredEvidence": [
+                  "notes",
+                  "explicit-exercise-evidence"
+                ],
+                "scoringBasis": [
+                  "准确",
+                  "完整",
+                  "可验证"
+                ]
+              }
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "trackId": "agent-mechanisms-and-review",
+      "title": "Agent 机制与复盘",
+      "description": "在应用理解之上深入 Eino，复用 Go 基础产物；总结证据后再决定是否接入 MCP。",
+      "stages": [
+        {
+          "stageId": "eino-mechanisms",
+          "title": "Eino 机制进阶",
+          "description": "里程碑：复用基础课产物，完成可测的 Eino 小服务并解释框架边界。",
+          "lessons": [
+            {
+              "lessonId": "eino-service-boundary",
+              "lifecycle": "active",
+              "day": 21,
+              "title": "从完整应用抽出 Eino 小服务",
+              "objective": "能独立追踪 WeKnora 问答后，用更小的服务理解 Agent 框架承担了哪些工作。",
+              "goals": [
+                "能独立追踪 WeKnora 问答后，用更小的服务理解 Agent 框架承担了哪些工作。",
+                "有边界设计和可验证目标；不能把安装依赖当成跑通 Agent。",
+                "服务边界图、版本记录和三条行为契约。"
+              ],
+              "contentPath": "lessons/eino-service-boundary.md",
+              "exerciseTemplatePath": null,
+              "evaluation": {
+                "competencies": [
+                  {
+                    "competencyId": "explain-mechanism",
+                    "title": "解释本课机制与边界"
+                  },
+                  {
+                    "competencyId": "verify-evidence",
+                    "title": "完成本课明确要求的产物与验证"
+                  }
+                ],
+                "requiredEvidence": [
+                  "notes",
+                  "explicit-exercise-evidence"
+                ],
+                "scoringBasis": [
+                  "准确",
+                  "完整",
+                  "可验证"
+                ]
+              }
+            },
+            {
+              "lessonId": "eino-scripted-model",
+              "lifecycle": "active",
+              "day": 22,
+              "title": "让 Agent 循环可确定测试",
+              "objective": "真实模型输出会变化，核心循环应先通过可脚本化的模型替身验证。",
+              "goals": [
+                "真实模型输出会变化，核心循环应先通过可脚本化的模型替身验证。",
+                "测试不访问外部模型；断言调用次数、输入消息和终态，而不是只断言没有 panic。",
+                "脚本模型与四条确定性测试路径。"
+              ],
+              "contentPath": "lessons/eino-scripted-model.md",
+              "exerciseTemplatePath": null,
+              "evaluation": {
+                "competencies": [
+                  {
+                    "competencyId": "explain-mechanism",
+                    "title": "解释本课机制与边界"
+                  },
+                  {
+                    "competencyId": "verify-evidence",
+                    "title": "完成本课明确要求的产物与验证"
+                  }
+                ],
+                "requiredEvidence": [
+                  "notes",
+                  "explicit-exercise-evidence"
+                ],
+                "scoringBasis": [
+                  "准确",
+                  "完整",
+                  "可验证"
+                ]
+              }
+            },
+            {
+              "lessonId": "eino-readonly-tool",
+              "lifecycle": "active",
+              "day": 23,
+              "title": "一个只读业务工具的契约",
+              "objective": "复用已熟悉的查询问题，关注工具参数、执行和结果反馈。",
+              "goals": [
+                "复用已熟悉的查询问题，关注工具参数、执行和结果反馈。",
+                "工具只做约定查询，业务层不依赖整个 Agent SDK；至少覆盖四种输入/结果边界。",
+                "一个工具适配器、输入矩阵与取消/错误测试。"
+              ],
+              "contentPath": "lessons/eino-readonly-tool.md",
+              "exerciseTemplatePath": null,
+              "evaluation": {
+                "competencies": [
+                  {
+                    "competencyId": "explain-mechanism",
+                    "title": "解释本课机制与边界"
+                  },
+                  {
+                    "competencyId": "verify-evidence",
+                    "title": "完成本课明确要求的产物与验证"
+                  }
+                ],
+                "requiredEvidence": [
+                  "notes",
+                  "explicit-exercise-evidence"
+                ],
+                "scoringBasis": [
+                  "准确",
+                  "完整",
+                  "可验证"
+                ]
+              }
+            },
+            {
+              "lessonId": "eino-loop-failure-bounds",
+              "lifecycle": "active",
+              "day": 24,
+              "title": "工具循环的错误与终止边界",
+              "objective": "能回答一次问题只是开始，Agent 还必须在错误或持续调用时停止。",
+              "goals": [
+                "能回答一次问题只是开始，Agent 还必须在错误或持续调用时停止。",
+                "每条失败路径都能有界退出，取消不被包装成正常成功。",
+                "终止条件表、持续调用测试与错误/取消回归。"
+              ],
+              "contentPath": "lessons/eino-loop-failure-bounds.md",
+              "exerciseTemplatePath": null,
+              "evaluation": {
+                "competencies": [
+                  {
+                    "competencyId": "explain-mechanism",
+                    "title": "解释本课机制与边界"
+                  },
+                  {
+                    "competencyId": "verify-evidence",
+                    "title": "完成本课明确要求的产物与验证"
+                  }
+                ],
+                "requiredEvidence": [
+                  "notes",
+                  "explicit-exercise-evidence"
+                ],
+                "scoringBasis": [
+                  "准确",
+                  "完整",
+                  "可验证"
+                ]
+              }
+            },
+            {
+              "lessonId": "eino-http-stream",
+              "lifecycle": "active",
+              "day": 25,
+              "title": "HTTP 与 Agent 事件流",
+              "objective": "让小服务把运行过程交给客户端，同时保持取消和终态一致。",
+              "goals": [
+                "让小服务把运行过程交给客户端，同时保持取消和终态一致。",
+                "断言业务事件而非网络 Read 次数；HTTP 200 之后的失败通过明确事件表达。",
+                "HTTP/流式集成测试、事件映射与断连证据。"
+              ],
+              "contentPath": "lessons/eino-http-stream.md",
+              "exerciseTemplatePath": null,
+              "evaluation": {
+                "competencies": [
+                  {
+                    "competencyId": "explain-mechanism",
+                    "title": "解释本课机制与边界"
+                  },
+                  {
+                    "competencyId": "verify-evidence",
+                    "title": "完成本课明确要求的产物与验证"
+                  }
+                ],
+                "requiredEvidence": [
+                  "notes",
+                  "explicit-exercise-evidence"
+                ],
+                "scoringBasis": [
+                  "准确",
+                  "完整",
+                  "可验证"
+                ]
+              }
+            },
+            {
+              "lessonId": "platform-framework-comparison",
+              "lifecycle": "active",
+              "day": 26,
+              "title": "比较平台与框架的职责",
+              "objective": "把 Eino 小服务与 WeKnora 放在同一个问题下比较，形成自己的工程判断。",
+              "goals": [
+                "把 Eino 小服务与 WeKnora 放在同一个问题下比较，形成自己的工程判断。",
+                "比较基于同一目标，明确证据和限制；不猜测 WeKnora 的内部依赖关系。",
+                "两条路径、职责对照表与一项需求变更分析。"
+              ],
+              "contentPath": "lessons/platform-framework-comparison.md",
+              "exerciseTemplatePath": null,
+              "evaluation": {
+                "competencies": [
+                  {
+                    "competencyId": "explain-mechanism",
+                    "title": "解释本课机制与边界"
+                  },
+                  {
+                    "competencyId": "verify-evidence",
+                    "title": "完成本课明确要求的产物与验证"
+                  }
+                ],
+                "requiredEvidence": [
+                  "notes",
+                  "explicit-exercise-evidence"
+                ],
+                "scoringBasis": [
+                  "准确",
+                  "完整",
+                  "可验证"
+                ]
+              }
+            },
+            {
+              "lessonId": "context-or-resume",
+              "lifecycle": "active",
+              "day": 27,
+              "title": "上下文管理与中断恢复",
+              "objective": "在已经可靠的单 Agent 上，选择一个机制深入，不同时堆叠多个新能力。",
+              "goals": [
+                "在已经可靠的单 Agent 上，选择一个机制深入，不同时堆叠多个新能力。",
+                "只需完成一条机制分支，但正常与失败行为都要有测试；重启恢复需实际重启证据。",
+                "选定机制的状态说明、正常/失败测试及与平台的比较。"
+              ],
+              "contentPath": "lessons/context-or-resume.md",
+              "exerciseTemplatePath": null,
+              "evaluation": {
+                "competencies": [
+                  {
+                    "competencyId": "explain-mechanism",
+                    "title": "解释本课机制与边界"
+                  },
+                  {
+                    "competencyId": "verify-evidence",
+                    "title": "完成本课明确要求的产物与验证"
+                  }
+                ],
+                "requiredEvidence": [
+                  "notes",
+                  "explicit-exercise-evidence"
+                ],
+                "scoringBasis": [
+                  "准确",
+                  "完整",
+                  "可验证"
+                ]
+              }
+            },
+            {
+              "lessonId": "orchestration-decision",
+              "lifecycle": "active",
+              "day": 28,
+              "title": "何时需要编排或多个 Agent",
+              "objective": "先证明单 Agent 的具体限制，再判断额外结构是否值得。",
+              "goals": [
+                "先证明单 Agent 的具体限制，再判断额外结构是否值得。",
+                "结论有同条件证据或明确设计边界，不以演示更复杂作为收益。",
+                "单 Agent 限制、最小方案比较和取舍结论。"
+              ],
+              "contentPath": "lessons/orchestration-decision.md",
+              "exerciseTemplatePath": null,
+              "evaluation": {
+                "competencies": [
+                  {
+                    "competencyId": "explain-mechanism",
+                    "title": "解释本课机制与边界"
+                  },
+                  {
+                    "competencyId": "verify-evidence",
+                    "title": "完成本课明确要求的产物与验证"
+                  }
+                ],
+                "requiredEvidence": [
+                  "notes",
+                  "explicit-exercise-evidence"
+                ],
+                "scoringBasis": [
+                  "准确",
+                  "完整",
+                  "可验证"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "stageId": "review-and-next-step",
+          "title": "复盘与按需 MCP",
+          "description": "里程碑：汇总链路证据与能力缺口；MCP 仅在真实需求下选修。",
+          "lessons": [
+            {
+              "lessonId": "full-chain-verification",
+              "lifecycle": "active",
+              "day": 29,
+              "title": "完整链路验证与证据索引",
+              "objective": "将分散的局部检查连接成能复查的交付，而不是汇总一组“通过”。",
+              "goals": [
+                "将分散的局部检查连接成能复查的交付，而不是汇总一组“通过”。",
+                "任何“通过”都有与范围匹配的证据；缺少模型或数据库时不能声称完整系统通过。",
+                "一张行为到证据的完整矩阵和真实的剩余缺口。"
+              ],
+              "contentPath": "lessons/full-chain-verification.md",
+              "exerciseTemplatePath": null,
+              "evaluation": {
+                "competencies": [
+                  {
+                    "competencyId": "explain-mechanism",
+                    "title": "解释本课机制与边界"
+                  },
+                  {
+                    "competencyId": "verify-evidence",
+                    "title": "完成本课明确要求的产物与验证"
+                  }
+                ],
+                "requiredEvidence": [
+                  "notes",
+                  "explicit-exercise-evidence"
+                ],
+                "scoringBasis": [
+                  "准确",
+                  "完整",
+                  "可验证"
+                ]
+              }
+            },
+            {
+              "lessonId": "next-step-and-mcp",
+              "lifecycle": "active",
+              "day": 30,
+              "title": "复盘与按需 MCP 接入",
+              "objective": "按既定路线结束这一轮：继续 WeKnora 与 Eino，只有实际工具接入需求才进入 MCP。",
+              "goals": [
+                "按既定路线结束这一轮：继续 WeKnora 与 Eino，只有实际工具接入需求才进入 MCP。",
+                "不要求实现 MCP 才能完成本课；必须有基于实际需求的判断与下一目标。",
+                "学习复盘、一个后续目标与 MCP 是否需要的判断依据。"
+              ],
+              "contentPath": "lessons/next-step-and-mcp.md",
+              "exerciseTemplatePath": null,
+              "evaluation": {
+                "competencies": [
+                  {
+                    "competencyId": "explain-mechanism",
+                    "title": "解释本课机制与边界"
+                  },
+                  {
+                    "competencyId": "verify-evidence",
+                    "title": "完成本课明确要求的产物与验证"
+                  }
+                ],
+                "requiredEvidence": [
+                  "notes",
+                  "explicit-exercise-evidence"
+                ],
+                "scoringBasis": [
+                  "准确",
+                  "完整",
+                  "可验证"
+                ]
+              }
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}

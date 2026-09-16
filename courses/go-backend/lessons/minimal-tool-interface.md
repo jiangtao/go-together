@@ -2,11 +2,15 @@
 
 English title: **Day 30: minimal Tool interface**
 
-返回：[每日课程目录](README.md) | 主教程：[node-to-go-36-day-course.md](../node-to-go-36-day-course.md)
+返回：[课程目录](../README.md)
 
 本文件只服务当天学习。今天只完成今天的目标，不提前展开后续天数，避免主题互相干扰。
 
 English focus: **Small Tool interface for Agent practice**
+
+### 本课定位
+
+这是 Go 综合练习：借工具调用巩固小接口、参数校验、context 与错误测试，不构建通用 Agent 框架。保留 Trip 查询、fake store 和输入矩阵，进入实战课时复用它们，只增加 Eino 适配与工具调用契约验证。
 
 ### 学习目标
 

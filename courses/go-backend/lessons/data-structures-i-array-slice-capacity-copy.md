@@ -2,7 +2,7 @@
 
 English title: **Day 03: data structures I: array / slice / capacity / copy**
 
-返回：[每日课程目录](README.md) | 主教程：[node-to-go-36-day-course.md](../node-to-go-36-day-course.md)
+返回：[课程目录](../README.md)
 
 本文件只服务当天学习。今天只完成今天的目标，不提前展开后续天数，避免主题互相干扰。
 

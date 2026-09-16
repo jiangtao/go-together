@@ -2,11 +2,13 @@
 
 English title: **Day 31: provider abstraction**
 
-返回：[每日课程目录](README.md) | 主教程：[node-to-go-36-day-course.md](../node-to-go-36-day-course.md)
+返回：[课程目录](../README.md)
 
 本文件只服务当天学习。今天只完成今天的目标，不提前展开后续天数，避免主题互相干扰。
 
 ### 学习目标
+
+本课的手写最小循环只用于理解 Go 接口替换、控制流与可测边界，到脚本测试可验证为止。进入 Eino 实战时复用这些场景和断言，由框架承担执行，不再重写第二套循环。
 
 把真实 LLM provider 隔离到可替换接口后面，让 Agent loop 可以在没有网络、没有 API key、没有真实模型波动的情况下被测试。今天的重点不是“接入某个模型 SDK”，而是学会在 Go 里把外部 provider 变成小接口和边界适配器。
 

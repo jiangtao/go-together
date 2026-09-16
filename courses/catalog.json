@@ -23,6 +23,17 @@
       "lifecycle": "published",
       "replacementCourseId": null,
       "manifestPath": "courses/editor-engineering/course.json"
+    },
+    {
+      "courseId": "go-agent-application",
+      "title": "Go Agent 应用实战",
+      "language": {
+        "id": "go",
+        "label": "Go"
+      },
+      "lifecycle": "published",
+      "replacementCourseId": null,
+      "manifestPath": "courses/go-agent-application/course.json"
     }
   ]
 }

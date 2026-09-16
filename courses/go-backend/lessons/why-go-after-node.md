@@ -2,7 +2,7 @@
 
 English title: **Day 00: Why Learn Go After Node.js**
 
-返回：[每日课程目录](README.md) | 主教程：[node-to-go-36-day-course.md](../node-to-go-36-day-course.md)
+返回：[课程目录](../README.md)
 
 本文件是正式 Day 1 之前的前言。今天不写代码，目标是搞清楚背景、动机和判断标准：不是为了证明 Go 比 Node.js 高级，也不是为了抛弃 Node.js，而是为了扩展你作为后端工程师能稳定处理的问题范围。
 

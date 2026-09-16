@@ -11,6 +11,8 @@ English title: **Go Learning Directory**
 | 课程结构 | [course.json](course.json) | 37 个 Lesson 的稳定身份、Track、Stage、Day 节奏与评测契约 |
 | 课程正文 | [lessons/](lessons/) | 先读 Day 0 搞清楚为什么学 Go；之后每次只打开当前 Lesson |
 | 评测政策 | [evaluation/policy.md](evaluation/policy.md) | 四态、0–4 诊断、三次机会、工程证据与零答案泄露 |
+| Agent 进阶计划 | [Go Agent 学习与贡献计划](../../docs/go-agent-learning-plan.md) | 从 WeKnora 应用链路进入 Go 后端，再用 Eino 深入 Agent 机制 |
+| Agent 实战课程 | [30 课目录](../go-agent-application/README.md) | 与基础课衔接的完整 Markdown、课次身份与线路图 |
 
 ## 学习方法
 
@@ -42,7 +44,21 @@ English title: **Go Learning Directory**
 | Phase 03 | Day 11-16 | 数据库、sqlc 与事务边界 |
 | Phase 04 | Day 17-20 | gRPC、Protobuf 与 Unary 服务 |
 | Phase 05 | Day 21-28 | Streaming、并发与运行期治理 |
-| Phase 06 | Day 29-36 | Agent、开源阅读与最终切片 |
+| Phase 06 | Day 29-36 | Go 综合练习与 Agent 入门 |
+
+## 基础课中的 Agent 是否重复
+
+保留 Agent 场景作为 Go 综合练习，不再把它定位成一门完整 Agent 框架课。Day 29 练源码阅读；Day 30-35 用小工具、脚本模型、持久化与流式返回串起接口、context、错误、测试和资源生命周期；Day 36 总结工程基础。练习到最小可测切片为止，不扩展为生产级 Agent 框架。
+
+实战课新增的是 WeKnora 真实应用、检索与异步机制、贡献闭环，以及 Eino 的执行和上下文边界。已有 Trip 查询、模型脚本、错误/取消用例与事件定义应复用，只补真实项目或框架适配带来的新增验证。复用产物不等于自动通过另一课，也不要求为了重复练习重写业务代码。
+
+## Agent 方向如何继续
+
+针对前端应用开发、有一定 Node.js 后端基础的学习者，路线采用：**WeKnora 学完整应用和首次贡献 → Eino 深入 Agent 机制 → 有实际接入需求时再学 MCP**。从上传、问答、流式展示等熟悉的用户操作出发，每个任务至少追到一段 Go 业务逻辑，并提供关键行为验证。
+
+Day 29 优先追踪 WeKnora 的一条问答请求。Day 30-36 的 Trip 小接口、fake model 和测试继续作为拆解机制的练习材料。进入 WeKnora 前先具备 Go HTTP、JSON、error、context 和基本测试能力，数据库与并发知识按遇到的问题补齐；完整基础课的评测仍按既有规则推进。
+
+进阶内容已形成独立的 `go-agent-application` 课程，共 3 条主干、5 个阶段、30 个 Lesson，在网站课程选择器中显示“Go Agent 应用实战”。它与当前 37 个基础 Lesson 分别记录进度；主干用于知识分块，阶段用于递进与里程碑总结。
 
 ## 复盘问题
 

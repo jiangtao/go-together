@@ -40,8 +40,8 @@
     {
       "stageId": "stage-6",
       "canonicalStageId": "agent-slice-and-review",
-      "title": "Agent 切片与复盘",
-      "description": "阅读开源模式，构造最小 Agent 切片并完成集成、加固和复盘。"
+      "title": "Go 综合练习与 Agent 入门",
+      "description": "以 WeKnora 阅读和最小 Agent 切片巩固接口、context、测试与运行治理；不重复实战课的框架进阶。"
     }
   ],
   "lessons": [
@@ -223,7 +223,7 @@
       "lessonId": "open-source-reading-pass",
       "legacyId": "day-29",
       "legacyHref": "/sources/lessons/day-29-open-source-reading-pass.md",
-      "englishTitle": "Day 29: open-source reading pass"
+      "englishTitle": "Day 29: Reading a WeKnora Request Path"
     },
     {
       "lessonId": "minimal-tool-interface",
@@ -265,7 +265,7 @@
       "lessonId": "final-review",
       "legacyId": "day-36",
       "legacyHref": "/sources/lessons/day-36-final-review.md",
-      "englishTitle": "Day 36: final review"
+      "englishTitle": "Day 36: Final Review and WeKnora Learning Path"
     }
   ]
 }
